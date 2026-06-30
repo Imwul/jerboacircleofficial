@@ -81,7 +81,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </button>
             <h2 className="text-xl font-black text-stone-800">{latestUser.name} practice record</h2>
           </div>
-          <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest bg-stone-50 px-3 py-1 rounded-full">Keeper view</span>
+          <span className="text-[10px] font-black text-stone-400 tracking-widest bg-stone-50 px-3 py-1 rounded-full">Keeper view</span>
         </div>
         <div className="flex-1 overflow-hidden">
           <HabitTrackingView 
@@ -99,19 +99,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
     <div className="flex flex-col h-full bg-stone-50">
       <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
         <h2 className="text-xl font-black text-stone-800">Keeper Desk</h2>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase">Close register</button>
+        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600">Close register</button>
       </div>
 
       <div className="flex bg-white border-b border-stone-100">
         <button 
           onClick={() => setActiveTab('users')}
-          className={`flex-1 py-3 text-[10px] font-bold uppercase transition-all ${activeTab === 'users' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
+          className={`flex-1 py-3 text-[10px] font-bold transition-all ${activeTab === 'users' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
         >
           Member Register
         </button>
         <button 
           onClick={() => setActiveTab('settings')}
-          className={`flex-1 py-3 text-[10px] font-bold uppercase transition-all ${activeTab === 'settings' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
+          className={`flex-1 py-3 text-[10px] font-bold transition-all ${activeTab === 'settings' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
         >
           Archive Tools
         </button>
@@ -121,7 +121,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         {activeTab === 'users' ? (
           <div className="space-y-3">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xs font-bold text-stone-400 uppercase ml-1">Register entries ({users.length})</h3>
+              <h3 className="text-xs font-bold text-stone-400 ml-1">Register entries / {users.length}</h3>
               <div className="flex gap-2">
                 <button 
                   onClick={() => setBulkEditDateModalOpen(true)}
@@ -159,8 +159,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         )}
                       </div>
                       <div className="flex gap-2 items-center">
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${TIER_COLORS[user.tier]}`}>{user.tier}</span>
-                        <span className="text-[10px] text-stone-400 font-bold tracking-tight">{user.coins} <span className="text-[8px] opacity-60 uppercase">Coins</span></span>
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${TIER_COLORS[user.tier]}`}>{user.tier}</span>
+                        <span className="text-[10px] text-stone-400 font-bold tracking-tight">{user.coins} <span className="text-[8px] opacity-60">Coins</span></span>
                       </div>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         ) : (
           <div className="space-y-6 pb-20">
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">Archive frontispiece</h3>
+              <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">Archive frontispiece</h3>
               <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm space-y-4">
                 <div className="flex flex-col items-center space-y-4">
                   <div className="w-32 h-32 rounded-3xl bg-stone-50 border-2 border-dashed border-stone-200 flex items-center justify-center overflow-hidden relative group">
@@ -199,7 +199,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     ) : (
                       <div className="text-center space-y-1">
                         <svg className="w-8 h-8 text-stone-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <span className="text-[10px] font-bold text-stone-300 uppercase tracking-widest">No image</span>
+                        <span className="text-[10px] font-bold text-stone-300 tracking-widest">No image</span>
                       </div>
                     )}
                   </div>
@@ -219,7 +219,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">Register transfer</h3>
+              <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">Register transfer</h3>
               <div className="grid grid-cols-1 gap-2">
                 <button onClick={onExportAllData} className="w-full p-4 bg-white border border-stone-100 rounded-2xl flex items-center justify-between group hover:bg-stone-50 transition-colors">
                   <div className="text-left">
@@ -234,7 +234,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
               <div className="font-bold text-stone-800">Local archive</div>
               <div className="text-[10px] text-stone-400 font-medium mt-1">
-                Records are stored in this browser. Use a register code to transfer them elsewhere.
+                Records are stored in this browser / use a register code to transfer them elsewhere
               </div>
             </div>
           </div>
@@ -247,7 +247,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <h3 className="text-lg font-black text-stone-900">Edit register entry</h3>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Name</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Name</label>
                 <input 
                   type="text" 
                   value={editingUser.name} 
@@ -256,13 +256,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Tier</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Tier</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[Tier.SILT, Tier.CREST, Tier.ERG].map(t => (
                     <button 
                       key={t}
                       onClick={() => setEditingUser({...editingUser, tier: t})}
-                      className={`py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${editingUser.tier === t ? TIER_COLORS[t] : 'bg-stone-50 text-stone-400 hover:bg-stone-100'}`}
+                      className={`py-2 rounded-xl text-[10px] font-bold tracking-widest transition-all ${editingUser.tier === t ? TIER_COLORS[t] : 'bg-stone-50 text-stone-400 hover:bg-stone-100'}`}
                     >
                       {t}
                     </button>
@@ -270,7 +270,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Coin balance</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Coin balance</label>
                 <input 
                   type="number" 
                   value={editingUser.coins} 
@@ -279,7 +279,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Closing date</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Closing date</label>
                 <input 
                   type="date" 
                   value={editingUser.tierEndDate || ''} 
@@ -299,9 +299,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
             <h3 className="text-lg font-black text-stone-900">Mark closing dates</h3>
-            <p className="text-xs text-stone-500">Set the same closing date across all register entries.</p>
+            <p className="text-xs text-stone-500">Set the same closing date across all register entries</p>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Closing date</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Closing date</label>
               <input 
                 type="date" 
                 value={bulkEndDate} 

@@ -12,10 +12,11 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
         <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
+          <small lang="ko">공식 포스터 보관소</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
-          <a href={detailRootHref()}>Archive wall</a>
-          <a href={`${detailRootHref()}members/`}>Members</a>
+          <a href={detailRootHref()}>기록벽</a>
+          <a href={`${detailRootHref()}members/`}>회원실</a>
         </nav>
       </header>
       <main className="detail-record section-reveal">
@@ -23,26 +24,26 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker">Archive record / {event.status}</p>
+          <p className="section-kicker">개별 기록 / {event.status}</p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="detail-long">{event.longDescription}</p>
           <dl className="event-meta detail-meta">
             <div>
-              <dt>Date</dt>
+              <dt>일자</dt>
               <dd>{event.date}</dd>
             </div>
             <div>
-              <dt>Format</dt>
+              <dt>형식</dt>
               <dd>{event.location}</dd>
             </div>
             <div>
-              <dt>Themes</dt>
+              <dt>주제</dt>
               <dd>{event.themes.join(' / ')}</dd>
             </div>
           </dl>
           <a className="archive-cta" href={detailRootHref()}>
-            Return to archive
+            기록벽으로 돌아가기
           </a>
         </article>
       </main>
@@ -60,13 +61,14 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           <a className="archive-wordmark" href={detailRootHref()}>
             <span>Jerboa</span>
             <span>Circle</span>
+            <small lang="ko">공식 포스터 보관소</small>
           </a>
         </header>
         <main className="missing-record">
-          <p className="section-kicker">Archive record missing</p>
-          <h1>This poster has not entered the wall.</h1>
+          <p className="section-kicker">사라진 기록</p>
+          <h1 lang="ko">아직 벽에 걸리지 않은 포스터입니다.</h1>
           <a className="archive-cta" href={detailRootHref()}>
-            Return to archive
+            기록벽으로 돌아가기
           </a>
         </main>
       </div>

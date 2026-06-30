@@ -149,7 +149,7 @@ function App() {
   }, [lastSaved]);
 
   const triggerSaveNotification = () => {
-    setLastSaved(format(new Date(), 'HH:mm:ss'));
+    setLastSaved(format(new Date(), 'HH mm ss'));
   };
 
   const [syncCodeToDisplay, setSyncCodeToDisplay] = useState<string | null>(null);
@@ -338,96 +338,96 @@ function App() {
   const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
   const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
   const archiveSectionTitle = !currentUser
-    ? 'Private Entrance'
+    ? '비밀 입장부'
     : currentUser === 'admin'
-      ? activeTab === 'admin' ? 'Keeper Desk' : 'Current Program'
-      : activeTab === 'habit' ? 'Practice Log' : activeTab === 'profile' ? 'Member Register' : 'Current Program';
+      ? activeTab === 'admin' ? '보관자 책상' : '현재 프로그램'
+      : activeTab === 'habit' ? '수련 일지' : activeTab === 'profile' ? '회원 등록부' : '현재 프로그램';
   const archiveSectionNote = !currentUser
-    ? 'Open the private register to continue.'
+    ? '닫힌 서랍을 열고 개인 기록으로 들어갑니다.'
     : currentUser === 'admin'
-      ? 'Records, gatherings, members, and preservation tools.'
-      : 'A private ledger of gatherings, practice, and personal records.';
+      ? '모임, 회원, 프로그램, 보존 도구를 한 권의 장부처럼 다룹니다.'
+      : '모임과 수련, 개인 기록을 보관하는 사적인 장부입니다.';
 
   return (
     <ErrorBoundary>
       <div className="members-archive min-h-screen text-stone-900 font-sans">
         <aside className="archive-sidebar" aria-label="Private archive navigation">
           <a className="archive-sigil" href="./">
-            <span>JERBOA</span>
-            <span>CIRCLE</span>
+            <span>Jerboa</span>
+            <span>Circle</span>
           </a>
           <nav className="archive-cabinet">
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>Archive</span>
+              <span>기록함</span>
               <small>{events.length} records</small>
             </button>
             <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
-              <span>Members</span>
+              <span>회원록</span>
               <small>{users.length} entries</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>Gatherings</span>
+              <span>모임</span>
               <small>{totalEnrollments} marks</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>Programs</span>
+              <span>프로그램</span>
               <small>current register</small>
             </button>
             <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' && setActiveTab('habit')}>
-              <span>Practice Log</span>
+              <span>수련 일지</span>
               <small>{completedToday} today</small>
             </button>
             <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser === 'admin' && setActiveTab('admin')}>
-              <span>Keeper</span>
+              <span>보관자</span>
               <small>{currentUser === 'admin' ? 'unlocked' : 'sealed'}</small>
             </button>
           </nav>
           <div className="archive-sidebar-foot">
-            <span>Private archive</span>
-            <span>Local register</span>
+            <span>비공개 보관소</span>
+            <span>로컬 장부</span>
           </div>
         </aside>
 
         <div className="archive-workbench">
           {lastSaved && (
             <div className="archive-save-notice">
-              Register marked ({lastSaved})
+              장부에 기록됨 / {lastSaved}
             </div>
           )}
           
           <header className="archive-topbar">
             <div>
-              <p>Jerboa Circle / Members</p>
+              <p>Jerboa Circle / 비공개 회원실</p>
               <h1>{archiveSectionTitle}</h1>
               <span>{archiveSectionNote}</span>
             </div>
             <div className="archive-topbar-actions">
               {currentUser === 'admin' && (
                 <button onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
-                  {activeTab === 'calendar' ? 'Keeper Desk' : 'Program Ledger'}
+                  {activeTab === 'calendar' ? '보관자 책상' : '프로그램 장부'}
                 </button>
               )}
               {currentUser && (
-                <button onClick={handleLogout}>Close Register</button>
+                <button onClick={handleLogout}>장부 닫기</button>
               )}
             </div>
           </header>
 
           <section className="archive-context" aria-label="Archive summary">
             <div>
-              <span>Current Program</span>
+              <span>현재 프로그램</span>
               <strong>{events.length}</strong>
             </div>
             <div>
-              <span>Archive Timeline</span>
+              <span>기록된 참여</span>
               <strong>{totalEnrollments}</strong>
             </div>
             <div>
-              <span>Member Register</span>
+              <span>회원 등록부</span>
               <strong>{users.length}</strong>
             </div>
             <div>
-              <span>Activity Log</span>
+              <span>오늘의 수련</span>
               <strong>{completedToday}</strong>
             </div>
           </section>
@@ -487,15 +487,15 @@ function App() {
             <nav className="archive-mobile-tabs">
               <button onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span>Archive</span>
+                <span>기록함</span>
               </button>
               <button onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>Practice</span>
+                <span>수련</span>
               </button>
               <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span>Register</span>
+                <span>등록부</span>
               </button>
             </nav>
           )}

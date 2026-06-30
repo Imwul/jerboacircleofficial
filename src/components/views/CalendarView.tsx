@@ -62,18 +62,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-xl font-black text-stone-800">
-            {format(currentMonth, 'yyyy.MM')} Register
+            {format(currentMonth, 'yyyy MM')} Register
           </h2>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-widest">Close register</button>
+        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest">Close register</button>
       </div>
 
       <div className="grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
         {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
-          <div key={d} className={`bg-white py-3 text-center text-[10px] font-black uppercase ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-stone-400'}`}>{d}</div>
+          <div key={d} className={`bg-white py-3 text-center text-[10px] font-black ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-stone-400'}`}>{d}</div>
         ))}
         {days.map(day => {
           const dateEvents = getEventsForDate(day);
@@ -111,7 +111,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
-            {format(selectedDate, 'MM.dd')} Gatherings
+            {format(selectedDate, 'MM dd')} Gatherings
           </h3>
           {isAdmin && (
             <div className="flex gap-2">
@@ -120,7 +120,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => onPasteEvent?.(selectedDate)}
                   className="text-[10px] bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold border border-amber-100 animate-pulse"
                 >
-                  Place copy ({copiedEventTitle})
+                  Place copy / {copiedEventTitle}
                 </button>
               )}
               <button 
@@ -136,7 +136,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <div className="text-4xl opacity-20">☁️</div>
-            <p className="text-xs font-bold text-stone-300 uppercase tracking-widest">No gathering recorded</p>
+            <p className="text-xs font-bold text-stone-300 tracking-widest">No gathering recorded</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -153,11 +153,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <div className="relative z-10 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <div className="text-[10px] font-black uppercase opacity-70">{event.themeName}</div>
+                        <div className="text-[10px] font-black opacity-70">{event.themeName}</div>
                         <h4 className="text-xl font-black leading-none">{event.title}</h4>
                       </div>
                       <div className="text-[11px] font-black bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                        {format(parseISO(event.date), 'HH:mm')} - {format(parseISO(event.endDate), 'HH:mm')}
+                        {format(parseISO(event.date), 'HH mm')} / {format(parseISO(event.endDate), 'HH mm')}
                       </div>
                     </div>
                     
@@ -176,7 +176,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Attendance</span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">Attendance</span>
                           <div className="flex items-center gap-1.5">
                             <div className="flex -space-x-2">
                               {users.filter(u => u.enrolledEventIds.includes(event.id)).slice(0, 3).map(u => (
@@ -190,8 +190,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                         <div className="w-px h-6 bg-white/10" />
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">{event.isReward ? 'Credit' : 'Cost'}</span>
-                          <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">COINS</span></span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">{event.isReward ? 'Credit' : 'Cost'}</span>
+                          <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">Coins</span></span>
                         </div>
                       </div>
 

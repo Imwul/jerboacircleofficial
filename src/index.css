@@ -1,7 +1,39 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Jerboa Deigrat";
+  src: url("./assets/fonts/DeiGrat.ttf") format("truetype");
+  font-display: swap;
+  unicode-range:
+    U+002F,
+    U+0030-0039,
+    U+0041-005A,
+    U+0061-007A;
+}
+
+@font-face {
+  font-family: "Jerboa Pretendard";
+  src: url("./assets/fonts/PretendardVariable.ttf") format("truetype");
+  font-weight: 45 920;
+  font-display: swap;
+  unicode-range:
+    U+0020-002E,
+    U+003A-0040,
+    U+005B-0060,
+    U+007B-007E,
+    U+00A0-00BF,
+    U+2000-206F,
+    U+20A9,
+    U+3000-303F,
+    U+1100-11FF,
+    U+3130-318F,
+    U+A960-A97F,
+    U+AC00-D7AF,
+    U+D7B0-D7FF;
+}
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Jerboa Deigrat", "Jerboa Pretendard", ui-serif, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-primary-50: #f4f5f0;
@@ -23,13 +55,41 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  --ko-letter-tight: -0.03em;
+  --ko-word-compensation: 0.03em;
+  --ko-ritual-scale-x: 0.9;
+  --ko-ritual-scale-y: 1.12;
+  --font-heavy-header: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-display: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-body-archive: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-ko: "Jerboa Pretendard", "Jerboa Deigrat", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 body {
   background-color: #fafaf9; /* stone-50 */
   color: #1c1917; /* stone-900 */
-  letter-spacing: -0.03em;
+  letter-spacing: normal;
+  word-spacing: normal;
   font-family: var(--font-sans);
+}
+
+[lang="ko"],
+.ko-copy {
+  display: inline-block;
+  font-family: var(--font-ko);
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.ko-ritual {
+  display: inline-block;
+  font-family: var(--font-ko);
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
 }
 
 ::-webkit-scrollbar {

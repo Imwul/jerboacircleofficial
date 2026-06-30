@@ -49,7 +49,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           </div>
         )}
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium">private register of the...</p>
+          <p className="italic text-stone-400 text-sm font-medium">private register of the</p>
           <h1 className="text-4xl font-black text-stone-900">
             Member<span className="text-primary-600">Archive</span>
           </h1>
@@ -58,7 +58,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400 uppercase">Register entries</p>
+          <p className="text-[10px] font-black text-stone-400">Register entries</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
@@ -87,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                     </div>
                   )}
                 </div>
-                <div className="text-[9px] text-stone-400 font-black uppercase">{user.tier} tier / private record</div>
+                <div className="text-[9px] text-stone-400 font-black">{user.tier} tier / private record</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
@@ -100,7 +100,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
       <div className="w-full pt-8 border-t border-stone-100 space-y-4">
         <button 
           onClick={() => setShowAdminModal(true)}
-          className="w-full py-3 text-stone-400 hover:text-stone-600 text-xs font-bold uppercase tracking-widest transition-colors"
+          className="w-full py-3 text-stone-400 hover:text-stone-600 text-xs font-bold tracking-widest transition-colors"
         >
           Keeper access
         </button>
@@ -139,7 +139,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
 
       <div className="absolute bottom-8 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-green-500" />
-        <span className="text-[10px] font-bold text-stone-300 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-stone-300 tracking-widest">
           Local Register Ready
         </span>
       </div>
@@ -155,7 +155,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
             </div>
             <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Archive key</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Archive key</label>
                 <input 
                   type="password" 
                   value={adminPassword} 

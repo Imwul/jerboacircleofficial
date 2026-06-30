@@ -7,13 +7,14 @@ function SiteHeader() {
       <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
         <span>Jerboa</span>
         <span>Circle</span>
+        <small lang="ko">공식 포스터 보관소</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a href="#featured">Current</a>
-        <a href="#archive">Archive</a>
-        <a href="#manifesto">Manifesto</a>
-        <a href="#join">Join</a>
-        <a href="./members/">Members</a>
+        <a href="#featured">현재</a>
+        <a href="#archive">기록벽</a>
+        <a href="#manifesto">선언문</a>
+        <a href="#join">초대</a>
+        <a href="./members/">회원실</a>
       </nav>
     </header>
   );
@@ -23,15 +24,15 @@ function EventMeta({ event }: { event: ArchiveEvent }) {
   return (
     <dl className="event-meta" aria-label={`${event.title} metadata`}>
       <div>
-        <dt>Date</dt>
+        <dt>일자</dt>
         <dd>{event.date}</dd>
       </div>
       <div>
-        <dt>Status</dt>
+        <dt>상태</dt>
         <dd>{event.status}</dd>
       </div>
       <div>
-        <dt>Format</dt>
+        <dt>형식</dt>
         <dd>{event.location}</dd>
       </div>
     </dl>
@@ -55,8 +56,11 @@ function FeaturedEvent() {
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker">Featured current event</p>
+        <p className="section-kicker">현재 걸린 포스터 / featured current event</p>
         <h1>{featuredEvent.title}</h1>
+        <p className="korean-annotation" lang="ko">
+          불씨의 여섯 장 / 성배 / 숲 / 성물 / 장미 / 불 / 별을 따라 읽는 비밀 프로그램
+        </p>
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
         <p className="event-description">{featuredEvent.shortDescription}</p>
         <EventMeta event={featuredEvent} />
@@ -91,8 +95,8 @@ function PosterArchive() {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker">Poster archive</p>
-        <h2>Programs, readings, studies, and private records.</h2>
+        <p className="section-kicker">포스터 기록벽 / poster archive</p>
+        <h2 lang="ko">낭독 / 연구 / 모임 / 사적인 기록의 벽</h2>
       </div>
       <div className="poster-grid">
         {events.map((event, index) => (
@@ -106,11 +110,10 @@ function PosterArchive() {
 function ManifestoBlock() {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
-      <p className="section-kicker">Manifesto</p>
-      <p>
-        Jerboa Circle keeps a wall of signs: readings, fragments, gatherings,
-        images, and studies. Each poster is a door, each door a record, each
-        record a small resistance to forgetting.
+      <p className="section-kicker">선언문 / manifesto</p>
+      <p lang="ko">
+        저보아 서클은 낭독 / 파편 / 이미지 / 연구와 모임을 한 장의 포스터로 보관한다
+        포스터는 문 / 문은 기록 / 기록은 잊힘에 맞서는 조용한 불씨
       </p>
     </section>
   );
@@ -120,11 +123,11 @@ function JoinBlock() {
   return (
     <section className="join-block section-reveal" id="join">
       <div>
-        <p className="section-kicker">Contact</p>
-        <h2>For invitations, records, and future programs.</h2>
+        <p className="section-kicker">초대와 연락 / contact</p>
+        <h2 lang="ko">초대 / 기록 열람 / 다음 프로그램에 관한 서신을 받습니다</h2>
       </div>
       <a className="archive-cta inverse" href="mailto:hello@jerboacircle.com">
-        Write to Jerboa Circle
+        서신 보내기
       </a>
     </section>
   );
@@ -134,7 +137,7 @@ function SiteFooter() {
   return (
     <footer className="archive-footer">
       <span>Jerboa Circle Official Archive</span>
-      <span>Black / parchment / oxblood / ash</span>
+      <span lang="ko">검정 / 양피지 / 산화된 붉은빛 / 재색</span>
     </footer>
   );
 }

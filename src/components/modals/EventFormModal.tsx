@@ -107,7 +107,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">일정 제목</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">일정 제목</label>
             <input 
               type="text" 
               value={title} 
@@ -118,7 +118,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">요약 설명</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">요약 설명</label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)}
@@ -128,7 +128,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">상세 설명</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">상세 설명</label>
             <textarea 
               value={detailedDescription} 
               onChange={e => setDetailedDescription(e.target.value)}
@@ -139,7 +139,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">날짜 및 시간</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">날짜 및 시간</label>
               <input 
                 type="datetime-local" 
                 value={date} 
@@ -148,7 +148,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">소요 시간</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">소요 시간</label>
               <select 
                 value={duration} 
                 onChange={e => setDuration(parseInt(e.target.value) || 30)}
@@ -174,7 +174,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">테마 선택</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">테마 선택</label>
             <div className="grid grid-cols-5 gap-2">
               {Object.keys(THEME_CONFIG).map(t => (
                 <button 
@@ -196,7 +196,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">참여 비용 / 보상</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">참여 비용 / 보상</label>
               <div className="flex gap-2">
                 <input 
                   type="number" 
@@ -206,14 +206,14 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                 />
                 <button 
                   onClick={() => setIsReward(!isReward)}
-                  className={`px-4 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isReward ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}
+                  className={`px-4 rounded-xl text-[10px] font-bold tracking-widest transition-all ${isReward ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}
                 >
                   {isReward ? '보상' : '비용'}
                 </button>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">최대 인원</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">최대 인원</label>
               <input 
                 type="number" 
                 value={maxParticipants} 
@@ -227,7 +227,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           {!event && (
             <div className="pt-4 border-t border-stone-100 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">반복 일정 설정</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">반복 일정 설정</label>
                 <button 
                   onClick={() => setIsRecurring(!isRecurring)}
                   className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? 'bg-stone-900' : 'bg-stone-200'}`}
