@@ -62,13 +62,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-xl font-black text-stone-800">
-            {format(currentMonth, 'yyyy년 MM월')}
+            {format(currentMonth, 'yyyy.MM')} Register
           </h2>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-widest">로그아웃</button>
+        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase tracking-widest">Close register</button>
       </div>
 
       <div className="grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
@@ -111,7 +111,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
-            {format(selectedDate, 'MM월 dd일')} 일정
+            {format(selectedDate, 'MM.dd')} Gatherings
           </h3>
           {isAdmin && (
             <div className="flex gap-2">
@@ -120,14 +120,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => onPasteEvent?.(selectedDate)}
                   className="text-[10px] bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold border border-amber-100 animate-pulse"
                 >
-                  붙여넣기 ({copiedEventTitle})
+                  Place copy ({copiedEventTitle})
                 </button>
               )}
               <button 
                 onClick={() => onAddEvent?.(selectedDate)}
                 className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg active:scale-95 transition-transform"
               >
-                + 일정 추가
+                + Add gathering
               </button>
             </div>
           )}
@@ -136,7 +136,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <div className="text-4xl opacity-20">☁️</div>
-            <p className="text-xs font-bold text-stone-300 uppercase tracking-widest">일정이 없습니다</p>
+            <p className="text-xs font-bold text-stone-300 uppercase tracking-widest">No gathering recorded</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -176,7 +176,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">참여 현황</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Attendance</span>
                           <div className="flex items-center gap-1.5">
                             <div className="flex -space-x-2">
                               {users.filter(u => u.enrolledEventIds.includes(event.id)).slice(0, 3).map(u => (
@@ -190,7 +190,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                         <div className="w-px h-6 bg-white/10" />
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">{event.isReward ? '획득' : '비용'}</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest opacity-50">{event.isReward ? 'Credit' : 'Cost'}</span>
                           <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">COINS</span></span>
                         </div>
                       </div>
@@ -212,7 +212,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           onClick={(e) => { e.stopPropagation(); enrolled ? onCancelEvent(event) : onJoinEvent(event); }}
                           className={`px-6 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 ${enrolled ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}
                         >
-                          {enrolled ? '참여 취소' : '참여하기'}
+                          {enrolled ? 'Remove mark' : 'Mark attendance'}
                         </button>
                       )}
                     </div>

@@ -79,9 +79,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <button onClick={() => setViewingHabitUser(null)} className="p-2 hover:bg-stone-50 rounded-full text-stone-400">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
-            <h2 className="text-xl font-black text-stone-800">{latestUser.name}님의 습관 관리</h2>
+            <h2 className="text-xl font-black text-stone-800">{latestUser.name} practice record</h2>
           </div>
-          <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest bg-stone-50 px-3 py-1 rounded-full">관리자 모드</span>
+          <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest bg-stone-50 px-3 py-1 rounded-full">Keeper view</span>
         </div>
         <div className="flex-1 overflow-hidden">
           <HabitTrackingView 
@@ -98,8 +98,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-stone-50">
       <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
-        <h2 className="text-xl font-black text-stone-800">관리자 모드</h2>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase">로그아웃</button>
+        <h2 className="text-xl font-black text-stone-800">Keeper Desk</h2>
+        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 uppercase">Close register</button>
       </div>
 
       <div className="flex bg-white border-b border-stone-100">
@@ -107,13 +107,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
           onClick={() => setActiveTab('users')}
           className={`flex-1 py-3 text-[10px] font-bold uppercase transition-all ${activeTab === 'users' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
         >
-          멤버 관리
+          Member Register
         </button>
         <button 
           onClick={() => setActiveTab('settings')}
           className={`flex-1 py-3 text-[10px] font-bold uppercase transition-all ${activeTab === 'settings' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
         >
-          시스템 설정
+          Archive Tools
         </button>
       </div>
 
@@ -121,19 +121,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
         {activeTab === 'users' ? (
           <div className="space-y-3">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xs font-bold text-stone-400 uppercase ml-1">멤버 리스트 ({users.length})</h3>
+              <h3 className="text-xs font-bold text-stone-400 uppercase ml-1">Register entries ({users.length})</h3>
               <div className="flex gap-2">
                 <button 
                   onClick={() => setBulkEditDateModalOpen(true)}
                   className="text-[10px] bg-stone-100 text-stone-600 px-3 py-1 rounded-full font-bold hover:bg-stone-200 transition-colors"
                 >
-                  일괄 종료일 설정
+                  Mark end dates
                 </button>
                 <button 
                   onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [] })}
                   className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg"
                 >
-                  + 멤버 추가
+                  + Add record
                 </button>
               </div>
             </div>
@@ -154,7 +154,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         <div className="font-black text-stone-900 text-base">{user.name}</div>
                         {user.habitRecords?.[todayKey]?.status === 'success' && (
                           <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
-                            습관 달성!
+                            Practice marked
                           </div>
                         )}
                       </div>
@@ -182,7 +182,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         ) : (
           <div className="space-y-6 pb-20">
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">대문 이미지 설정</h3>
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">Archive frontispiece</h3>
               <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm space-y-4">
                 <div className="flex flex-col items-center space-y-4">
                   <div className="w-32 h-32 rounded-3xl bg-stone-50 border-2 border-dashed border-stone-200 flex items-center justify-center overflow-hidden relative group">
@@ -199,13 +199,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     ) : (
                       <div className="text-center space-y-1">
                         <svg className="w-8 h-8 text-stone-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <span className="text-[10px] font-bold text-stone-300 uppercase tracking-widest">이미지 없음</span>
+                        <span className="text-[10px] font-bold text-stone-300 uppercase tracking-widest">No image</span>
                       </div>
                     )}
                   </div>
                   <div className="relative w-full">
                     <button className="w-full py-3 bg-stone-100 text-stone-600 text-xs font-bold rounded-xl hover:bg-stone-200 transition-colors">
-                      {mainImage ? '이미지 변경' : '이미지 업로드'}
+                      {mainImage ? 'Replace image' : 'Upload image'}
                     </button>
                     <input 
                       type="file" 
@@ -219,12 +219,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">데이터 관리</h3>
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">Register transfer</h3>
               <div className="grid grid-cols-1 gap-2">
                 <button onClick={onExportAllData} className="w-full p-4 bg-white border border-stone-100 rounded-2xl flex items-center justify-between group hover:bg-stone-50 transition-colors">
                   <div className="text-left">
-                    <div className="font-bold text-stone-800">동기화 코드 생성</div>
-                    <div className="text-[10px] text-stone-400 font-medium">모든 데이터를 클립보드에 복사합니다</div>
+                    <div className="font-bold text-stone-800">Create register code</div>
+                    <div className="text-[10px] text-stone-400 font-medium">Copies the private archive data to the clipboard</div>
                   </div>
                   <svg className="w-5 h-5 text-stone-300 group-hover:text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
                 </button>
@@ -232,9 +232,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
-              <div className="font-bold text-stone-800">서버 연결 없음</div>
+              <div className="font-bold text-stone-800">Local archive</div>
               <div className="text-[10px] text-stone-400 font-medium mt-1">
-                데이터는 이 브라우저에 바로 저장됩니다. 다른 기기로 옮길 때는 동기화 코드를 생성해 가져오세요.
+                Records are stored in this browser. Use a register code to transfer them elsewhere.
               </div>
             </div>
           </div>
@@ -244,10 +244,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
       {editingUser && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">멤버 정보 수정</h3>
+            <h3 className="text-lg font-black text-stone-900">Edit register entry</h3>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">이름</label>
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Name</label>
                 <input 
                   type="text" 
                   value={editingUser.name} 
@@ -256,7 +256,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">티어</label>
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Tier</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[Tier.SILT, Tier.CREST, Tier.ERG].map(t => (
                     <button 
@@ -270,7 +270,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">보유 코인</label>
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Coin balance</label>
                 <input 
                   type="number" 
                   value={editingUser.coins} 
@@ -279,7 +279,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">종료일</label>
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Closing date</label>
                 <input 
                   type="date" 
                   value={editingUser.tierEndDate || ''} 
@@ -289,8 +289,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setEditingUser(null)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl">취소</button>
-              <button onClick={handleSaveUser} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg">저장하기</button>
+              <button onClick={() => setEditingUser(null)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl">Cancel</button>
+              <button onClick={handleSaveUser} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg">Save record</button>
             </div>
           </div>
         </div>
@@ -298,10 +298,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
       {bulkEditDateModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">일괄 종료일 설정</h3>
-            <p className="text-xs text-stone-500">모든 멤버의 멤버십 종료일을 동일하게 설정합니다.</p>
+            <h3 className="text-lg font-black text-stone-900">Mark closing dates</h3>
+            <p className="text-xs text-stone-500">Set the same closing date across all register entries.</p>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">일괄 종료일</label>
+              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Closing date</label>
               <input 
                 type="date" 
                 value={bulkEndDate} 
@@ -310,8 +310,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
               />
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setBulkEditDateModalOpen(false)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl">취소</button>
-              <button onClick={handleBulkEditSave} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg">일괄 적용</button>
+              <button onClick={() => setBulkEditDateModalOpen(false)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl">Cancel</button>
+              <button onClick={handleBulkEditSave} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg">Apply mark</button>
             </div>
           </div>
         </div>

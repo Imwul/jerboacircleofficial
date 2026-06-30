@@ -10,6 +10,7 @@ import { HabitTrackingView } from './components/views/HabitTrackingView';
 import { EventFormModal } from './components/modals/EventFormModal';
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
+import './MembersArchive.css';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -333,44 +334,105 @@ function App() {
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
+  const todayKeyForArchive = format(new Date(), 'yyyy-MM-dd');
+  const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
+  const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
+  const archiveSectionTitle = !currentUser
+    ? 'Private Entrance'
+    : currentUser === 'admin'
+      ? activeTab === 'admin' ? 'Keeper Desk' : 'Current Program'
+      : activeTab === 'habit' ? 'Practice Log' : activeTab === 'profile' ? 'Member Register' : 'Current Program';
+  const archiveSectionNote = !currentUser
+    ? 'Open the private register to continue.'
+    : currentUser === 'admin'
+      ? 'Records, gatherings, members, and preservation tools.'
+      : 'A private ledger of gatherings, practice, and personal records.';
+
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-stone-50 text-stone-900 font-sans flex justify-center">
-        <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative flex flex-col">
+      <div className="members-archive min-h-screen text-stone-900 font-sans">
+        <aside className="archive-sidebar" aria-label="Private archive navigation">
+          <a className="archive-sigil" href="./">
+            <span>JERBOA</span>
+            <span>CIRCLE</span>
+          </a>
+          <nav className="archive-cabinet">
+            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+              <span>Archive</span>
+              <small>{events.length} records</small>
+            </button>
+            <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
+              <span>Members</span>
+              <small>{users.length} entries</small>
+            </button>
+            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+              <span>Gatherings</span>
+              <small>{totalEnrollments} marks</small>
+            </button>
+            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+              <span>Programs</span>
+              <small>current register</small>
+            </button>
+            <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' && setActiveTab('habit')}>
+              <span>Practice Log</span>
+              <small>{completedToday} today</small>
+            </button>
+            <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser === 'admin' && setActiveTab('admin')}>
+              <span>Keeper</span>
+              <small>{currentUser === 'admin' ? 'unlocked' : 'sealed'}</small>
+            </button>
+          </nav>
+          <div className="archive-sidebar-foot">
+            <span>Private archive</span>
+            <span>Local register</span>
+          </div>
+        </aside>
+
+        <div className="archive-workbench">
           {lastSaved && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-green-600 text-white px-6 py-2 rounded-full shadow-2xl text-xs font-bold animate-pulse">
-              이 기기에 저장됨 ({lastSaved})
+            <div className="archive-save-notice">
+              Register marked ({lastSaved})
             </div>
           )}
           
-          <header className="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-white/90 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-stone-900 rounded-xl flex items-center justify-center shadow-lg shadow-stone-200">
-                <span className="text-white text-xs font-black">J</span>
-              </div>
-              <div className="flex flex-col -space-y-1">
-                <div className="font-black text-lg text-stone-900">Jerboa<span className="text-primary-600">Circle</span></div>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex items-center">
-                    <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      <span className="text-[8px] font-black text-green-600 uppercase tracking-widest">Local Save</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <header className="archive-topbar">
+            <div>
+              <p>Jerboa Circle / Members</p>
+              <h1>{archiveSectionTitle}</h1>
+              <span>{archiveSectionNote}</span>
             </div>
-            {currentUser === 'admin' && (
-              <button 
-                onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}
-                className="text-[10px] bg-stone-50 hover:bg-stone-100 px-4 py-2 rounded-full font-black text-stone-600 border border-stone-200 transition-all active:scale-95 shadow-sm"
-              >
-                {activeTab === 'calendar' ? '관리 모드' : '달력 보기'}
-              </button>
-            )}
+            <div className="archive-topbar-actions">
+              {currentUser === 'admin' && (
+                <button onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
+                  {activeTab === 'calendar' ? 'Keeper Desk' : 'Program Ledger'}
+                </button>
+              )}
+              {currentUser && (
+                <button onClick={handleLogout}>Close Register</button>
+              )}
+            </div>
           </header>
 
-          <main className="flex-1 overflow-hidden relative">
+          <section className="archive-context" aria-label="Archive summary">
+            <div>
+              <span>Current Program</span>
+              <strong>{events.length}</strong>
+            </div>
+            <div>
+              <span>Archive Timeline</span>
+              <strong>{totalEnrollments}</strong>
+            </div>
+            <div>
+              <span>Member Register</span>
+              <strong>{users.length}</strong>
+            </div>
+            <div>
+              <span>Activity Log</span>
+              <strong>{completedToday}</strong>
+            </div>
+          </section>
+
+          <main className="archive-main">
             {!currentUser ? (
               <LoginView 
                 users={users} 
@@ -422,18 +484,18 @@ function App() {
           </main>
           
           {currentUser && currentUser !== 'admin' && (
-            <nav className="border-t border-stone-200 bg-white pb-6 grid grid-cols-3 h-16">
-              <button onClick={() => setActiveTab('calendar')} className={`flex flex-col items-center justify-center space-y-1 ${activeTab === 'calendar' ? 'text-primary-600' : 'text-stone-400'}`}>
+            <nav className="archive-mobile-tabs">
+              <button onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span className="text-[10px] font-medium">일정</span>
+                <span>Archive</span>
               </button>
-              <button onClick={() => setActiveTab('habit')} className={`flex flex-col items-center justify-center space-y-1 ${activeTab === 'habit' ? 'text-primary-600' : 'text-stone-400'}`}>
+              <button onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span className="text-[10px] font-medium">습관 트래킹</span>
+                <span>Practice</span>
               </button>
-              <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center justify-center space-y-1 ${activeTab === 'profile' ? 'text-primary-600' : 'text-stone-400'}`}>
+              <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span className="text-[10px] font-medium">내 정보</span>
+                <span>Register</span>
               </button>
             </nav>
           )}

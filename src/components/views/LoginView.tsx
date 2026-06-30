@@ -49,16 +49,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           </div>
         )}
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium">everyone is welcomed at the...</p>
+          <p className="italic text-stone-400 text-sm font-medium">private register of the...</p>
           <h1 className="text-4xl font-black text-stone-900">
-            Jerboa<span className="text-primary-600">Circle</span>
+            Member<span className="text-primary-600">Archive</span>
           </h1>
         </div>
       </div>
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400 uppercase">멤버 선택</p>
+          <p className="text-[10px] font-black text-stone-400 uppercase">Register entries</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
@@ -87,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                     </div>
                   )}
                 </div>
-                <div className="text-[9px] text-stone-400 font-black uppercase">{user.tier} Tier</div>
+                <div className="text-[9px] text-stone-400 font-black uppercase">{user.tier} tier / private record</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
@@ -102,7 +102,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           onClick={() => setShowAdminModal(true)}
           className="w-full py-3 text-stone-400 hover:text-stone-600 text-xs font-bold uppercase tracking-widest transition-colors"
         >
-          관리자 로그인
+          Keeper access
         </button>
 
         <div className="flex flex-col items-center gap-2">
@@ -110,7 +110,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
             onClick={() => setShowImport(!showImport)}
             className="text-[10px] text-stone-300 hover:text-stone-500 underline underline-offset-4"
           >
-            {showImport ? '가져오기 닫기' : '동기화 코드로 데이터 가져오기'}
+            {showImport ? 'Close import' : 'Import a register code'}
           </button>
           
           {showImport && (
@@ -118,7 +118,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
               <textarea
                 value={importCode}
                 onChange={(e) => setImportCode(e.target.value)}
-                placeholder="여기에 코드를 붙여넣으세요"
+                placeholder="Paste the register code here"
                 className="w-full p-3 text-[10px] font-mono bg-stone-50 border border-stone-200 rounded-xl h-24 focus:ring-1 focus:ring-stone-300 outline-none"
               />
               <button
@@ -130,7 +130,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                 }}
                 className="w-full py-2 bg-stone-800 text-white text-xs font-bold rounded-xl hover:bg-stone-900 transition-colors"
               >
-                데이터 불러오기
+                Import register
               </button>
             </div>
           )}
@@ -140,7 +140,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
       <div className="absolute bottom-8 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-green-500" />
         <span className="text-[10px] font-bold text-stone-300 uppercase tracking-widest">
-          Local Save Ready
+          Local Register Ready
         </span>
       </div>
 
@@ -148,26 +148,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-black text-stone-900">관리자 로그인</h3>
+              <h3 className="text-lg font-black text-stone-900">Keeper access</h3>
               <button onClick={() => { setShowAdminModal(false); setAdminError(''); setAdminPassword(''); }} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">비밀번호</label>
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Archive key</label>
                 <input 
                   type="password" 
                   value={adminPassword} 
                   onChange={e => setAdminPassword(e.target.value)}
                   className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder="Enter the archive key"
                   autoFocus
                 />
                 {adminError && <p className="text-xs text-red-500 font-bold">{adminError}</p>}
               </div>
               <button type="submit" className="w-full py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all">
-                로그인
+                Open keeper desk
               </button>
             </form>
           </div>
