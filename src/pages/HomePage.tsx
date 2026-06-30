@@ -20,9 +20,29 @@ function SiteHeader() {
   );
 }
 
+function Masthead() {
+  return (
+    <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
+      <div className="masthead-mark">
+        <span>Jerboa</span>
+        <span>Circle</span>
+      </div>
+      <div className="masthead-index">
+        <p lang="ko">문학 / 상징 / 신화 / 철학 / 실험 문화</p>
+        <p>Independent reading society / programme archive / poster register</p>
+      </div>
+      <p className="masthead-latin">{featuredEvent.latinQuote}</p>
+    </section>
+  );
+}
+
 function EventMeta({ event }: { event: ArchiveEvent }) {
   return (
     <dl className="event-meta" aria-label={`${event.title} metadata`}>
+      <div>
+        <dt>판본</dt>
+        <dd>{event.edition}</dd>
+      </div>
       <div>
         <dt>일자</dt>
         <dd>{event.date}</dd>
@@ -56,12 +76,13 @@ function FeaturedEvent() {
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker">현재 걸린 포스터 / featured current event</p>
+        <p className="section-kicker">{featuredEvent.edition} / 현재 걸린 포스터</p>
         <h1>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
           불씨의 여섯 장 / 성배 / 숲 / 성물 / 장미 / 불 / 별을 따라 읽는 비밀 프로그램
         </p>
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
+        <p className="latin-line">{featuredEvent.latinQuote}</p>
         <p className="event-description">{featuredEvent.shortDescription}</p>
         <EventMeta event={featuredEvent} />
         <ThemeList themes={featuredEvent.themes} />
@@ -73,7 +94,7 @@ function FeaturedEvent() {
   );
 }
 
-function PosterTile({ event, index }: { event: ArchiveEvent; index: number }) {
+function PosterTile({ event }: { event: ArchiveEvent }) {
   return (
     <article className="poster-tile section-reveal">
       <a href={event.ctaHref} aria-label={`Open archive record for ${event.title}`}>
@@ -81,8 +102,9 @@ function PosterTile({ event, index }: { event: ArchiveEvent; index: number }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </div>
         <div className="poster-caption">
-          <span>{String(index + 1).padStart(2, '0')}</span>
+          <span>{event.edition}</span>
           <h2>{event.title}</h2>
+          <small>{event.latinQuote}</small>
           <p>{event.shortDescription}</p>
           <ThemeList themes={event.themes} />
         </div>
@@ -95,12 +117,22 @@ function PosterArchive() {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker">포스터 기록벽 / poster archive</p>
+        <p className="section-kicker">Programme archive / poster wall</p>
         <h2 lang="ko">낭독 / 연구 / 모임 / 사적인 기록의 벽</h2>
       </div>
+      <div className="archive-ledger" aria-label="Programme index">
+        {events.map((event) => (
+          <a href={event.ctaHref} key={event.id}>
+            <span>{event.edition}</span>
+            <strong>{event.title}</strong>
+            <em>{event.date}</em>
+            <small>{event.subtitle}</small>
+          </a>
+        ))}
+      </div>
       <div className="poster-grid">
-        {events.map((event, index) => (
-          <PosterTile event={event} index={index} key={event.id} />
+        {events.map((event) => (
+          <PosterTile event={event} key={event.id} />
         ))}
       </div>
     </section>
@@ -147,6 +179,7 @@ export default function HomePage() {
     <div className="public-home">
       <SiteHeader />
       <main>
+        <Masthead />
         <FeaturedEvent />
         <PosterArchive />
         <ManifestoBlock />

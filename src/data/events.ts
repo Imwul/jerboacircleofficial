@@ -7,8 +7,10 @@ export type EventStatus = 'upcoming' | 'past' | 'current';
 
 export interface ArchiveEvent {
   id: string;
+  edition: string;
   title: string;
   subtitle: string;
+  latinQuote: string;
   date: string;
   status: EventStatus;
   posterImage: string;
@@ -23,8 +25,10 @@ export interface ArchiveEvent {
 export const events: ArchiveEvent[] = [
   {
     id: 'scintilla-animae',
+    edition: 'Edition 006',
     title: 'Scintilla Animae',
     subtitle: 'Grail / Forest / Relic / Rose / Fire / Star',
+    latinQuote: 'Scintilla animae lucet in tenebris',
     date: '현재 프로그램',
     status: 'current',
     posterImage: scintillaPoster,
@@ -39,8 +43,10 @@ export const events: ArchiveEvent[] = [
   },
   {
     id: 'reading-edge-room',
+    edition: 'Edition 005',
     title: 'A Reading at the Edge of the Room',
     subtitle: 'Winter gathering for text and voice',
+    latinQuote: 'In margine vox invenitur',
     date: '기록 I',
     status: 'past',
     posterImage: readingPoster,
@@ -55,8 +61,10 @@ export const events: ArchiveEvent[] = [
   },
   {
     id: 'letters-unmade-places',
+    edition: 'Edition 004',
     title: 'Letters to Unmade Places',
     subtitle: 'Correspondence study',
+    latinQuote: 'Ad loca nondum facta',
     date: '기록 II',
     status: 'past',
     posterImage: lettersPoster,
@@ -71,8 +79,10 @@ export const events: ArchiveEvent[] = [
   },
   {
     id: 'museum-after-hours',
+    edition: 'Edition 003',
     title: 'The Museum After Hours',
     subtitle: 'Slow looking session',
+    latinQuote: 'Post horam objecta loquuntur',
     date: '기록 III',
     status: 'past',
     posterImage: museumPoster,

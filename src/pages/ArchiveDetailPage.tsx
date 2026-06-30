@@ -24,11 +24,16 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker">개별 기록 / {event.status}</p>
+          <p className="section-kicker">{event.edition} / 개별 기록 / {event.status}</p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
+          <p className="latin-line">{event.latinQuote}</p>
           <p className="detail-long">{event.longDescription}</p>
           <dl className="event-meta detail-meta">
+            <div>
+              <dt>판본</dt>
+              <dd>{event.edition}</dd>
+            </div>
             <div>
               <dt>일자</dt>
               <dd>{event.date}</dd>
