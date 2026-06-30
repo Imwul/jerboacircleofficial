@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">The Museum After Hours poster</title>
+  <desc id="desc">A stark ash and black archive poster.</desc>
+  <rect width="1200" height="1600" fill="#c8c1b4"/>
+  <rect x="0" y="0" width="1200" height="244" fill="#16120f"/>
+  <rect x="0" y="1356" width="1200" height="244" fill="#16120f"/>
+  <text x="96" y="158" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#e9dfce" letter-spacing="12">SLOW LOOKING SESSION</text>
+  <text x="96" y="520" font-family="Georgia, 'Times New Roman', serif" font-size="112" fill="#16120f">The Museum</text>
+  <text x="96" y="648" font-family="Georgia, 'Times New Roman', serif" font-size="112" fill="#16120f">After Hours</text>
+  <rect x="96" y="744" width="1008" height="476" fill="none" stroke="#16120f" stroke-width="8"/>
+  <line x1="96" y1="904" x2="1104" y2="904" stroke="#16120f" stroke-width="8"/>
+  <line x1="432" y1="744" x2="432" y2="1220" stroke="#16120f" stroke-width="8"/>
+  <line x1="768" y1="744" x2="768" y2="1220" stroke="#16120f" stroke-width="8"/>
+  <text x="96" y="1454" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#e9dfce" letter-spacing="12">JERBOA CIRCLE / ARCHIVE III</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">A Reading at the Edge of the Room poster</title>
+  <desc id="desc">A black and bone brutalist literary poster.</desc>
+  <rect width="1200" height="1600" fill="#181512"/>
+  <rect x="72" y="72" width="1056" height="1456" fill="none" stroke="#ded2bd" stroke-width="6"/>
+  <text x="96" y="188" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#a99d88" letter-spacing="12">ARCHIVE I</text>
+  <text x="96" y="530" font-family="Georgia, 'Times New Roman', serif" font-size="124" fill="#eee4d1">A Reading</text>
+  <text x="96" y="668" font-family="Georgia, 'Times New Roman', serif" font-size="124" fill="#eee4d1">at the Edge</text>
+  <text x="96" y="806" font-family="Georgia, 'Times New Roman', serif" font-size="124" fill="#eee4d1">of the Room</text>
+  <rect x="96" y="904" width="1008" height="18" fill="#7b241d"/>
+  <text x="96" y="1058" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#ded2bd" letter-spacing="9">WINTER GATHERING / TEXT / VOICE</text>
+  <text x="96" y="1394" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#a99d88" letter-spacing="12">JERBOA CIRCLE</text>
+</svg>

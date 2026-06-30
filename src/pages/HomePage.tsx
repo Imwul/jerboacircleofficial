@@ -1,131 +1,140 @@
+import { events, featuredEvent, type ArchiveEvent } from '../data/events';
 import './HomePage.css';
-
-const themes = ['Grail', 'Forest', 'Relic', 'Rose', 'Fire', 'Star'];
-
-const archiveItems = [
-  ['I', 'A Reading at the Edge of the Room', 'winter gathering'],
-  ['II', 'Letters to Unmade Places', 'correspondence study'],
-  ['III', 'The Museum After Hours', 'slow looking session'],
-  ['IV', 'Small Fires, Long Tables', 'shared text and supper'],
-];
 
 function SiteHeader() {
   return (
-    <header className="public-header" aria-label="Jerboa Circle navigation">
-      <a className="public-wordmark" href="#top" aria-label="Jerboa Circle home">
-        Jerboa Circle
+    <header className="archive-header" aria-label="Jerboa Circle navigation">
+      <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
+        <span>Jerboa</span>
+        <span>Circle</span>
       </a>
-      <nav className="public-nav" aria-label="Primary navigation">
-        <a href="#philosophy">Philosophy</a>
-        <a href="#program">Program</a>
+      <nav className="archive-nav" aria-label="Primary navigation">
+        <a href="#featured">Current</a>
         <a href="#archive">Archive</a>
-        <a href="#about">About</a>
+        <a href="#manifesto">Manifesto</a>
         <a href="#join">Join</a>
+        <a href="./members/">Members</a>
       </nav>
     </header>
   );
 }
 
-function HeroSection() {
+function EventMeta({ event }: { event: ArchiveEvent }) {
   return (
-    <section className="hero-section section-reveal" id="top">
-      <p className="eyebrow">Independent literary and artistic circle</p>
-      <h1>A quiet room for literature, art, and the long conversation between them.</h1>
-      <a className="textual-cta" href="#join">Request an invitation</a>
-    </section>
+    <dl className="event-meta" aria-label={`${event.title} metadata`}>
+      <div>
+        <dt>Date</dt>
+        <dd>{event.date}</dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd>{event.status}</dd>
+      </div>
+      <div>
+        <dt>Format</dt>
+        <dd>{event.location}</dd>
+      </div>
+    </dl>
   );
 }
 
-function PhilosophySection() {
+function ThemeList({ themes }: { themes: string[] }) {
   return (
-    <section className="editorial-section philosophy-section section-reveal" id="philosophy">
-      <div className="section-marker">01 / Philosophy</div>
-      <div className="editorial-copy">
-        <p>
-          Jerboa Circle gathers around works that ask for attention. We read slowly,
-          make carefully, and treat conversation as a form of cultural practice.
-        </p>
-        <div className="principle-list" aria-label="Jerboa Circle principles">
-          <span>Reading as ritual</span>
-          <span>Art as attention</span>
-          <span>Conversation as archive</span>
-        </div>
+    <ul className="theme-tags" aria-label="Themes">
+      {themes.map((theme) => (
+        <li key={theme}>{theme}</li>
+      ))}
+    </ul>
+  );
+}
+
+function FeaturedEvent() {
+  return (
+    <section className="featured-event section-reveal" id="featured">
+      <div className="featured-poster-wrap">
+        <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
+      </div>
+      <div className="featured-copy">
+        <p className="section-kicker">Featured current event</p>
+        <h1>{featuredEvent.title}</h1>
+        <p className="event-subtitle">{featuredEvent.subtitle}</p>
+        <p className="event-description">{featuredEvent.shortDescription}</p>
+        <EventMeta event={featuredEvent} />
+        <ThemeList themes={featuredEvent.themes} />
+        <a className="archive-cta" href={featuredEvent.ctaHref}>
+          {featuredEvent.ctaLabel}
+        </a>
       </div>
     </section>
   );
 }
 
-function ProgramSection() {
+function PosterTile({ event, index }: { event: ArchiveEvent; index: number }) {
   return (
-    <section className="program-section section-reveal" id="program">
-      <div className="section-marker">02 / Current Program</div>
-      <div className="program-inner">
-        <p className="program-kicker">Scintilla Animae</p>
-        <h2>Six small flames arranged as a season of reading, image, memory, and myth.</h2>
-        <p className="program-note">
-          A current cycle for those drawn to hidden symbols, old questions, and
-          contemporary forms of devotion.
-        </p>
-        <div className="theme-rhythm" aria-label="Scintilla Animae themes">
-          {themes.map((theme, index) => (
-            <div className="theme-line" key={theme}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{theme}</strong>
-            </div>
-          ))}
+    <article className="poster-tile section-reveal">
+      <a href={event.ctaHref} aria-label={`Open archive record for ${event.title}`}>
+        <div className="poster-frame">
+          <img src={event.posterImage} alt={`${event.title} poster`} />
         </div>
-      </div>
-    </section>
+        <div className="poster-caption">
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          <h2>{event.title}</h2>
+          <p>{event.shortDescription}</p>
+          <ThemeList themes={event.themes} />
+        </div>
+      </a>
+    </article>
   );
 }
 
-function ArchiveSection() {
+function PosterArchive() {
   return (
-    <section className="archive-section section-reveal" id="archive">
-      <div className="section-marker">03 / Archive</div>
-      <div className="archive-list">
-        {archiveItems.map(([number, title, format]) => (
-          <article className="archive-row" key={title}>
-            <span>{number}</span>
-            <h3>{title}</h3>
-            <p>{format}</p>
-          </article>
+    <section className="poster-archive" id="archive">
+      <div className="archive-section-title">
+        <p className="section-kicker">Poster archive</p>
+        <h2>Programs, readings, studies, and private records.</h2>
+      </div>
+      <div className="poster-grid">
+        {events.map((event, index) => (
+          <PosterTile event={event} index={index} key={event.id} />
         ))}
       </div>
     </section>
   );
 }
 
-function AboutSection() {
+function ManifestoBlock() {
   return (
-    <section className="editorial-section about-section section-reveal" id="about">
-      <div className="section-marker">04 / About</div>
-      <div className="editorial-copy">
-        <p>
-          Jerboa Circle is an independent gathering for literary study, artistic
-          exchange, and intimate public programs. It moves between the table, the
-          page, the image, and the voice.
-        </p>
-      </div>
+    <section className="manifesto-block section-reveal" id="manifesto">
+      <p className="section-kicker">Manifesto</p>
+      <p>
+        Jerboa Circle keeps a wall of signs: readings, fragments, gatherings,
+        images, and studies. Each poster is a door, each door a record, each
+        record a small resistance to forgetting.
+      </p>
     </section>
   );
 }
 
-function JoinSection() {
+function JoinBlock() {
   return (
-    <section className="join-section section-reveal" id="join">
-      <p className="eyebrow">An invitation, not an account</p>
-      <h2>Enter quietly. Bring a text, a question, or a fragment of attention.</h2>
-      <a className="textual-cta" href="mailto:hello@jerboacircle.com">Write to Jerboa Circle</a>
+    <section className="join-block section-reveal" id="join">
+      <div>
+        <p className="section-kicker">Contact</p>
+        <h2>For invitations, records, and future programs.</h2>
+      </div>
+      <a className="archive-cta inverse" href="mailto:hello@jerboacircle.com">
+        Write to Jerboa Circle
+      </a>
     </section>
   );
 }
 
 function SiteFooter() {
   return (
-    <footer className="public-footer">
-      <span>Jerboa Circle</span>
-      <a href="./members/">Members</a>
+    <footer className="archive-footer">
+      <span>Jerboa Circle Official Archive</span>
+      <span>Black / parchment / oxblood / ash</span>
     </footer>
   );
 }
@@ -135,12 +144,10 @@ export default function HomePage() {
     <div className="public-home">
       <SiteHeader />
       <main>
-        <HeroSection />
-        <PhilosophySection />
-        <ProgramSection />
-        <ArchiveSection />
-        <AboutSection />
-        <JoinSection />
+        <FeaturedEvent />
+        <PosterArchive />
+        <ManifestoBlock />
+        <JoinBlock />
       </main>
       <SiteFooter />
     </div>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">Letters to Unmade Places poster</title>
+  <desc id="desc">An oxblood and parchment poster with heavy editorial type.</desc>
+  <rect width="1200" height="1600" fill="#6f251f"/>
+  <rect x="58" y="58" width="1084" height="1484" fill="#eadfca"/>
+  <rect x="126" y="126" width="948" height="1348" fill="none" stroke="#16120f" stroke-width="7"/>
+  <text x="600" y="246" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#6f251f" letter-spacing="14">CORRESPONDENCE STUDY</text>
+  <text x="156" y="512" font-family="Georgia, 'Times New Roman', serif" font-size="118" fill="#16120f">Letters</text>
+  <text x="156" y="646" font-family="Georgia, 'Times New Roman', serif" font-size="118" fill="#16120f">to Unmade</text>
+  <text x="156" y="780" font-family="Georgia, 'Times New Roman', serif" font-size="118" fill="#16120f">Places</text>
+  <g stroke="#16120f" stroke-width="5">
+    <line x1="156" y1="930" x2="1044" y2="930"/>
+    <line x1="156" y1="1018" x2="1044" y2="1018"/>
+    <line x1="156" y1="1106" x2="1044" y2="1106"/>
+  </g>
+  <text x="156" y="1290" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#16120f" letter-spacing="10">FRAGMENT / MARGIN / DISTANCE</text>
+  <text x="156" y="1386" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#6f251f" letter-spacing="12">JERBOA CIRCLE</text>
+</svg>

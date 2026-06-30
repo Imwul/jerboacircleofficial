@@ -393,12 +393,10 @@ function App() {
               ) : (
                 <AdminView 
                   users={users} 
-                  events={events} 
                   onUpdateUser={(user) => setUsers(prev => prev.map(u => u.id === user.id ? user : u))}
                   onAddUser={(user) => setUsers(prev => [...prev, user])}
                   onDeleteUser={handleDeleteUser}
                   onExportAllData={handleExportAllData} 
-                  onImportAllData={handleImportAllData}
                   onLogout={handleLogout} 
                   mainImage={mainImage}
                   onUpdateMainImage={setMainImage}
@@ -409,7 +407,6 @@ function App() {
             ) : activeTab === 'habit' ? (
               <HabitTrackingView 
                 user={activeUserData!} 
-                users={users}
                 onUpdateUser={handleUpdateUser} 
                 onLogout={handleLogout}
                 isAdmin={false}
