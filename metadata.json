@@ -1,0 +1,8 @@
+{
+  "name": "Jerboa Circle",
+  "description": "A mobile-first workshop and meeting management tool with tier-based coin systems and habit tracking.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
