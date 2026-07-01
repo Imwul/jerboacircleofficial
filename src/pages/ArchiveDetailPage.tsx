@@ -1,4 +1,5 @@
 import { getEventById, type ArchiveEvent } from '../data/events';
+import { applyArchiveDrafts } from '../utils/archiveDrafts';
 import './HomePage.css';
 
 function detailRootHref() {
@@ -57,7 +58,8 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
 }
 
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
-  const event = getEventById(id);
+  const baseEvent = getEventById(id);
+  const event = baseEvent ? applyArchiveDrafts([baseEvent])[0] : undefined;
 
   if (!event) {
     return (

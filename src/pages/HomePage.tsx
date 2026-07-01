@@ -1,4 +1,5 @@
-import { events, featuredEvent, type ArchiveEvent } from '../data/events';
+import { events, type ArchiveEvent } from '../data/events';
+import { applyArchiveDrafts } from '../utils/archiveDrafts';
 import './HomePage.css';
 
 function SiteHeader() {
@@ -20,7 +21,7 @@ function SiteHeader() {
   );
 }
 
-function Masthead() {
+function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
@@ -69,7 +70,7 @@ function ThemeList({ themes }: { themes: string[] }) {
   );
 }
 
-function FeaturedEvent() {
+function FeaturedEvent({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
@@ -113,7 +114,7 @@ function PosterTile({ event }: { event: ArchiveEvent }) {
   );
 }
 
-function PosterArchive() {
+function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
@@ -121,7 +122,7 @@ function PosterArchive() {
         <h2 lang="ko">낭독 / 연구 / 모임 / 사적인 기록의 벽</h2>
       </div>
       <div className="archive-ledger" aria-label="Programme index">
-        {events.map((event) => (
+        {archiveEvents.map((event) => (
           <a href={event.ctaHref} key={event.id}>
             <span>{event.edition}</span>
             <strong>{event.title}</strong>
@@ -131,7 +132,7 @@ function PosterArchive() {
         ))}
       </div>
       <div className="poster-grid">
-        {events.map((event) => (
+        {archiveEvents.map((event) => (
           <PosterTile event={event} key={event.id} />
         ))}
       </div>
@@ -175,13 +176,16 @@ function SiteFooter() {
 }
 
 export default function HomePage() {
+  const archiveEvents = applyArchiveDrafts(events);
+  const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0];
+
   return (
     <div className="public-home">
       <SiteHeader />
       <main>
-        <Masthead />
-        <FeaturedEvent />
-        <PosterArchive />
+        <Masthead featuredEvent={currentEvent} />
+        <FeaturedEvent featuredEvent={currentEvent} />
+        <PosterArchive archiveEvents={archiveEvents} />
         <ManifestoBlock />
         <JoinBlock />
       </main>

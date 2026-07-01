@@ -4,6 +4,7 @@ const path = require('node:path');
 const distDir = path.resolve(__dirname, '..', 'dist');
 const indexPath = path.join(distDir, 'index.html');
 const membersDir = path.join(distDir, 'members');
+const keeperDir = path.join(distDir, 'keeper');
 const eventsPath = path.resolve(__dirname, '..', 'src', 'data', 'events.ts');
 
 if (!fs.existsSync(indexPath)) {
@@ -18,6 +19,8 @@ const eventIds = Array.from(eventSource.matchAll(/id:\s*'([^']+)'/g), (match) =>
 
 fs.mkdirSync(membersDir, { recursive: true });
 fs.writeFileSync(path.join(membersDir, 'index.html'), nestedIndex);
+fs.mkdirSync(keeperDir, { recursive: true });
+fs.writeFileSync(path.join(keeperDir, 'index.html'), nestedIndex);
 
 for (const id of eventIds) {
   const eventDir = path.join(distDir, 'archive', id);

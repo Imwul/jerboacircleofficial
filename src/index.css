@@ -73,7 +73,7 @@ body {
   font-family: var(--font-sans);
 }
 
-[lang="ko"],
+[lang="ko"]:not(html):not(body),
 .ko-copy {
   display: inline-block;
   font-family: var(--font-ko);
