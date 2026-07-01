@@ -2282,6 +2282,96 @@
   transform-origin: center;
 }
 
+.public-home .archive-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+}
+
+.public-home .archive-nav a {
+  min-width: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.public-home .masthead-mark {
+  position: relative;
+  display: grid;
+  min-height: calc(100vh - 4.2rem);
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 3rem);
+}
+
+.public-home .masthead-logo {
+  width: min(74vw, 52rem);
+  max-width: none;
+  max-height: 82vh;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: contrast(1.22) saturate(0);
+  transform: translateX(-4vw) rotate(-1.5deg);
+  transform-origin: center;
+}
+
+.public-home .masthead-seal-caption {
+  position: absolute;
+  right: clamp(1rem, 2.5vw, 2rem);
+  bottom: clamp(1rem, 2.5vw, 2rem);
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  padding-top: 0.45rem;
+  border-top: 2px solid var(--ink);
+  text-align: right;
+}
+
+.public-home .masthead-seal-caption span[lang="en"] {
+  display: block;
+  font-family: var(--font-heavy-header);
+  font-size: clamp(1.35rem, 2.4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+.public-home .masthead-seal-caption small[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko);
+  font-size: clamp(0.78rem, 0.95vw, 1rem);
+  font-weight: 950;
+  line-height: 1.25;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: right center;
+}
+
+/* Keep the palette sharp without falling into a red/green holiday rhythm. */
+.public-home {
+  --signal-blue: #8fb8c9;
+}
+
+.public-home .archive-nav a {
+  background: var(--signal-gold) !important;
+}
+
+.public-home .archive-nav a:nth-child(2n) {
+  background: var(--signal-blue) !important;
+}
+
+.public-home .archive-nav a:nth-child(3n) {
+  background: var(--signal-cream) !important;
+}
+
+.public-home .archive-nav a:nth-child(4n) {
+  background: var(--signal) !important;
+}
+
+.public-home .archive-nav a:nth-child(5n) {
+  background: var(--signal-pink) !important;
+}
+
 .public-home .section-kicker span[lang="en"] {
   display: inline-block;
   font-family: var(--font-heavy-header);

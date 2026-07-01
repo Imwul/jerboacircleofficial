@@ -1,5 +1,6 @@
 import { events, type ArchiveEvent } from '../data/events';
 import { applyArchiveDrafts } from '../utils/archiveDrafts';
+import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import './HomePage.css';
 
 function SiteHeader() {
@@ -25,8 +26,11 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
-        <span>Jerboa</span>
-        <span>Circle</span>
+        <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" />
+        <div className="masthead-seal-caption">
+          <span lang="en">Jerboa Circle</span>
+          <small lang="ko">공개 기록벽</small>
+        </div>
       </div>
       <div className="masthead-index">
         <p lang="en">A field of signs, entered slowly</p>
