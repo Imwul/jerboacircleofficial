@@ -136,8 +136,8 @@ function PosterTile({ event }: { event: ArchiveEvent }) {
           <span>{event.edition}</span>
           <h2>{event.title}</h2>
           <small>{event.latinQuote}</small>
-          <p>{event.shortDescription}</p>
-          <em>{event.marginalia}</em>
+          <p lang="ko">{event.shortDescription}</p>
+          <em lang="ko">{event.marginalia}</em>
           <ThemeList themes={event.themes} />
         </div>
       </a>
@@ -158,7 +158,7 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
             <span>{event.edition}</span>
             <strong>{event.title}</strong>
             <em>{event.date}</em>
-            <small>{event.marginalia}</small>
+            <small lang="ko">{event.marginalia}</small>
           </a>
         ))}
       </div>
