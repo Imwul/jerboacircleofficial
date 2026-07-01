@@ -58,16 +58,16 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const DEFAULT_THEME_NAMES: Record<ThemeColor, string> = {
-  [ThemeColor.SAGE]: '소셜 파티',
-  [ThemeColor.TERRACOTTA]: '머스타드 워크숍',
-  [ThemeColor.SLATE]: '특별 이벤트',
-  [ThemeColor.SAND]: '야외 활동',
-  [ThemeColor.CHARCOAL]: '특강',
-  [ThemeColor.MAUVE]: '심야 모임',
-  [ThemeColor.OLIVE]: '매트 핑크 모임',
-  [ThemeColor.ROSE]: '로즈 파티',
-  [ThemeColor.INDIGO]: '인디고 나이트',
-  [ThemeColor.LIME]: '라임 워크숍',
+  [ThemeColor.SAGE]: '문턱',
+  [ThemeColor.TERRACOTTA]: '주석회',
+  [ThemeColor.SLATE]: '도상 연구',
+  [ThemeColor.SAND]: '장소 읽기',
+  [ThemeColor.CHARCOAL]: '검은 장',
+  [ThemeColor.MAUVE]: '심야 독회',
+  [ThemeColor.OLIVE]: '보존',
+  [ThemeColor.ROSE]: '장미 표식',
+  [ThemeColor.INDIGO]: '별의 장',
+  [ThemeColor.LIME]: '연금술 노트',
 };
 
 const STORAGE_KEYS = {
@@ -261,7 +261,7 @@ function App() {
       const data = parsed.data || parsed;
       
       if (data.users && data.events && data.themeNames) {
-        if (confirm("클럽 데이터를 불러오시겠습니까?\n(기존 데이터가 덮어씌워집니다)")) {
+        if (confirm("비공개 장부 데이터를 불러오시겠습니까?\n(기존 기록이 덮어씌워집니다)")) {
           applyMembersSyncPayload(data);
           void saveServerSync('members', data).then(() => {
             setServerSyncStatus('가져오기 완료 / 서버 저장됨');
@@ -277,7 +277,7 @@ function App() {
       }
     } catch (err) { 
       console.error("Import error:", err);
-      alert("잘못된 동기화 코드입니다. 코드를 다시 확인해주세요."); 
+      alert("잘못된 장부 코드입니다. 코드를 다시 확인해주세요."); 
     }
     return false;
   };
@@ -397,7 +397,7 @@ function App() {
 
     const baseEvent: CalendarEvent = {
       id: editingEvent ? editingEvent.id : generateId(),
-      title: eventData.title || '새 일정',
+      title: eventData.title || '새 여정',
       description: eventData.description || '',
       detailedDescription: eventData.detailedDescription || '',
       theme: selectedColor,
@@ -439,7 +439,7 @@ function App() {
       alert("정원이 초과되었습니다."); return;
     }
     if (!event.isReward && activeUserData.coins < event.cost) {
-      alert("코인이 부족합니다."); return;
+      alert("문장이 부족합니다."); return;
     }
     const updatedUser = {
       ...activeUserData,
@@ -463,15 +463,15 @@ function App() {
   const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
   const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
   const archiveSectionTitle = !currentUser
-    ? '비밀 입장부'
+    ? 'Private register'
     : currentUser === 'admin'
-      ? activeTab === 'admin' ? '보관자 책상' : '현재 프로그램'
-      : activeTab === 'habit' ? '수련 일지' : activeTab === 'profile' ? '회원 등록부' : '현재 프로그램';
+      ? activeTab === 'admin' ? 'Keeper desk' : 'Journey register'
+      : activeTab === 'habit' ? 'Marginalia log' : activeTab === 'profile' ? 'Reader folio' : 'Journey register';
   const archiveSectionNote = !currentUser
     ? '닫힌 서랍을 열고 개인 기록으로 들어갑니다.'
     : currentUser === 'admin'
-      ? '모임, 회원, 프로그램, 보존 도구를 한 권의 장부처럼 다룹니다.'
-      : '모임과 수련, 개인 기록을 보관하는 사적인 장부입니다.';
+      ? '여정, 좌석, 독자, 보존 도구를 한 권의 장부처럼 다룹니다.'
+      : '읽은 것과 지나간 자리와 남은 질문을 보관하는 사적인 장부입니다.';
 
   return (
     <ErrorBoundary>
@@ -483,32 +483,32 @@ function App() {
           </a>
           <nav className="archive-cabinet">
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>기록함</span>
-              <small>기록 {events.length}</small>
+              <span lang="en">Journeys</span>
+              <small>판본 {events.length}</small>
             </button>
             <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
-              <span>회원록</span>
-              <small>회원 {users.length}</small>
+              <span lang="en">Readers</span>
+              <small>독자 {users.length}</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>모임</span>
-              <small>참여 {totalEnrollments}</small>
+              <span lang="en">Seats</span>
+              <small>표식 {totalEnrollments}</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span>프로그램</span>
-              <small>현재 장부</small>
+              <span lang="en">Pilgrimage</span>
+              <small>열린 장</small>
             </button>
             <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' && setActiveTab('habit')}>
-              <span>수련 일지</span>
+              <span lang="en">Marginalia</span>
               <small>오늘 {completedToday}</small>
             </button>
             <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser === 'admin' && setActiveTab('admin')}>
-              <span>보관자</span>
+              <span lang="en">Keeper</span>
               <small>{currentUser === 'admin' ? '열림' : '봉인'}</small>
             </button>
           </nav>
           <div className="archive-sidebar-foot">
-            <span>비공개 보관소</span>
+              <span lang="en">Private memory room</span>
             <span>{serverSyncStatus}</span>
           </div>
         </aside>
@@ -522,15 +522,15 @@ function App() {
           
           <header className="archive-topbar">
             <div>
-              <p>Jerboa Circle / 비공개 회원실</p>
-              <h1>{archiveSectionTitle}</h1>
+              <p lang="en">Jerboa Circle / private room</p>
+              <h1 lang="en">{archiveSectionTitle}</h1>
               <span>{archiveSectionNote}</span>
               <span className="archive-server-line">{serverSyncStatus}</span>
             </div>
             <div className="archive-topbar-actions">
               {currentUser === 'admin' && (
                 <button onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
-                  <span className="archive-ko-label">{activeTab === 'calendar' ? '보관자 책상' : '프로그램 장부'}</span>
+                  <span className="archive-ko-label">{activeTab === 'calendar' ? 'Keeper desk' : 'Journey register'}</span>
                 </button>
               )}
               {currentUser && (
@@ -541,19 +541,19 @@ function App() {
 
           <section className="archive-context" aria-label="Archive summary">
             <div>
-              <span>현재 프로그램</span>
+              <span>Open journeys</span>
               <strong>{events.length}</strong>
             </div>
             <div>
-              <span>기록된 참여</span>
+              <span>Marked seats</span>
               <strong>{totalEnrollments}</strong>
             </div>
             <div>
-              <span>회원 등록부</span>
+              <span>Readers</span>
               <strong>{users.length}</strong>
             </div>
             <div>
-              <span>오늘의 수련</span>
+              <span>Today notes</span>
               <strong>{completedToday}</strong>
             </div>
           </section>
@@ -618,15 +618,15 @@ function App() {
             <nav className="archive-mobile-tabs">
               <button onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span>기록함</span>
+                <span>여정함</span>
               </button>
               <button onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>수련</span>
+                <span>주석</span>
               </button>
               <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span>등록부</span>
+                <span>표지</span>
               </button>
             </nav>
           )}

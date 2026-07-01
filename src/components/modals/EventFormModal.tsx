@@ -99,7 +99,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-black tracking-tighter text-stone-900">{event ? '일정 수정' : '새 일정 추가'}</h3>
+          <h3 className="text-xl font-black tracking-tighter text-stone-900">{event ? 'Edit passage' : 'New passage'}</h3>
           <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -107,39 +107,39 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">일정 제목</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Title</label>
             <input 
               type="text" 
               value={title} 
               onChange={e => setTitle(e.target.value)}
               className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
-              placeholder="일정 제목을 입력하세요"
+              placeholder="여정의 제목을 입력하세요"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">요약 설명</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Short note</label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)}
               className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200 min-h-[60px] resize-none"
-              placeholder="프로그램의 요약 설명을 입력하세요"
+              placeholder="짧은 주석을 입력하세요"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">상세 설명</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Long note</label>
             <textarea 
               value={detailedDescription} 
               onChange={e => setDetailedDescription(e.target.value)}
               className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200 min-h-[100px] resize-none"
-              placeholder="프로그램의 상세 설명을 입력하세요"
+              placeholder="상세한 장부 기록을 입력하세요"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">날짜 및 시간</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Date and hour</label>
               <input 
                 type="datetime-local" 
                 value={date} 
@@ -148,7 +148,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">소요 시간</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Duration</label>
               <select 
                 value={duration} 
                 onChange={e => setDuration(parseInt(e.target.value) || 30)}
@@ -174,7 +174,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">테마 선택</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Rubric</label>
             <div className="grid grid-cols-5 gap-2">
               {Object.keys(THEME_CONFIG).map(t => (
                 <button 
@@ -190,13 +190,13 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
               value={themeName} 
               onChange={e => setThemeName(e.target.value)}
               className="w-full p-2 bg-stone-50 border border-stone-100 rounded-xl text-[10px] font-bold outline-none focus:ring-1 focus:ring-stone-200 mt-2"
-              placeholder="테마 이름을 입력하세요 (예: 독서 모임)"
+              placeholder="분류 이름을 입력하세요 (예: 문턱)"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">참여 비용 / 보상</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Mark cost / credit</label>
               <div className="flex gap-2">
                 <input 
                   type="number" 
@@ -208,12 +208,12 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                   onClick={() => setIsReward(!isReward)}
                   className={`px-4 rounded-xl text-[10px] font-bold tracking-widest transition-all ${isReward ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}
                 >
-                  {isReward ? '보상' : '비용'}
+                  {isReward ? 'Credit' : 'Cost'}
                 </button>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">최대 인원</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Seats</label>
               <input 
                 type="number" 
                 value={maxParticipants} 
@@ -227,7 +227,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           {!event && (
             <div className="pt-4 border-t border-stone-100 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-stone-400 tracking-widest">반복 일정 설정</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Repeat passage</label>
                 <button 
                   onClick={() => setIsRecurring(!isRecurring)}
                   className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? 'bg-stone-900' : 'bg-stone-200'}`}
@@ -255,8 +255,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                       onChange={e => setRecurrenceType(e.target.value as any)}
                       className="bg-white border border-stone-200 rounded-lg p-2 text-[10px] font-bold outline-none"
                     >
-                      <option value="count">반복 횟수</option>
-                      <option value="date">종료 날짜</option>
+                      <option value="count">Repeat count</option>
+                      <option value="date">Closing date</option>
                     </select>
                     {recurrenceType === 'count' ? (
                       <input 
@@ -281,8 +281,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
         </div>
 
         <div className="flex gap-2 pt-4">
-          <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all">취소</button>
-          <button onClick={handleSave} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all">저장하기</button>
+          <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all">Cancel</button>
+          <button onClick={handleSave} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all">Save passage</button>
         </div>
       </div>
     </div>

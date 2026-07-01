@@ -8,12 +8,12 @@ function SiteHeader() {
       <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
         <span>Jerboa</span>
         <span>Circle</span>
-        <small lang="ko">공식 포스터 보관소</small>
+        <small lang="ko">여정과 기억의 장부</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a href="#featured">현재</a>
-        <a href="#archive">기록벽</a>
-        <a href="#manifesto">선언문</a>
+        <a href="#featured">현재 여정</a>
+        <a href="#archive">기억의 벽</a>
+        <a href="#manifesto">단서</a>
         <a href="#join">초대</a>
         <a href="./members/">회원실</a>
       </nav>
@@ -29,12 +29,24 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
         <span>Circle</span>
       </div>
       <div className="masthead-index">
-        <p lang="ko">문학 / 상징 / 신화 / 철학 / 실험 문화</p>
-        <p>Independent reading society / programme archive / poster register</p>
+        <p lang="ko">책 / 이미지 / 상징 / 신화 / 철학 / 기억의 임시 별자리</p>
+        <p>Curatorial pilgrimage / living archive / marginal register</p>
+        <ol className="masthead-ritual">
+          <li>Beginning</li>
+          <li>Passage</li>
+          <li>Transformation</li>
+          <li>Return</li>
+        </ol>
       </div>
       <p className="masthead-latin">{featuredEvent.latinQuote}</p>
     </section>
   );
+}
+
+function statusLabel(status: ArchiveEvent['status']) {
+  if (status === 'current') return '열려 있음';
+  if (status === 'upcoming') return '예고됨';
+  return '보존됨';
 }
 
 function EventMeta({ event }: { event: ArchiveEvent }) {
@@ -50,13 +62,26 @@ function EventMeta({ event }: { event: ArchiveEvent }) {
       </div>
       <div>
         <dt>상태</dt>
-        <dd>{event.status}</dd>
+        <dd>{statusLabel(event.status)}</dd>
       </div>
       <div>
         <dt>형식</dt>
         <dd>{event.location}</dd>
       </div>
     </dl>
+  );
+}
+
+function TextIndex({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="text-index">
+      <span>{title}</span>
+      <ol>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -77,14 +102,19 @@ function FeaturedEvent({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker">{featuredEvent.edition} / 현재 걸린 포스터</p>
+        <p className="section-kicker">{featuredEvent.edition} / 현재 열린 순례</p>
         <h1>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
-          불씨의 여섯 장 / 성배 / 숲 / 성물 / 장미 / 불 / 별을 따라 읽는 비밀 프로그램
+          하나의 강의가 아니라 성배 / 숲 / 성물 / 장미 / 불 / 별을 지나는 느린 통과 의례
         </p>
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
         <p className="latin-line">{featuredEvent.latinQuote}</p>
+        <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
         <p className="event-description">{featuredEvent.shortDescription}</p>
+        <div className="constellation-grid" aria-label="Programme constellation">
+          <TextIndex title="여정" items={featuredEvent.passage} />
+          <TextIndex title="자료" items={featuredEvent.materials} />
+        </div>
         <EventMeta event={featuredEvent} />
         <ThemeList themes={featuredEvent.themes} />
         <a className="archive-cta" href={featuredEvent.ctaHref}>
@@ -107,6 +137,7 @@ function PosterTile({ event }: { event: ArchiveEvent }) {
           <h2>{event.title}</h2>
           <small>{event.latinQuote}</small>
           <p>{event.shortDescription}</p>
+          <em>{event.marginalia}</em>
           <ThemeList themes={event.themes} />
         </div>
       </a>
@@ -118,8 +149,8 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker">Programme archive / poster wall</p>
-        <h2 lang="ko">낭독 / 연구 / 모임 / 사적인 기록의 벽</h2>
+        <p className="section-kicker">Accumulated memory / visible register</p>
+        <h2 lang="ko">각 판본은 지나간 행사가 아니라 아직 연결되지 않은 단서입니다</h2>
       </div>
       <div className="archive-ledger" aria-label="Programme index">
         {archiveEvents.map((event) => (
@@ -127,7 +158,7 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
             <span>{event.edition}</span>
             <strong>{event.title}</strong>
             <em>{event.date}</em>
-            <small>{event.subtitle}</small>
+            <small>{event.marginalia}</small>
           </a>
         ))}
       </div>
@@ -143,10 +174,11 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
 function ManifestoBlock() {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
-      <p className="section-kicker">선언문 / manifesto</p>
+      <p className="section-kicker">단서 / fragments toward a method</p>
       <p lang="ko">
-        저보아 서클은 낭독 / 파편 / 이미지 / 연구와 모임을 한 장의 포스터로 보관한다
-        포스터는 문 / 문은 기록 / 기록은 잊힘에 맞서는 조용한 불씨
+        저보아 서클의 프로그램은 교육 과정이 아니라 임시 별자리입니다
+        책과 이미지와 사물과 장소가 잠시 한 방향을 가리키고
+        참여자는 그 사이를 통과한 뒤 조금 다른 눈으로 돌아옵니다
       </p>
     </section>
   );
@@ -156,8 +188,8 @@ function JoinBlock() {
   return (
     <section className="join-block section-reveal" id="join">
       <div>
-        <p className="section-kicker">초대와 연락 / contact</p>
-        <h2 lang="ko">초대 / 기록 열람 / 다음 프로그램에 관한 서신을 받습니다</h2>
+        <p className="section-kicker">다음 장 / correspondence</p>
+        <h2 lang="ko">완성된 설명보다 다음 단서를 기다리는 사람에게 서신을 보냅니다</h2>
       </div>
       <a className="archive-cta inverse" href="mailto:hello@jerboacircle.com">
         서신 보내기
@@ -170,7 +202,7 @@ function SiteFooter() {
   return (
     <footer className="archive-footer">
       <span>Jerboa Circle Official Archive</span>
-      <span lang="ko">검정 / 양피지 / 산화된 붉은빛 / 재색</span>
+      <span lang="ko">시간은 삭제되지 않고 판본으로 남습니다</span>
     </footer>
   );
 }

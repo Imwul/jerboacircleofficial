@@ -78,7 +78,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
-          <div className="text-[10px] font-bold text-stone-400 mb-1">보유 코인</div>
+          <div className="text-[10px] font-bold text-stone-400 mb-1">Marks held</div>
           <div className="text-xl font-black text-stone-900">{user.coins} <span className="text-xs text-stone-400">문장</span></div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">

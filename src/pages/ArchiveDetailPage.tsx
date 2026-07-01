@@ -13,7 +13,7 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
         <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
-          <small lang="ko">공식 포스터 보관소</small>
+          <small lang="ko">여정과 기억의 장부</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
           <a href={detailRootHref()}>기록벽</a>
@@ -25,11 +25,26 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker">{event.edition} / 개별 기록 / {event.status}</p>
+          <p className="section-kicker">{event.edition} / 개별 여정 / {event.status}</p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="latin-line">{event.latinQuote}</p>
+          <p className="marginal-note" lang="ko">{event.marginalia}</p>
           <p className="detail-long">{event.longDescription}</p>
+          <div className="constellation-grid" aria-label="Archive record path and materials">
+            <div className="text-index">
+              <span>여정</span>
+              <ol>
+                {event.passage.map((item) => <li key={item}>{item}</li>)}
+              </ol>
+            </div>
+            <div className="text-index">
+              <span>자료</span>
+              <ol>
+                {event.materials.map((item) => <li key={item}>{item}</li>)}
+              </ol>
+            </div>
+          </div>
           <dl className="event-meta detail-meta">
             <div>
               <dt>판본</dt>
@@ -66,9 +81,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
       <div className="public-home detail-home">
         <header className="archive-header">
           <a className="archive-wordmark" href={detailRootHref()}>
-            <span>Jerboa</span>
-            <span>Circle</span>
-            <small lang="ko">공식 포스터 보관소</small>
+          <span>Jerboa</span>
+          <span>Circle</span>
+            <small lang="ko">여정과 기억의 장부</small>
           </a>
         </header>
         <main className="missing-record">

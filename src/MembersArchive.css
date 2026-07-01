@@ -1168,3 +1168,16 @@
   filter: none !important;
   backdrop-filter: none !important;
 }
+
+.members-archive [lang="en"] {
+  display: inline-block;
+  font-family: var(--font-heavy-header) !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+.members-archive .archive-topbar h1[lang="en"],
+.members-archive .member-login h1[lang="en"] {
+  line-height: 1.08;
+}

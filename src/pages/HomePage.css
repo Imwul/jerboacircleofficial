@@ -2117,3 +2117,107 @@
   transform: translateY(-0.25rem);
   filter: none !important;
 }
+
+.masthead-ritual,
+.text-index ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.masthead-ritual {
+  display: grid;
+  gap: 0;
+  border-top: 2px solid var(--ink);
+  border-left: 2px solid var(--ink);
+}
+
+.masthead-ritual li {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.6rem;
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  background: var(--signal-gold);
+  font-family: var(--font-heavy-header);
+  font-size: clamp(1rem, 1.5vw, 1.45rem);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.marginal-note {
+  max-width: 38rem;
+  margin: 1.2rem 0 0;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--ink);
+  font-family: var(--font-ko);
+  font-size: clamp(1rem, 1.35vw, 1.28rem);
+  font-weight: 900;
+  line-height: 1.55;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.constellation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 1.4rem;
+  border-top: 2px solid var(--ink);
+  border-left: 2px solid var(--ink);
+}
+
+.text-index {
+  display: grid;
+  min-width: 0;
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  background: var(--signal-cream);
+}
+
+.text-index > span {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 2px solid var(--ink);
+  background: var(--signal-gold);
+  font-family: var(--font-ko);
+  font-size: 1rem;
+  font-weight: 950;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.text-index li {
+  min-height: 2.25rem;
+  padding: 0.42rem 0.6rem;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--font-heavy-header);
+  font-size: clamp(1rem, 1.45vw, 1.45rem);
+  line-height: 1.18;
+}
+
+.text-index li:last-child {
+  border-bottom: 0;
+}
+
+.poster-caption em {
+  display: block;
+  margin-top: 0.45rem;
+  font-family: var(--font-ko);
+  font-style: normal;
+  font-size: 0.95rem;
+  font-weight: 850;
+  line-height: 1.45;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+@media (max-width: 720px) {
+  .constellation-grid {
+    grid-template-columns: 1fr;
+  }
+}

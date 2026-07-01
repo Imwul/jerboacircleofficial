@@ -18,11 +18,14 @@ interface KeeperFormState {
   title: string;
   subtitle: string;
   latinQuote: string;
+  marginalia: string;
   date: string;
   status: EventStatus;
   posterImage: string;
   shortDescription: string;
   longDescription: string;
+  passageText: string;
+  materialsText: string;
   themesText: string;
   location: string;
   ctaLabel: string;
@@ -34,11 +37,14 @@ function toFormState(event: ArchiveEvent): KeeperFormState {
     title: event.title,
     subtitle: event.subtitle,
     latinQuote: event.latinQuote,
+    marginalia: event.marginalia,
     date: event.date,
     status: event.status,
     posterImage: event.posterImage,
     shortDescription: event.shortDescription,
     longDescription: event.longDescription,
+    passageText: event.passage.join(' / '),
+    materialsText: event.materials.join(' / '),
     themesText: event.themes.join(' / '),
     location: event.location,
     ctaLabel: event.ctaLabel,
@@ -51,11 +57,20 @@ function toDraft(form: KeeperFormState): ArchiveEventDraft {
     title: form.title,
     subtitle: form.subtitle,
     latinQuote: form.latinQuote,
+    marginalia: form.marginalia,
     date: form.date,
     status: form.status,
     posterImage: form.posterImage,
     shortDescription: form.shortDescription,
     longDescription: form.longDescription,
+    passage: form.passageText
+      .split(/\n|\//)
+      .map((item) => item.trim())
+      .filter(Boolean),
+    materials: form.materialsText
+      .split(/\n|\//)
+      .map((item) => item.trim())
+      .filter(Boolean),
     themes: form.themesText
       .split(/\n|\//)
       .map((theme) => theme.trim())
@@ -226,10 +241,10 @@ export default function KeeperPage() {
 
       <main className="keeper-room">
         <aside className="keeper-register" aria-label="Programme register">
-          <p className="section-kicker">Keeper mode / local draft room</p>
-          <h1>Archive cabinet</h1>
+          <p className="section-kicker">Keeper desk / marginal edition room</p>
+          <h1>Register of passages</h1>
           <p lang="ko">
-            포스터와 문구를 임시로 고쳐 보고 같은 브라우저의 공개 화면에 반영합니다
+            포스터 / 문구 / 여정 / 자료 묶음을 고쳐 Circle의 보이는 기억에 반영합니다
           </p>
           <p className="keeper-draft-count" lang="ko">
             {isDirty ? '저장되지 않은 수정 있음' : `저장된 초안 ${draftCount}`}
@@ -241,7 +256,7 @@ export default function KeeperPage() {
                 type="password"
                 value={serverKey}
                 onChange={(event) => updateServerKey(event.target.value)}
-                placeholder="Keeper key"
+                placeholder="보관자 열쇠"
               />
             </label>
             <div className="keeper-sync-actions">
@@ -313,6 +328,15 @@ export default function KeeperPage() {
               <input value={form.latinQuote} onChange={(event) => updateField('latinQuote', event.target.value)} />
             </label>
 
+            <label className="keeper-field">
+              <span>여백 주석</span>
+              <textarea
+                rows={2}
+                value={form.marginalia}
+                onChange={(event) => updateField('marginalia', event.target.value)}
+              />
+            </label>
+
             <div className="keeper-field-grid">
               <label className="keeper-field">
                 <span>일자</span>
@@ -358,6 +382,24 @@ export default function KeeperPage() {
             </label>
 
             <label className="keeper-field">
+              <span>여정 단계</span>
+              <textarea
+                rows={3}
+                value={form.passageText}
+                onChange={(event) => updateField('passageText', event.target.value)}
+              />
+            </label>
+
+            <label className="keeper-field">
+              <span>자료 묶음</span>
+              <textarea
+                rows={3}
+                value={form.materialsText}
+                onChange={(event) => updateField('materialsText', event.target.value)}
+              />
+            </label>
+
+            <label className="keeper-field">
               <span>주제</span>
               <textarea
                 rows={3}
@@ -388,6 +430,7 @@ export default function KeeperPage() {
               <span>{form.edition}</span>
               <h3>{form.title}</h3>
               <p>{form.subtitle}</p>
+              <p>{form.marginalia}</p>
               <small>{form.shortDescription}</small>
             </aside>
           </form>

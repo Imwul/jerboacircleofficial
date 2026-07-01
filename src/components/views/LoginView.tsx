@@ -49,16 +49,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           </div>
         )}
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium">비공개 회원 장부</p>
-          <h1 className="text-4xl font-black text-stone-900">
-            회원 기록실
+          <p className="italic text-stone-400 text-sm font-medium">Private register / 비공개 장부</p>
+          <h1 className="text-4xl font-black text-stone-900" lang="en">
+            Reader register
           </h1>
         </div>
       </div>
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400">등록된 회원 / {users.length}</p>
+          <p className="text-[10px] font-black text-stone-400" lang="en">Readers entered / {users.length}</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
@@ -87,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                     </div>
                   )}
                 </div>
-                <div className="record-meta text-[9px] text-stone-400 font-black">{user.tier} / 개인 기록</div>
+                <div className="record-meta text-[9px] text-stone-400 font-black">{user.tier} / private folio</div>
               </div>
               <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
