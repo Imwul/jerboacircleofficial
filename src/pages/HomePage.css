@@ -2314,6 +2314,26 @@
   transform-origin: center;
 }
 
+.public-home .masthead-ring {
+  position: absolute;
+  width: min(78vw, 55rem);
+  height: min(78vw, 55rem);
+  max-height: 86vh;
+  overflow: visible;
+  pointer-events: none;
+  transform: translateX(-4vw) rotate(-11deg);
+  transform-origin: center;
+  mix-blend-mode: multiply;
+}
+
+.public-home .masthead-ring text {
+  fill: var(--ink);
+  font-family: var(--font-heavy-header);
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: 2px;
+}
+
 .public-home .masthead-seal-caption {
   position: absolute;
   right: clamp(1rem, 2.5vw, 2rem);
@@ -2370,6 +2390,26 @@
 
 .public-home .archive-nav a:nth-child(5n) {
   background: var(--signal-pink) !important;
+}
+
+.public-home .archive-wordmark {
+  min-height: 5.4rem;
+  justify-content: center;
+  font-size: clamp(1.45rem, 2.6vw, 3.15rem);
+  line-height: 1.08;
+  overflow: visible;
+}
+
+.public-home .archive-wordmark span {
+  display: block;
+  line-height: 0.9;
+  overflow: visible;
+}
+
+.public-home .archive-wordmark small[lang="ko"] {
+  margin-top: 0.55rem;
+  font-size: clamp(0.7rem, 0.85vw, 0.9rem);
+  line-height: 1.25;
 }
 
 .public-home .section-kicker span[lang="en"] {

@@ -27,6 +27,19 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
         <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" />
+        <svg className="masthead-ring" viewBox="0 0 600 600" aria-hidden="true">
+          <defs>
+            <path
+              id="jerboaSealRingPath"
+              d="M300,300 m-247,0 a247,247 0 1,1 494,0 a247,247 0 1,1 -494,0"
+            />
+          </defs>
+          <text>
+            <textPath href="#jerboaSealRingPath" startOffset="2%">
+              Jerboa Circle / Public archive / Programme memory / Slow reading / Symbolic passage /
+            </textPath>
+          </text>
+        </svg>
         <div className="masthead-seal-caption">
           <span lang="en">Jerboa Circle</span>
           <small lang="ko">공개 기록벽</small>
