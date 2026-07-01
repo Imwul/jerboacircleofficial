@@ -31,7 +31,7 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
           <defs>
             <path
               id="jerboaSealRingPath"
-              d="M300,300 m-247,0 a247,247 0 1,1 494,0 a247,247 0 1,1 -494,0"
+              d="M300,300 m-284,0 a284,284 0 1,1 568,0 a284,284 0 1,1 -568,0"
             />
           </defs>
           <text>

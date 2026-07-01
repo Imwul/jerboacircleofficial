@@ -2304,34 +2304,40 @@
 }
 
 .public-home .masthead-logo {
-  width: min(74vw, 52rem);
+  position: relative;
+  z-index: 2;
+  width: min(70vw, 49rem);
   max-width: none;
-  max-height: 82vh;
+  max-height: 78vh;
   object-fit: contain;
   mix-blend-mode: multiply;
-  filter: contrast(1.22) saturate(0);
+  filter: grayscale(1) contrast(2.2) brightness(1.18) !important;
   transform: translateX(-4vw) rotate(-1.5deg);
   transform-origin: center;
 }
 
 .public-home .masthead-ring {
   position: absolute;
-  width: min(78vw, 55rem);
-  height: min(78vw, 55rem);
-  max-height: 86vh;
+  z-index: 3;
+  width: min(82vw, 57rem);
+  height: min(82vw, 57rem);
+  max-height: 90vh;
   overflow: visible;
   pointer-events: none;
   transform: translateX(-4vw) rotate(-11deg);
   transform-origin: center;
-  mix-blend-mode: multiply;
+  mix-blend-mode: normal;
 }
 
 .public-home .masthead-ring text {
-  fill: var(--ink);
+  fill: var(--signal-cream);
+  stroke: var(--ink);
+  stroke-width: 0.7px;
+  paint-order: stroke fill;
   font-family: var(--font-heavy-header);
-  font-size: 27px;
+  font-size: 22px;
   line-height: 1;
-  letter-spacing: 2px;
+  letter-spacing: 1.2px;
 }
 
 .public-home .masthead-seal-caption {
