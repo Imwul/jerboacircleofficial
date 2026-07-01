@@ -11,11 +11,11 @@ function SiteHeader() {
         <small lang="ko">여정과 기억의 장부</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a href="#featured">현재 여정</a>
-        <a href="#archive">기억의 벽</a>
-        <a href="#manifesto">단서</a>
-        <a href="#join">초대</a>
-        <a href="./members/">회원실</a>
+        <a href="#featured"><span lang="en">Threshold</span><small lang="ko">지금 열려 있는 프로그램</small></a>
+        <a href="#archive"><span lang="en">Memory</span><small lang="ko">지난 프로그램 아카이브</small></a>
+        <a href="#manifesto"><span lang="en">Fragments</span><small lang="ko">저보아 서클 소개</small></a>
+        <a href="#join"><span lang="en">Letter</span><small lang="ko">참여와 문의</small></a>
+        <a href="./members/"><span lang="en">Private</span><small lang="ko">회원 전용 장부</small></a>
       </nav>
     </header>
   );
@@ -29,8 +29,8 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
         <span>Circle</span>
       </div>
       <div className="masthead-index">
-        <p lang="ko">책 / 이미지 / 상징 / 신화 / 철학 / 기억의 임시 별자리</p>
-        <p>Curatorial pilgrimage / living archive / marginal register</p>
+        <p lang="en">A field of signs, entered slowly</p>
+        <p lang="ko">책, 이미지, 신화, 철학, 종교, 예술을 엮어 하나의 프로그램으로 만드는 연구 모임입니다.</p>
         <ol className="masthead-ritual">
           <li>Beginning</li>
           <li>Passage</li>
@@ -102,7 +102,7 @@ function FeaturedEvent({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker">{featuredEvent.edition} / 현재 열린 순례</p>
+        <p className="section-kicker"><span lang="en">The open threshold</span> / <span lang="ko">현재 진행 중인 프로그램</span></p>
         <h1>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
           하나의 강의가 아니라 성배 / 숲 / 성물 / 장미 / 불 / 별을 지나는 느린 통과 의례
@@ -110,7 +110,7 @@ function FeaturedEvent({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
         <p className="latin-line">{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
-        <p className="event-description">{featuredEvent.shortDescription}</p>
+        <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
         <div className="constellation-grid" aria-label="Programme constellation">
           <TextIndex title="여정" items={featuredEvent.passage} />
           <TextIndex title="자료" items={featuredEvent.materials} />
@@ -149,8 +149,8 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker">Accumulated memory / visible register</p>
-        <h2 lang="ko">각 판본은 지나간 행사가 아니라 아직 연결되지 않은 단서입니다</h2>
+        <p className="section-kicker"><span lang="en">The visible memory</span> / <span lang="ko">지난 프로그램 기록</span></p>
+        <h2 lang="ko">이곳은 지나간 행사 목록이 아니라, 프로그램이 쌓여 가는 공개 아카이브입니다</h2>
       </div>
       <div className="archive-ledger" aria-label="Programme index">
         {archiveEvents.map((event) => (
@@ -174,7 +174,7 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
 function ManifestoBlock() {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
-      <p className="section-kicker">단서 / fragments toward a method</p>
+      <p className="section-kicker"><span lang="en">Fragments toward a method</span> / <span lang="ko">저보아 서클 소개</span></p>
       <p lang="ko">
         저보아 서클의 프로그램은 교육 과정이 아니라 임시 별자리입니다
         책과 이미지와 사물과 장소가 잠시 한 방향을 가리키고
@@ -188,8 +188,8 @@ function JoinBlock() {
   return (
     <section className="join-block section-reveal" id="join">
       <div>
-        <p className="section-kicker">다음 장 / correspondence</p>
-        <h2 lang="ko">완성된 설명보다 다음 단서를 기다리는 사람에게 서신을 보냅니다</h2>
+        <p className="section-kicker"><span lang="en">Correspondence</span> / <span lang="ko">문의와 초대</span></p>
+        <h2 lang="ko">다음 프로그램, 참여, 기록 열람에 관한 문의를 받습니다</h2>
       </div>
       <a className="archive-cta inverse" href="mailto:hello@jerboacircle.com">
         서신 보내기

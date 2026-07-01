@@ -49,16 +49,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           </div>
         )}
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium">Private register / 비공개 장부</p>
+          <p className="italic text-stone-400 text-sm font-medium"><span lang="en">Antecamera</span> / <span lang="ko">회원 입장 화면</span></p>
           <h1 className="text-4xl font-black text-stone-900" lang="en">
-            Reader register
+            Reader folios
           </h1>
         </div>
       </div>
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400" lang="en">Readers entered / {users.length}</p>
+          <p className="text-[10px] font-black text-stone-400" lang="ko">회원 이름을 선택하면 개인 장부로 들어갑니다 / {users.length}명</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
@@ -87,7 +87,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                     </div>
                   )}
                 </div>
-                <div className="record-meta text-[9px] text-stone-400 font-black">{user.tier} / private folio</div>
+                <div className="record-meta text-[9px] text-stone-400 font-black" lang="ko">{user.tier} / 개인 기록과 신청 내역</div>
               </div>
               <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
@@ -97,7 +97,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
         </div>
       </div>
 
-      <div className="w-full pt-8 border-t border-stone-100 space-y-4">
+      <div className="member-login-actions">
         <button 
           onClick={() => setShowAdminModal(true)}
           className="w-full py-3 text-stone-400 hover:text-stone-600 text-xs font-bold tracking-widest transition-colors"
@@ -105,7 +105,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           <span className="archive-ko-label">보관자 입장</span>
         </button>
 
-        <div className="flex flex-col items-center gap-2">
+        <div className="member-login-import">
           <button 
             onClick={() => setShowImport(!showImport)}
             className="text-[10px] text-stone-300 hover:text-stone-500 underline underline-offset-4"

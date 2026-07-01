@@ -2190,12 +2190,16 @@
 }
 
 .text-index li {
-  min-height: 2.25rem;
-  padding: 0.42rem 0.6rem;
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  padding: 0.52rem 0.72rem;
   border-bottom: 1px solid var(--ink);
   font-family: var(--font-heavy-header);
-  font-size: clamp(1rem, 1.45vw, 1.45rem);
-  line-height: 1.18;
+  font-size: clamp(0.9rem, 1.05vw, 1.12rem);
+  line-height: 1.35;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .text-index li:last-child {
@@ -2220,4 +2224,100 @@
   .constellation-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Bilingual labels: English sets the atmosphere, Korean explains the action. */
+.public-home .archive-nav a {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+  min-width: max-content;
+  transform: none !important;
+}
+
+.public-home .archive-nav a span[lang="en"] {
+  display: block;
+  font-family: var(--font-heavy-header);
+  font-size: clamp(1.15rem, 1.5vw, 1.85rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+.public-home .archive-nav a small[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko);
+  font-size: clamp(0.66rem, 0.78vw, 0.82rem);
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: center;
+}
+
+.public-home .section-kicker span[lang="en"] {
+  display: inline-block;
+  font-family: var(--font-heavy-header);
+  font-size: 1.15em;
+  line-height: 1;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+.public-home .section-kicker span[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko);
+  font-weight: 950;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+/* Featured programme copy should read like a poster, without awkward orphan words. */
+.public-home .featured-copy .event-subtitle {
+  max-width: min(100%, 46rem);
+  font-size: clamp(1rem, 1.5vw, 1.48rem);
+  line-height: 1.45;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.public-home .featured-copy .latin-line {
+  max-width: min(100%, 46rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.8rem);
+  line-height: 1.45;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.public-home .featured-copy .event-description {
+  max-width: min(100%, 44rem);
+  font-size: clamp(1.16rem, 1.45vw, 1.42rem);
+  line-height: 1.55;
+  overflow-wrap: keep-all;
+  word-break: keep-all;
+}
+
+.public-home .constellation-grid {
+  align-items: stretch;
+}
+
+.public-home .text-index {
+  grid-template-rows: 3.4rem repeat(5, minmax(2.65rem, auto));
+}
+
+.public-home .text-index > span {
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  padding: 0.58rem 0.72rem;
+}
+
+.public-home .text-index ol {
+  display: contents;
 }

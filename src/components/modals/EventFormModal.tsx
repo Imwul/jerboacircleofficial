@@ -99,7 +99,9 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-black tracking-tighter text-stone-900">{event ? 'Edit passage' : 'New passage'}</h3>
+          <h3 className="text-xl font-black tracking-tighter text-stone-900">
+            <span lang="en">{event ? 'Revised passage' : 'New passage'}</span> / <span lang="ko">{event ? '프로그램 수정' : '프로그램 추가'}</span>
+          </h3>
           <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -107,7 +109,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Title</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Name</span> / <span lang="ko">프로그램 제목</span></label>
             <input 
               type="text" 
               value={title} 
@@ -118,7 +120,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Short note</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Marginal note</span> / <span lang="ko">짧은 설명</span></label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)}
@@ -128,7 +130,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Long note</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Record</span> / <span lang="ko">상세 설명</span></label>
             <textarea 
               value={detailedDescription} 
               onChange={e => setDetailedDescription(e.target.value)}
@@ -139,7 +141,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Date and hour</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Hour</span> / <span lang="ko">날짜와 시간</span></label>
               <input 
                 type="datetime-local" 
                 value={date} 
@@ -148,7 +150,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Duration</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Measure</span> / <span lang="ko">진행 시간</span></label>
               <select 
                 value={duration} 
                 onChange={e => setDuration(parseInt(e.target.value) || 30)}
@@ -174,7 +176,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-stone-400 tracking-widest">Rubric</label>
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Rubric</span> / <span lang="ko">분류 색과 이름</span></label>
             <div className="grid grid-cols-5 gap-2">
               {Object.keys(THEME_CONFIG).map(t => (
                 <button 
@@ -196,7 +198,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Mark cost / credit</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Mark</span> / <span lang="ko">필요 문장 또는 지급 문장</span></label>
               <div className="flex gap-2">
                 <input 
                   type="number" 
@@ -208,12 +210,12 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                   onClick={() => setIsReward(!isReward)}
                   className={`px-4 rounded-xl text-[10px] font-bold tracking-widest transition-all ${isReward ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-400'}`}
                 >
-                  {isReward ? 'Credit' : 'Cost'}
+                  <span lang="ko">{isReward ? '지급' : '필요'}</span>
                 </button>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">Seats</label>
+              <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Seats</span> / <span lang="ko">최대 참여 인원</span></label>
               <input 
                 type="number" 
                 value={maxParticipants} 
@@ -227,7 +229,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           {!event && (
             <div className="pt-4 border-t border-stone-100 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Repeat passage</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Return</span> / <span lang="ko">반복 일정 만들기</span></label>
                 <button 
                   onClick={() => setIsRecurring(!isRecurring)}
                   className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? 'bg-stone-900' : 'bg-stone-200'}`}
@@ -255,8 +257,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                       onChange={e => setRecurrenceType(e.target.value as any)}
                       className="bg-white border border-stone-200 rounded-lg p-2 text-[10px] font-bold outline-none"
                     >
-                      <option value="count">Repeat count</option>
-                      <option value="date">Closing date</option>
+                      <option value="count">횟수로 반복</option>
+                      <option value="date">종료일로 반복</option>
                     </select>
                     {recurrenceType === 'count' ? (
                       <input 
@@ -281,8 +283,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
         </div>
 
         <div className="flex gap-2 pt-4">
-          <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all">Cancel</button>
-          <button onClick={handleSave} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all">Save passage</button>
+          <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all"><span lang="ko">닫기</span></button>
+          <button onClick={handleSave} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all"><span lang="ko">프로그램 저장</span></button>
         </div>
       </div>
     </div>

@@ -308,6 +308,20 @@
   color: rgba(21, 18, 15, 0.62);
 }
 
+.archive-context small {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-family: var(--font-ko);
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.3;
+  color: var(--register-ink, #15120f);
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
 .archive-context strong {
   display: block;
   margin-top: 0.45rem;
@@ -511,6 +525,7 @@
   --register-green: #08703e;
   --register-gold: #f3c538;
   --register-cream: #fff0cf;
+  --register-action: #8fb8c9;
   --register-ink: #050505;
   grid-template-columns: minmax(20rem, 31vw) minmax(0, 1fr);
   background: var(--register-magenta) !important;
@@ -565,6 +580,45 @@
   width: 100%;
   height: 2px;
   background: var(--register-ink);
+}
+
+.archive-public-return {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 4.7rem;
+  align-content: center;
+  padding: 0.8rem 1.1rem;
+  border-bottom: 2px solid var(--register-ink);
+  background: var(--register-cream);
+  color: var(--register-ink);
+  text-decoration: none;
+}
+
+.archive-public-return span[lang="en"] {
+  display: inline-block;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1rem, 1.35vw, 1.35rem);
+  line-height: 1.35;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+.archive-public-return small[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.84rem, 0.95vw, 1rem);
+  font-weight: 950;
+  line-height: 1.3;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+  align-self: start;
+}
+
+.archive-public-return:hover {
+  background: var(--register-gold);
 }
 
 .archive-cabinet {
@@ -683,7 +737,7 @@
   min-height: 3rem;
   padding: 0.65rem 0.9rem !important;
   border: 2px solid var(--register-ink);
-  background: var(--register-gold);
+  background: var(--register-action);
   font-size: 0.95rem;
   font-weight: 900;
 }
@@ -813,6 +867,10 @@
   background-color: var(--register-red) !important;
 }
 
+.members-archive .archive-main button[type="submit"] {
+  background-color: var(--register-action) !important;
+}
+
 .members-archive .archive-main .grid.grid-cols-1.gap-3 > button,
 .members-archive .archive-main .grid.grid-cols-1.gap-3 > div {
   min-height: 6.8rem;
@@ -857,6 +915,59 @@
   word-spacing: var(--ko-word-compensation) !important;
   transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
   transform-origin: center;
+}
+
+.member-login-actions {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: 0;
+  align-items: start;
+  justify-items: end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.member-login-actions > button {
+  width: auto;
+  justify-self: end;
+}
+
+.member-login-actions > div {
+  width: auto;
+  justify-self: end;
+}
+
+.member-login-actions button {
+  display: flex !important;
+  width: auto;
+  min-height: 2.45rem;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: none !important;
+  transform-origin: center center !important;
+}
+
+.member-login-actions .archive-ko-label {
+  transform-origin: center center !important;
+}
+
+.member-login-actions > div {
+  display: grid !important;
+  justify-items: center;
+}
+
+.member-login-import > div {
+  grid-column: 1 / -1;
+}
+
+.member-login-actions textarea,
+.member-login-actions > div > div,
+.member-login-actions > div > div > button {
+  width: min(100%, 18rem) !important;
+  justify-self: end;
 }
 
 .member-seal {
@@ -1180,4 +1291,63 @@
 .members-archive .archive-topbar h1[lang="en"],
 .members-archive .member-login h1[lang="en"] {
   line-height: 1.08;
+}
+
+.members-archive .archive-cabinet small[lang="ko"],
+.members-archive .archive-sidebar-foot span[lang="ko"],
+.members-archive .archive-topbar span[lang="ko"],
+.members-archive .archive-ko-label,
+.members-archive label span[lang="ko"],
+.members-archive h3 span[lang="ko"],
+.members-archive p span[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.members-archive label span[lang="en"],
+.members-archive h3 span[lang="en"],
+.members-archive p span[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+.members-archive .archive-public-return {
+  justify-items: end;
+  padding-right: 1.25rem;
+  background: var(--register-action) !important;
+  text-align: right;
+}
+
+.members-archive .archive-public-return span[lang="en"],
+.members-archive .archive-public-return small[lang="ko"] {
+  transform-origin: right center !important;
+}
+
+.members-archive .archive-public-return:hover {
+  background: var(--register-cream) !important;
+}
+
+.members-archive .archive-main .member-login-actions > button,
+.members-archive .archive-main .member-login-actions > div > button {
+  width: auto !important;
+  min-width: 8.6rem !important;
+  min-height: 2.45rem !important;
+  justify-self: end;
+  padding: 0.48rem 0.7rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-action) !important;
+  color: var(--register-ink) !important;
+  text-decoration: none !important;
+  overflow: visible !important;
+}
+
+.members-archive .archive-main .member-login-actions > div,
+.members-archive .archive-main .member-login-actions {
+  justify-items: end;
 }

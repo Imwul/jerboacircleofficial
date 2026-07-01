@@ -111,7 +111,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
-            {format(selectedDate, 'MM dd')} Journey marks
+            <span lang="en">Itinerary</span> / <span lang="ko">{format(selectedDate, 'MM dd')} 프로그램</span>
           </h3>
           {isAdmin && (
             <div className="flex gap-2">
@@ -120,14 +120,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => onPasteEvent?.(selectedDate)}
                   className="text-[10px] bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold border border-amber-100 animate-pulse"
                 >
-                  <span className="archive-ko-label">Place copy / {copiedEventTitle}</span>
+                  <span>복사한 프로그램 배치 / {copiedEventTitle}</span>
                 </button>
               )}
               <button 
                 onClick={() => onAddEvent?.(selectedDate)}
                 className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg active:scale-95 transition-transform"
               >
-                <span className="archive-ko-label">+ Add passage</span>
+                <span>+ 프로그램 추가</span>
               </button>
             </div>
           )}
@@ -136,7 +136,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
             <div className="archive-empty-mark" aria-hidden="true">✣</div>
-            <p className="text-xs font-bold text-stone-300 tracking-widest">No mark entered for this day</p>
+            <p className="text-xs font-bold text-stone-300 tracking-widest">이 날짜에 등록된 프로그램이 없습니다</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -176,7 +176,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black tracking-widest opacity-50">Seats</span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">참여 인원</span>
                           <div className="flex items-center gap-1.5">
                             <div className="flex -space-x-2">
                               {users.filter(u => u.enrolledEventIds.includes(event.id)).slice(0, 3).map(u => (
@@ -194,7 +194,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                         <div className="w-px h-6 bg-white/10" />
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black tracking-widest opacity-50">{event.isReward ? 'Credit' : 'Cost'}</span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">{event.isReward ? '지급' : '필요 문장'}</span>
                           <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">문장</span></span>
                         </div>
                       </div>
@@ -216,7 +216,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           onClick={(e) => { e.stopPropagation(); enrolled ? onCancelEvent(event) : onJoinEvent(event); }}
                           className={`px-6 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 ${enrolled ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}
                         >
-                          <span className="archive-ko-label">{enrolled ? 'Remove mark' : 'Mark seat'}</span>
+                          <span>{enrolled ? '참여 취소' : '참여하기'}</span>
                         </button>
                       )}
                     </div>

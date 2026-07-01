@@ -16,8 +16,8 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <small lang="ko">여정과 기억의 장부</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
-          <a href={detailRootHref()}>기록벽</a>
-          <a href={`${detailRootHref()}members/`}>회원실</a>
+          <a href={detailRootHref()}><span lang="en">Memory</span><small lang="ko">기록벽으로 돌아가기</small></a>
+          <a href={`${detailRootHref()}members/`}><span lang="en">Private</span><small lang="ko">회원 전용 장부</small></a>
         </nav>
       </header>
       <main className="detail-record section-reveal">
@@ -25,12 +25,12 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker">{event.edition} / 개별 여정 / {event.status}</p>
+          <p className="section-kicker"><span lang="en">{event.edition}</span> / <span lang="ko">개별 프로그램 기록</span></p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="latin-line">{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
-          <p className="detail-long">{event.longDescription}</p>
+          <p className="detail-long" lang="ko">{event.longDescription}</p>
           <div className="constellation-grid" aria-label="Archive record path and materials">
             <div className="text-index">
               <span>여정</span>
