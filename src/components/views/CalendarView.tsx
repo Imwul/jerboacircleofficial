@@ -62,16 +62,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-xl font-black text-stone-800">
-            {format(currentMonth, 'yyyy MM')} Register
+            {format(currentMonth, 'yyyy MM')} 장부
           </h2>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest">Close register</button>
+        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest"><span className="archive-ko-label">장부 닫기</span></button>
       </div>
 
-      <div className="grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
+      <div className="archive-calendar-grid grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
         {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
           <div key={d} className={`bg-white py-3 text-center text-[10px] font-black ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-stone-400'}`}>{d}</div>
         ))}
@@ -89,7 +89,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             >
               <div className="flex flex-col h-full justify-between">
                 <div className="flex justify-between items-start">
-                  <span className={`text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full transition-colors ${isToday ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : isSelected ? 'bg-stone-900 text-white' : 'text-stone-400'}`}>
+                  <span className={`calendar-date-mark text-[11px] font-black w-6 h-6 flex items-center justify-center transition-colors ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}`}>
                     {format(day, 'd')}
                   </span>
                 </div>
@@ -111,7 +111,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
-            {format(selectedDate, 'MM dd')} Gatherings
+            {format(selectedDate, 'MM dd')} 모임
           </h3>
           {isAdmin && (
             <div className="flex gap-2">
@@ -120,14 +120,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => onPasteEvent?.(selectedDate)}
                   className="text-[10px] bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold border border-amber-100 animate-pulse"
                 >
-                  Place copy / {copiedEventTitle}
+                  <span className="archive-ko-label">복사 배치 / {copiedEventTitle}</span>
                 </button>
               )}
               <button 
                 onClick={() => onAddEvent?.(selectedDate)}
                 className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg active:scale-95 transition-transform"
               >
-                + Add gathering
+                <span className="archive-ko-label">+ 모임 추가</span>
               </button>
             </div>
           )}
@@ -135,8 +135,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
-            <div className="text-4xl opacity-20">☁️</div>
-            <p className="text-xs font-bold text-stone-300 tracking-widest">No gathering recorded</p>
+            <div className="archive-empty-mark" aria-hidden="true">✣</div>
+            <p className="text-xs font-bold text-stone-300 tracking-widest">기록된 모임 없음</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -176,12 +176,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black tracking-widest opacity-50">Attendance</span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">참여</span>
                           <div className="flex items-center gap-1.5">
                             <div className="flex -space-x-2">
                               {users.filter(u => u.enrolledEventIds.includes(event.id)).slice(0, 3).map(u => (
-                                <div key={u.id} className="w-5 h-5 rounded-full border border-white/20 bg-white/10 flex items-center justify-center text-[8px] overflow-hidden text-white" style={{ backgroundColor: u.avatarColor }}>
-                                  {u.profileImage ? <img src={u.profileImage} className="w-full h-full object-cover" /> : u.avatarIcon}
+                                <div
+                                  key={u.id}
+                                  className="member-seal member-seal--small"
+                                  style={{ '--seal-color': u.avatarColor || '#ef3528' } as React.CSSProperties}
+                                >
+                                  {u.profileImage ? <img src={u.profileImage} alt="" /> : <span className="member-seal__initial">{u.name.slice(0, 1)}</span>}
                                 </div>
                               ))}
                             </div>
@@ -190,8 +194,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                         <div className="w-px h-6 bg-white/10" />
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-black tracking-widest opacity-50">{event.isReward ? 'Credit' : 'Cost'}</span>
-                          <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">Coins</span></span>
+                          <span className="text-[9px] font-black tracking-widest opacity-50">{event.isReward ? '보상' : '비용'}</span>
+                          <span className="text-xs font-black">{event.cost} <span className="text-[8px] opacity-60">문장</span></span>
                         </div>
                       </div>
 
@@ -212,12 +216,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           onClick={(e) => { e.stopPropagation(); enrolled ? onCancelEvent(event) : onJoinEvent(event); }}
                           className={`px-6 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 ${enrolled ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}
                         >
-                          {enrolled ? 'Remove mark' : 'Mark attendance'}
+                          <span className="archive-ko-label">{enrolled ? '참여 취소' : '참여 표시'}</span>
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
                 </div>
               );
             })}

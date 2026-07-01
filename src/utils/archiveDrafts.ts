@@ -45,12 +45,22 @@ export function writeArchiveDraft(id: string, draft: ArchiveEventDraft) {
   window.localStorage.setItem(draftStorageKey, JSON.stringify(nextDrafts));
 }
 
+export function writeArchiveDrafts(drafts: ArchiveDraftMap) {
+  if (!canUseStorage()) return;
+  window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+}
+
 export function clearArchiveDraft(id: string) {
   if (!canUseStorage()) return;
 
   const drafts = readArchiveDrafts();
   delete drafts[id];
   window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+}
+
+export function clearAllArchiveDrafts() {
+  if (!canUseStorage()) return;
+  window.localStorage.removeItem(draftStorageKey);
 }
 
 export function applyArchiveDrafts(baseEvents: ArchiveEvent[]) {

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Component } from 'react';
+import React, { useState, useEffect, useRef, Component } from 'react';
 import { INITIAL_USERS, INITIAL_EVENTS } from './constants';
 import { User, CalendarEvent, ThemeColor } from './types';
 import { LoginView } from './components/views/LoginView';
@@ -10,6 +10,7 @@ import { HabitTrackingView } from './components/views/HabitTrackingView';
 import { EventFormModal } from './components/modals/EventFormModal';
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
+import { loadServerSync, saveServerSync } from './utils/serverSync';
 import './MembersArchive.css';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -75,6 +76,13 @@ const STORAGE_KEYS = {
   THEMES: 'jerboa_themes',
 };
 
+interface MembersSyncPayload {
+  users: User[];
+  events: CalendarEvent[];
+  themeNames: Record<ThemeColor, string>;
+  mainImage: string | null;
+}
+
 function App() {
   console.log('App component rendering');
   const [users, setUsers] = useState<User[]>(() => {
@@ -114,13 +122,68 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | 'admin' | null>(null);
   const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'profile' | 'admin'>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [serverSyncStatus, setServerSyncStatus] = useState('서버 연결 대기');
+  const hasServerHydrated = useRef(false);
+  const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [clipboard, setClipboard] = useState<CalendarEvent | null>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedDateForNewEvent, setSelectedDateForNewEvent] = useState<Date>(new Date());
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
-  // 로컬 저장 전용. 서버 연결 없이 Vercel 정적 배포에서도 즉시 동작합니다.
+  const createMembersSyncPayload = (): MembersSyncPayload => ({
+    users,
+    events,
+    themeNames,
+    mainImage,
+  });
+
+  const applyMembersSyncPayload = (payload: Partial<MembersSyncPayload>) => {
+    if (payload.users) setUsers(payload.users);
+    if (payload.events) setEvents(payload.events);
+    if (payload.themeNames) setThemeNames({ ...DEFAULT_THEME_NAMES, ...payload.themeNames });
+    setMainImage(payload.mainImage || null);
+  };
+
+  const saveMembersToServer = async (source = '자동 저장') => {
+    try {
+      setServerSyncStatus(`${source} 중`);
+      const result = await saveServerSync('members', createMembersSyncPayload());
+      setServerSyncStatus(`서버 저장됨 / ${format(new Date(result.savedAt || new Date()), 'HH mm ss')}`);
+      return true;
+    } catch (error) {
+      setServerSyncStatus('서버 저장 실패 / 로컬 보관 중');
+      console.error('Server save failed:', error);
+      return false;
+    }
+  };
+
+  const loadMembersFromServer = async () => {
+    try {
+      setServerSyncStatus('서버 장부 불러오는 중');
+      const result = await loadServerSync<MembersSyncPayload>('members');
+
+      if (result.exists && result.saved?.data) {
+        applyMembersSyncPayload(result.saved.data);
+        setServerSyncStatus(`서버 장부 적용됨 / ${format(new Date(result.saved.savedAt), 'HH mm ss')}`);
+      } else {
+        setServerSyncStatus('서버 장부 없음 / 새 장부 생성 중');
+        await saveServerSync('members', createMembersSyncPayload());
+        setServerSyncStatus('서버 장부 생성됨');
+      }
+    } catch (error) {
+      setServerSyncStatus('서버 미연결 / 로컬 장부 사용 중');
+      console.error('Server load failed:', error);
+    } finally {
+      hasServerHydrated.current = true;
+    }
+  };
+
+  useEffect(() => {
+    void loadMembersFromServer();
+  }, []);
+
+  // 로컬 저장은 즉시, 서버 저장은 여러 사용자를 위해 짧게 모아 자동 반영합니다.
   useEffect(() => {
     try {
       // 로컬 스토리지에는 항상 즉시 저장
@@ -139,6 +202,19 @@ function App() {
       }
     }
     triggerSaveNotification();
+  }, [users, events, themeNames, mainImage]);
+
+  useEffect(() => {
+    if (!hasServerHydrated.current) return;
+    if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
+
+    serverSaveTimer.current = setTimeout(() => {
+      void saveMembersToServer();
+    }, 900);
+
+    return () => {
+      if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
+    };
   }, [users, events, themeNames, mainImage]);
 
   useEffect(() => {
@@ -168,22 +244,31 @@ function App() {
   const handleImportAllData = (base64Code: string) => {
     try {
       let decodedData: string;
-      try {
-        // Try decoding with URI component (for UTF-8 support)
-        decodedData = decodeURIComponent(atob(base64Code.trim()));
-      } catch (e) {
-        // Fallback to direct atob if URI decoding fails
-        decodedData = atob(base64Code.trim());
+      const trimmedCode = base64Code.trim();
+      if (trimmedCode.startsWith('{')) {
+        decodedData = trimmedCode;
+      } else {
+        try {
+          // Try decoding with URI component (for UTF-8 support)
+          decodedData = decodeURIComponent(atob(trimmedCode));
+        } catch (e) {
+          // Fallback to direct atob if URI decoding fails
+          decodedData = atob(trimmedCode);
+        }
       }
       
-      const data = JSON.parse(decodedData);
+      const parsed = JSON.parse(decodedData);
+      const data = parsed.data || parsed;
       
       if (data.users && data.events && data.themeNames) {
         if (confirm("클럽 데이터를 불러오시겠습니까?\n(기존 데이터가 덮어씌워집니다)")) {
-          setUsers(data.users);
-          setEvents(data.events);
-          setThemeNames({ ...DEFAULT_THEME_NAMES, ...data.themeNames });
-          setMainImage(data.mainImage || null);
+          applyMembersSyncPayload(data);
+          void saveServerSync('members', data).then(() => {
+            setServerSyncStatus('가져오기 완료 / 서버 저장됨');
+          }).catch((error) => {
+            console.error('Import server save failed:', error);
+            setServerSyncStatus('가져오기 완료 / 서버 저장 실패');
+          });
           alert("데이터를 성공적으로 불러왔습니다.");
           return true;
         }
@@ -193,6 +278,46 @@ function App() {
     } catch (err) { 
       console.error("Import error:", err);
       alert("잘못된 동기화 코드입니다. 코드를 다시 확인해주세요."); 
+    }
+    return false;
+  };
+
+  const handleDownloadAllData = () => {
+    const payload = {
+      type: 'jerboa-member-register',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: createMembersSyncPayload(),
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `jerboa-member-register-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportAllDataFile = async (file: File) => {
+    try {
+      const raw = await file.text();
+      const payload = JSON.parse(raw);
+      const data = payload.data || payload;
+      if (!data.users || !data.events || !data.themeNames) {
+        alert('데이터 형식이 올바르지 않습니다.');
+        return false;
+      }
+
+      if (confirm('백업 파일의 장부를 불러오시겠습니까? 기존 데이터가 덮어씌워집니다.')) {
+        applyMembersSyncPayload(data);
+        await saveServerSync('members', data);
+        setServerSyncStatus('백업 파일 적용 / 서버 저장됨');
+        return true;
+      }
+    } catch (error) {
+      console.error('File import failed:', error);
+      alert('백업 파일을 읽을 수 없습니다.');
     }
     return false;
   };
@@ -359,32 +484,32 @@ function App() {
           <nav className="archive-cabinet">
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
               <span>기록함</span>
-              <small>{events.length} records</small>
+              <small>기록 {events.length}</small>
             </button>
             <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
               <span>회원록</span>
-              <small>{users.length} entries</small>
+              <small>회원 {users.length}</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
               <span>모임</span>
-              <small>{totalEnrollments} marks</small>
+              <small>참여 {totalEnrollments}</small>
             </button>
             <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
               <span>프로그램</span>
-              <small>current register</small>
+              <small>현재 장부</small>
             </button>
             <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' && setActiveTab('habit')}>
               <span>수련 일지</span>
-              <small>{completedToday} today</small>
+              <small>오늘 {completedToday}</small>
             </button>
             <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser === 'admin' && setActiveTab('admin')}>
               <span>보관자</span>
-              <small>{currentUser === 'admin' ? 'unlocked' : 'sealed'}</small>
+              <small>{currentUser === 'admin' ? '열림' : '봉인'}</small>
             </button>
           </nav>
           <div className="archive-sidebar-foot">
             <span>비공개 보관소</span>
-            <span>로컬 장부</span>
+            <span>{serverSyncStatus}</span>
           </div>
         </aside>
 
@@ -400,15 +525,16 @@ function App() {
               <p>Jerboa Circle / 비공개 회원실</p>
               <h1>{archiveSectionTitle}</h1>
               <span>{archiveSectionNote}</span>
+              <span className="archive-server-line">{serverSyncStatus}</span>
             </div>
             <div className="archive-topbar-actions">
               {currentUser === 'admin' && (
                 <button onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
-                  {activeTab === 'calendar' ? '보관자 책상' : '프로그램 장부'}
+                  <span className="archive-ko-label">{activeTab === 'calendar' ? '보관자 책상' : '프로그램 장부'}</span>
                 </button>
               )}
               {currentUser && (
-                <button onClick={handleLogout}>장부 닫기</button>
+                <button onClick={handleLogout}><span className="archive-ko-label">장부 닫기</span></button>
               )}
             </div>
           </header>
@@ -459,6 +585,11 @@ function App() {
                   onAddUser={(user) => setUsers(prev => [...prev, user])}
                   onDeleteUser={handleDeleteUser}
                   onExportAllData={handleExportAllData} 
+                  onDownloadAllData={handleDownloadAllData}
+                  onImportAllDataFile={handleImportAllDataFile}
+                  onSaveServerData={() => saveMembersToServer('수동 서버 저장')}
+                  onLoadServerData={loadMembersFromServer}
+                  serverSyncStatus={serverSyncStatus}
                   onLogout={handleLogout} 
                   mainImage={mainImage}
                   onUpdateMainImage={setMainImage}
@@ -525,7 +656,7 @@ function App() {
                     onClick={() => setSyncCodeToDisplay(null)}
                     className="w-full py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors"
                   >
-                    닫기
+                    <span className="archive-ko-label">닫기</span>
                   </button>
                 </div>
               </div>

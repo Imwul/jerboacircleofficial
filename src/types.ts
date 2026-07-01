@@ -130,7 +130,7 @@ export const THEME_CONFIG = {
   },
 };
 
-export const AVATAR_ICONS = ['✣', '⭑', '☎', '☻', '✦', '✿', '⚛', '⚡'];
+export const AVATAR_ICONS = ['✣', '✦', '✧', '✠', '✥', '✶', '✷', '❖'];
 export const AVATAR_COLORS = [
-  '#C44A3A', '#018790', '#DE802B', '#F2D479', '#6FAF4F', '#BF092F', '#5D4037', '#455A64', '#7B1FA2'
+  '#ad2f63', '#ef3528', '#08703e', '#f3c538', '#6d2c8f', '#111111', '#fff0cf', '#c96b1f'
 ];

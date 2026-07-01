@@ -2,11 +2,15 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { events, type ArchiveEvent, type EventStatus } from '../data/events';
 import {
   applyArchiveDrafts,
+  clearAllArchiveDrafts,
   clearArchiveDraft,
   readArchiveDrafts,
   writeArchiveDraft,
+  writeArchiveDrafts,
   type ArchiveEventDraft,
+  type ArchiveDraftMap,
 } from '../utils/archiveDrafts';
+import { loadServerSync, saveServerSync } from '../utils/serverSync';
 import './HomePage.css';
 
 interface KeeperFormState {
@@ -61,6 +65,14 @@ function toDraft(form: KeeperFormState): ArchiveEventDraft {
   };
 }
 
+function timeLabel(date = new Date()) {
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
 export default function KeeperPage() {
   const [version, setVersion] = useState(0);
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
@@ -68,6 +80,9 @@ export default function KeeperPage() {
   const selectedEvent = archiveEvents.find((event) => event.id === selectedId) ?? archiveEvents[0];
   const [form, setForm] = useState(() => toFormState(selectedEvent));
   const draftCount = useMemo(() => Object.keys(readArchiveDrafts()).length, [version]);
+  const [serverKey, setServerKey] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
+  const [syncStatus, setSyncStatus] = useState('서버 보관소 대기');
+  const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
 
   function selectEvent(event: ArchiveEvent) {
     setSelectedId(event.id);
@@ -82,6 +97,7 @@ export default function KeeperPage() {
     event.preventDefault();
     writeArchiveDraft(selectedEvent.id, toDraft(form));
     setVersion((current) => current + 1);
+    setSyncStatus(`로컬 초안 저장됨 / ${timeLabel()}`);
   }
 
   function resetDraft() {
@@ -89,6 +105,96 @@ export default function KeeperPage() {
     const baseEvent = events.find((event) => event.id === selectedEvent.id) ?? events[0];
     setForm(toFormState(baseEvent));
     setVersion((current) => current + 1);
+    setSyncStatus('선택 기록 원본 복원됨');
+  }
+
+  function updateServerKey(value: string) {
+    setServerKey(value);
+    localStorage.setItem('jerboa_keeper_sync_key', value);
+  }
+
+  async function saveArchiveToServer() {
+    try {
+      if (isDirty) {
+        writeArchiveDraft(selectedEvent.id, toDraft(form));
+      }
+      setSyncStatus('서버 보관소 저장 중');
+      const drafts = {
+        ...readArchiveDrafts(),
+        ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
+      };
+      const result = await saveServerSync('archive', { drafts }, serverKey);
+      setVersion((current) => current + 1);
+      setSyncStatus(`서버 저장됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
+    } catch (error) {
+      console.error('Archive server save failed:', error);
+      setSyncStatus('서버 저장 실패 / 키 또는 연결 확인');
+    }
+  }
+
+  async function loadArchiveFromServer() {
+    try {
+      setSyncStatus('서버 보관소 불러오는 중');
+      const result = await loadServerSync<{ drafts: ArchiveDraftMap }>('archive', serverKey);
+      if (result.exists && result.saved?.data?.drafts) {
+        writeArchiveDrafts(result.saved.data.drafts);
+        const nextEvents = applyArchiveDrafts(events);
+        const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
+        setForm(toFormState(nextSelected));
+        setVersion((current) => current + 1);
+        setSyncStatus(`서버 초안 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
+      } else {
+        setSyncStatus('서버에 저장된 초안 없음');
+      }
+    } catch (error) {
+      console.error('Archive server load failed:', error);
+      setSyncStatus('서버 불러오기 실패 / 키 또는 연결 확인');
+    }
+  }
+
+  function downloadArchiveDrafts() {
+    const payload = {
+      type: 'jerboa-archive-drafts',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      drafts: readArchiveDrafts(),
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `jerboa-archive-drafts-${new Date().toISOString().slice(0, 16).replace(':', '')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importArchiveDrafts(file: File) {
+    try {
+      const payload = JSON.parse(await file.text());
+      const drafts = payload.drafts || payload.data?.drafts || payload;
+      if (!drafts || typeof drafts !== 'object') {
+        throw new Error('Invalid draft file');
+      }
+      writeArchiveDrafts(drafts);
+      const nextEvents = applyArchiveDrafts(events);
+      const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
+      setForm(toFormState(nextSelected));
+      setVersion((current) => current + 1);
+      setSyncStatus('초안 파일 적용됨');
+    } catch (error) {
+      console.error('Archive draft import failed:', error);
+      setSyncStatus('초안 파일을 읽을 수 없음');
+    }
+  }
+
+  function clearEveryDraft() {
+    if (!confirm('모든 포스터 초안을 지울까요? 공개 원본 데이터는 유지됩니다.')) return;
+    clearAllArchiveDrafts();
+    const baseEvent = events.find((event) => event.id === selectedId) ?? events[0];
+    setForm(toFormState(baseEvent));
+    setVersion((current) => current + 1);
+    setSyncStatus('모든 로컬 초안 삭제됨');
   }
 
   function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -125,7 +231,41 @@ export default function KeeperPage() {
           <p lang="ko">
             포스터와 문구를 임시로 고쳐 보고 같은 브라우저의 공개 화면에 반영합니다
           </p>
-          <p className="keeper-draft-count" lang="ko">저장된 초안 {draftCount}</p>
+          <p className="keeper-draft-count" lang="ko">
+            {isDirty ? '저장되지 않은 수정 있음' : `저장된 초안 ${draftCount}`}
+          </p>
+          <div className="keeper-sync-panel" aria-label="Archive sync controls">
+            <label>
+              <span>서버 키</span>
+              <input
+                type="password"
+                value={serverKey}
+                onChange={(event) => updateServerKey(event.target.value)}
+                placeholder="Keeper key"
+              />
+            </label>
+            <div className="keeper-sync-actions">
+              <button type="button" onClick={saveArchiveToServer}>서버 저장</button>
+              <button type="button" onClick={loadArchiveFromServer}>서버 불러오기</button>
+              <button type="button" onClick={downloadArchiveDrafts}>파일 백업</button>
+              <label>
+                파일 적용
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (file) {
+                      void importArchiveDrafts(file);
+                      event.currentTarget.value = '';
+                    }
+                  }}
+                />
+              </label>
+              <button type="button" onClick={clearEveryDraft}>초안 삭제</button>
+            </div>
+            <small>{syncStatus}</small>
+          </div>
           <div className="keeper-list">
             {archiveEvents.map((event) => (
               <button
@@ -243,6 +383,13 @@ export default function KeeperPage() {
               <button className="archive-cta inverse" onClick={resetDraft} type="button">원본 복원</button>
               <a className="archive-cta" href="/">공개 화면 보기</a>
             </div>
+
+            <aside className="keeper-record-preview" aria-label="Public archive record preview">
+              <span>{form.edition}</span>
+              <h3>{form.title}</h3>
+              <p>{form.subtitle}</p>
+              <small>{form.shortDescription}</small>
+            </aside>
           </form>
         </section>
       </main>

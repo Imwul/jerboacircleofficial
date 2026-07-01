@@ -41,24 +41,24 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full p-6 space-y-8 bg-white relative">
+    <div className="member-login flex flex-col items-center justify-center min-h-full p-6 space-y-8 bg-white relative">
       <div className="flex flex-col items-center space-y-4 text-center">
         {mainImage && (
-          <div className="w-32 h-32 rounded-3xl overflow-hidden shadow-2xl border-4 border-white ring-1 ring-stone-100 mb-2 animate-in zoom-in duration-500">
-            <img src={mainImage} alt="Club Main" className="w-full h-full object-cover" />
+          <div className="archive-frontispiece-image animate-in zoom-in duration-500">
+            <img src={mainImage} alt="Jerboa Circle" />
           </div>
         )}
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium">private register of the</p>
+          <p className="italic text-stone-400 text-sm font-medium">비공개 회원 장부</p>
           <h1 className="text-4xl font-black text-stone-900">
-            Member<span className="text-primary-600">Archive</span>
+            회원 기록실
           </h1>
         </div>
       </div>
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400">Register entries</p>
+          <p className="text-[10px] font-black text-stone-400">등록된 회원 / {users.length}</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
@@ -66,30 +66,30 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
             <button
               key={user.id}
               onClick={() => onUserLogin(user)}
-              className="flex items-center gap-4 p-5 bg-white hover:bg-stone-50 border border-stone-100 rounded-[2rem] transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
+              className="member-record-row p-5 bg-white hover:bg-stone-50 border border-stone-100 rounded-[2rem] transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
             >
               <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner overflow-hidden ring-4 ring-stone-50 text-white leading-none"
-                style={{ backgroundColor: user.avatarColor || '#e5e5e5' }}
+                className="member-seal"
+                style={{ '--seal-color': user.avatarColor || '#ef3528' } as React.CSSProperties}
               >
                 {user.profileImage ? (
-                  <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                  <img src={user.profileImage} alt={user.name} />
                 ) : (
-                  user.avatarIcon || '☻'
+                  <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
                 )}
               </div>
-              <div className="flex-1 text-left space-y-0.5">
+              <div className="record-title text-left space-y-0.5">
                 <div className="flex items-center gap-2">
                   <div className="font-black text-stone-900 text-base">{user.name}</div>
                   {user.habitRecords?.[todayKey]?.status === 'success' && (
                     <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
-                      습관 달성!
+                      수련 완료
                     </div>
                   )}
                 </div>
-                <div className="text-[9px] text-stone-400 font-black">{user.tier} tier / private record</div>
+                <div className="record-meta text-[9px] text-stone-400 font-black">{user.tier} / 개인 기록</div>
               </div>
-              <div className="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
+              <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
               </div>
             </button>
@@ -102,7 +102,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           onClick={() => setShowAdminModal(true)}
           className="w-full py-3 text-stone-400 hover:text-stone-600 text-xs font-bold tracking-widest transition-colors"
         >
-          Keeper access
+          <span className="archive-ko-label">보관자 입장</span>
         </button>
 
         <div className="flex flex-col items-center gap-2">
@@ -110,7 +110,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
             onClick={() => setShowImport(!showImport)}
             className="text-[10px] text-stone-300 hover:text-stone-500 underline underline-offset-4"
           >
-            {showImport ? 'Close import' : 'Import a register code'}
+            <span className="archive-ko-label">{showImport ? '가져오기 닫기' : '장부 코드 가져오기'}</span>
           </button>
           
           {showImport && (
@@ -118,7 +118,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
               <textarea
                 value={importCode}
                 onChange={(e) => setImportCode(e.target.value)}
-                placeholder="Paste the register code here"
+                placeholder="장부 코드를 붙여넣으세요"
                 className="w-full p-3 text-[10px] font-mono bg-stone-50 border border-stone-200 rounded-xl h-24 focus:ring-1 focus:ring-stone-300 outline-none"
               />
               <button
@@ -130,7 +130,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                 }}
                 className="w-full py-2 bg-stone-800 text-white text-xs font-bold rounded-xl hover:bg-stone-900 transition-colors"
               >
-                Import register
+                <span className="archive-ko-label">장부 불러오기</span>
               </button>
             </div>
           )}
@@ -140,7 +140,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
       <div className="absolute bottom-8 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-green-500" />
         <span className="text-[10px] font-bold text-stone-300 tracking-widest">
-          Local Register Ready
+          로컬 장부 준비됨
         </span>
       </div>
 
@@ -148,26 +148,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-black text-stone-900">Keeper access</h3>
+              <h3 className="text-lg font-black text-stone-900">보관자 입장</h3>
               <button onClick={() => { setShowAdminModal(false); setAdminError(''); setAdminPassword(''); }} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 tracking-widest">Archive key</label>
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">장부 열쇠</label>
                 <input 
                   type="password" 
                   value={adminPassword} 
                   onChange={e => setAdminPassword(e.target.value)}
                   className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
-                  placeholder="Enter the archive key"
+                  placeholder="장부 열쇠를 입력하세요"
                   autoFocus
                 />
                 {adminError && <p className="text-xs text-red-500 font-bold">{adminError}</p>}
               </div>
               <button type="submit" className="w-full py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all">
-                Open keeper desk
+                <span className="archive-ko-label">보관자 책상 열기</span>
               </button>
             </form>
           </div>

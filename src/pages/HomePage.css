@@ -1890,3 +1890,230 @@
     transition: none;
   }
 }
+
+/* Illuminated manuscript palette from the reference image. */
+.public-home {
+  --signal: #ad2f63;
+  --signal-pink: #ef3528;
+  --signal-green: #08703e;
+  --signal-gold: #f3c538;
+  --signal-cream: #fff0cf;
+  --ink: #050505;
+  --rubric: #050505;
+  --blue-rule: #050505;
+  background: var(--signal) !important;
+  background-image: none !important;
+}
+
+.archive-header,
+.archive-wordmark,
+.publication-masthead,
+.masthead-mark,
+.join-block,
+.keeper-home {
+  background: var(--signal) !important;
+}
+
+.featured-event,
+.featured-copy,
+.detail-copy,
+.masthead-index,
+.keeper-editor {
+  background: var(--signal-pink) !important;
+}
+
+.section-kicker,
+.masthead-latin,
+.archive-cta,
+.theme-tags li,
+.archive-section-title h2,
+.keeper-draft-count,
+.keeper-record-preview,
+.archive-footer {
+  background: var(--signal-gold) !important;
+}
+
+.archive-nav a:nth-child(2n),
+.manifesto-block,
+.keeper-register,
+.archive-ledger a:nth-child(1),
+.archive-ledger a:nth-child(4) {
+  background: var(--signal-green) !important;
+}
+
+.event-description,
+.detail-long,
+.event-meta,
+.poster-tile,
+.archive-ledger a:nth-child(3),
+.keeper-field input,
+.keeper-field textarea,
+.keeper-field select,
+.keeper-sync-panel input {
+  background: var(--signal-cream) !important;
+}
+
+.archive-nav a:nth-child(3n),
+.archive-ledger a:nth-child(2),
+.manifesto-block p,
+.join-block h2,
+.archive-cta.inverse {
+  background: var(--signal-pink) !important;
+}
+
+.archive-cta,
+.archive-cta.inverse,
+.keeper-sync-actions button,
+.keeper-sync-actions label {
+  color: var(--ink) !important;
+  white-space: nowrap;
+}
+
+.public-home h1,
+.public-home h2,
+.public-home h3,
+.public-home p,
+.public-home small,
+.public-home span,
+.public-home strong,
+.public-home em,
+.public-home dt,
+.public-home dd,
+.public-home li,
+.public-home a,
+.public-home button,
+.public-home label,
+.public-home input,
+.public-home textarea,
+.public-home select {
+  color: var(--ink) !important;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+.archive-nav a,
+.section-kicker,
+.event-meta dt,
+.event-meta dd,
+.theme-tags li,
+.archive-ledger span,
+.archive-ledger em,
+.archive-ledger small,
+.keeper-field span,
+.keeper-list span,
+.keeper-list small,
+.keeper-draft-count,
+.keeper-sync-panel small {
+  white-space: nowrap;
+}
+
+.poster-caption h2,
+.archive-ledger strong,
+.keeper-list strong,
+.keeper-editor h2,
+.featured-copy h1,
+.detail-copy h1 {
+  text-wrap: balance;
+}
+
+.keeper-sync-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 2px solid var(--ink);
+  background: var(--signal) !important;
+}
+
+.keeper-sync-panel label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 900;
+}
+
+.keeper-sync-panel input {
+  min-height: 2.65rem;
+  border: 2px solid var(--ink) !important;
+  border-radius: 0;
+  padding: 0 0.65rem;
+  font-family: var(--font-ko);
+  font-weight: 850;
+}
+
+.keeper-sync-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.keeper-sync-actions button,
+.keeper-sync-actions label {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  background: var(--signal-gold);
+  font-family: var(--font-ko);
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.keeper-sync-actions input {
+  display: none;
+}
+
+.keeper-sync-panel small {
+  display: block;
+  font-family: var(--font-ko);
+  font-size: 0.92rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.keeper-record-preview {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--ink);
+}
+
+.keeper-record-preview h3 {
+  margin: 0;
+  font-family: var(--font-heavy-header);
+  font-size: clamp(2rem, 4vw, 4.6rem);
+  font-weight: 400;
+  line-height: 1.18;
+}
+
+.keeper-record-preview p,
+.keeper-record-preview small,
+.keeper-record-preview span {
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .keeper-sync-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* No shadows: keep the system flat, printed, and border-led. */
+.public-home *,
+.public-home *::before,
+.public-home *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.poster-tile:hover .poster-frame img,
+.featured-poster-wrap:hover img {
+  transform: translateY(-0.25rem);
+  filter: none !important;
+}
