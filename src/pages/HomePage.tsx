@@ -1,28 +1,38 @@
+import { useEffect, useMemo, useState } from 'react';
 import { events, type ArchiveEvent } from '../data/events';
+import type { SiteText } from '../data/siteText';
 import { applyArchiveDrafts } from '../utils/archiveDrafts';
+import { loadServerSync } from '../utils/serverSync';
+import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
+import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import './HomePage.css';
 
-function SiteHeader() {
+interface ArchiveSyncPayload {
+  drafts?: ArchiveDraftMap;
+  siteText?: Partial<SiteText>;
+}
+
+function SiteHeader({ siteText }: { siteText: SiteText }) {
   return (
     <header className="archive-header" aria-label="Jerboa Circle navigation">
       <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
         <span>Jerboa</span>
         <span>Circle</span>
-        <small lang="ko">여정과 기억의 장부</small>
+        <small lang="ko">{siteText.wordmarkSmall}</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a href="#featured"><span lang="en">Threshold</span><small lang="ko">지금 열려 있는 프로그램</small></a>
-        <a href="#archive"><span lang="en">Memory</span><small lang="ko">지난 프로그램 아카이브</small></a>
-        <a href="#manifesto"><span lang="en">Fragments</span><small lang="ko">저보아 서클 소개</small></a>
-        <a href="#join"><span lang="en">Letter</span><small lang="ko">참여와 문의</small></a>
-        <a href="./members/"><span lang="en">Private</span><small lang="ko">회원 전용 장부</small></a>
+        <a href="#featured"><span lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
+        <a href="#archive"><span lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
+        <a href="#manifesto"><span lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
+        <a href="#join"><span lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
+        <a href="./members/"><span lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
       </nav>
     </header>
   );
 }
 
-function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
+function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; siteText: SiteText }) {
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
@@ -36,23 +46,23 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
           </defs>
           <text>
             <textPath href="#jerboaSealRingPath" startOffset="2%">
-              Jerboa Circle / Public archive / Programme memory / Slow reading / Symbolic passage /
+              {siteText.mastheadRing}
             </textPath>
           </text>
         </svg>
         <div className="masthead-seal-caption">
-          <span lang="en">Jerboa Circle</span>
-          <small lang="ko">공개 기록벽</small>
+          <span lang="en">{siteText.mastheadCaptionEn}</span>
+          <small lang="ko">{siteText.mastheadCaptionKo}</small>
         </div>
       </div>
       <div className="masthead-index">
-        <p lang="en">A field of signs, entered slowly</p>
-        <p lang="ko">책, 이미지, 신화, 철학, 종교, 예술을 엮어 하나의 프로그램으로 만드는 연구 모임입니다.</p>
+        <p lang="en">{siteText.mastheadIntroEn}</p>
+        <p lang="ko">{siteText.mastheadIntroKo}</p>
         <ol className="masthead-ritual">
-          <li>Beginning</li>
-          <li>Passage</li>
-          <li>Transformation</li>
-          <li>Return</li>
+          <li>{siteText.ritualOne}</li>
+          <li>{siteText.ritualTwo}</li>
+          <li>{siteText.ritualThree}</li>
+          <li>{siteText.ritualFour}</li>
         </ol>
       </div>
       <p className="masthead-latin">{featuredEvent.latinQuote}</p>
@@ -60,29 +70,29 @@ function Masthead({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
   );
 }
 
-function statusLabel(status: ArchiveEvent['status']) {
-  if (status === 'current') return '열려 있음';
-  if (status === 'upcoming') return '예고됨';
-  return '보존됨';
+function statusLabel(status: ArchiveEvent['status'], siteText: SiteText) {
+  if (status === 'current') return siteText.statusCurrent;
+  if (status === 'upcoming') return siteText.statusUpcoming;
+  return siteText.statusPast;
 }
 
-function EventMeta({ event }: { event: ArchiveEvent }) {
+function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteText }) {
   return (
     <dl className="event-meta" aria-label={`${event.title} metadata`}>
       <div>
-        <dt>판본</dt>
+        <dt>{siteText.metaEdition}</dt>
         <dd>{event.edition}</dd>
       </div>
       <div>
-        <dt>일자</dt>
+        <dt>{siteText.metaDate}</dt>
         <dd>{event.date}</dd>
       </div>
       <div>
-        <dt>상태</dt>
-        <dd>{statusLabel(event.status)}</dd>
+        <dt>{siteText.metaStatus}</dt>
+        <dd>{statusLabel(event.status, siteText)}</dd>
       </div>
       <div>
-        <dt>형식</dt>
+        <dt>{siteText.metaFormat}</dt>
         <dd>{event.location}</dd>
       </div>
     </dl>
@@ -112,27 +122,27 @@ function ThemeList({ themes }: { themes: string[] }) {
   );
 }
 
-function FeaturedEvent({ featuredEvent }: { featuredEvent: ArchiveEvent }) {
+function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; siteText: SiteText }) {
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker"><span lang="en">The open threshold</span> / <span lang="ko">현재 진행 중인 프로그램</span></p>
+        <p className="section-kicker"><span lang="en">{siteText.featuredKickerEn}</span> / <span lang="ko">{siteText.featuredKickerKo}</span></p>
         <h1>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
-          하나의 강의가 아니라 성배 / 숲 / 성물 / 장미 / 불 / 별을 지나는 느린 통과 의례
+          {siteText.featuredAnnotation}
         </p>
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
         <p className="latin-line">{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
         <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
         <div className="constellation-grid" aria-label="Programme constellation">
-          <TextIndex title="여정" items={featuredEvent.passage} />
-          <TextIndex title="자료" items={featuredEvent.materials} />
+          <TextIndex title={siteText.journeyLabel} items={featuredEvent.passage} />
+          <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
         </div>
-        <EventMeta event={featuredEvent} />
+        <EventMeta event={featuredEvent} siteText={siteText} />
         <ThemeList themes={featuredEvent.themes} />
         <a className="archive-cta" href={featuredEvent.ctaHref}>
           {featuredEvent.ctaLabel}
@@ -162,12 +172,12 @@ function PosterTile({ event }: { event: ArchiveEvent }) {
   );
 }
 
-function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
+function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEvent[]; siteText: SiteText }) {
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker"><span lang="en">The visible memory</span> / <span lang="ko">지난 프로그램 기록</span></p>
-        <h2 lang="ko">이곳은 지나간 행사 목록이 아니라, 프로그램이 쌓여 가는 공개 아카이브입니다</h2>
+        <p className="section-kicker"><span lang="en">{siteText.archiveKickerEn}</span> / <span lang="ko">{siteText.archiveKickerKo}</span></p>
+        <h2 lang="ko">{siteText.archiveHeading}</h2>
       </div>
       <div className="archive-ledger" aria-label="Programme index">
         {archiveEvents.map((event) => (
@@ -188,57 +198,85 @@ function PosterArchive({ archiveEvents }: { archiveEvents: ArchiveEvent[] }) {
   );
 }
 
-function ManifestoBlock() {
+function ManifestoBlock({ siteText }: { siteText: SiteText }) {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
-      <p className="section-kicker"><span lang="en">Fragments toward a method</span> / <span lang="ko">저보아 서클 소개</span></p>
-      <p lang="ko">
-        저보아 서클의 프로그램은 교육 과정이 아니라 임시 별자리입니다
-        책과 이미지와 사물과 장소가 잠시 한 방향을 가리키고
-        참여자는 그 사이를 통과한 뒤 조금 다른 눈으로 돌아옵니다
-      </p>
+      <p className="section-kicker"><span lang="en">{siteText.manifestoKickerEn}</span> / <span lang="ko">{siteText.manifestoKickerKo}</span></p>
+      <p lang="ko">{siteText.manifestoBody}</p>
     </section>
   );
 }
 
-function JoinBlock() {
+function JoinBlock({ siteText }: { siteText: SiteText }) {
   return (
     <section className="join-block section-reveal" id="join">
       <div>
-        <p className="section-kicker"><span lang="en">Correspondence</span> / <span lang="ko">문의와 초대</span></p>
-        <h2 lang="ko">다음 프로그램, 참여, 기록 열람에 관한 문의를 받습니다</h2>
+        <p className="section-kicker"><span lang="en">{siteText.joinKickerEn}</span> / <span lang="ko">{siteText.joinKickerKo}</span></p>
+        <h2 lang="ko">{siteText.joinHeading}</h2>
       </div>
-      <a className="archive-cta inverse" href="mailto:hello@jerboacircle.com">
-        서신 보내기
+      <a className="archive-cta inverse" href={siteText.joinCtaHref}>
+        {siteText.joinCtaLabel}
       </a>
     </section>
   );
 }
 
-function SiteFooter() {
+function SiteFooter({ siteText }: { siteText: SiteText }) {
   return (
     <footer className="archive-footer">
-      <span>Jerboa Circle Official Archive</span>
-      <span lang="ko">시간은 삭제되지 않고 판본으로 남습니다</span>
+      <span>{siteText.footerLeft}</span>
+      <span lang="ko">{siteText.footerRight}</span>
     </footer>
   );
 }
 
 export default function HomePage() {
-  const archiveEvents = applyArchiveDrafts(events);
+  const [version, setVersion] = useState(0);
+  const [siteText, setSiteText] = useState(() => getSiteText());
+  const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0];
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadPublicArchive() {
+      try {
+        const result = await loadServerSync<ArchiveSyncPayload>('archive');
+        if (ignore || !result.exists || !result.saved?.data) return;
+
+        if (result.saved.data.drafts) {
+          writeArchiveDrafts(result.saved.data.drafts);
+        }
+
+        if (result.saved.data.siteText) {
+          writeSiteTextDraft(result.saved.data.siteText);
+          setSiteText(getSiteText());
+        }
+
+        setVersion((current) => current + 1);
+      } catch (error) {
+        console.warn('Public archive sync skipped:', error);
+      }
+    }
+
+    void loadPublicArchive();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <div className="public-home">
-      <SiteHeader />
+      <SiteHeader siteText={siteText} />
       <main>
-        <Masthead featuredEvent={currentEvent} />
-        <FeaturedEvent featuredEvent={currentEvent} />
-        <PosterArchive archiveEvents={archiveEvents} />
-        <ManifestoBlock />
-        <JoinBlock />
+        <Masthead featuredEvent={currentEvent} siteText={siteText} />
+        <FeaturedEvent featuredEvent={currentEvent} siteText={siteText} />
+        <PosterArchive archiveEvents={archiveEvents} siteText={siteText} />
+        <ManifestoBlock siteText={siteText} />
+        <JoinBlock siteText={siteText} />
       </main>
-      <SiteFooter />
+      <SiteFooter siteText={siteText} />
     </div>
   );
 }

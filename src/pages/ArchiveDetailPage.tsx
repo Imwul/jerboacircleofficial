@@ -1,23 +1,32 @@
+import { useEffect, useMemo, useState } from 'react';
 import { getEventById, type ArchiveEvent } from '../data/events';
-import { applyArchiveDrafts } from '../utils/archiveDrafts';
+import type { SiteText } from '../data/siteText';
+import { applyArchiveDrafts, writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import { loadServerSync } from '../utils/serverSync';
+import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import './HomePage.css';
+
+interface ArchiveSyncPayload {
+  drafts?: ArchiveDraftMap;
+  siteText?: Partial<SiteText>;
+}
 
 function detailRootHref() {
   return window.location.pathname.includes('/archive/') ? '../../' : './';
 }
 
-function EventDetail({ event }: { event: ArchiveEvent }) {
+function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteText }) {
   return (
     <div className="public-home detail-home">
       <header className="archive-header">
         <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
-          <small lang="ko">여정과 기억의 장부</small>
+          <small lang="ko">{siteText.wordmarkSmall}</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
-          <a href={detailRootHref()}><span lang="en">Memory</span><small lang="ko">기록벽으로 돌아가기</small></a>
-          <a href={`${detailRootHref()}members/`}><span lang="en">Private</span><small lang="ko">회원 전용 장부</small></a>
+          <a href={detailRootHref()}><span lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
+          <a href={`${detailRootHref()}members/`}><span lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
         </nav>
       </header>
       <main className="detail-record section-reveal">
@@ -25,7 +34,7 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker"><span lang="en">{event.edition}</span> / <span lang="ko">개별 프로그램 기록</span></p>
+          <p className="section-kicker"><span lang="en">{event.edition}</span> / <span lang="ko">{siteText.detailKickerKo}</span></p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="latin-line">{event.latinQuote}</p>
@@ -47,24 +56,24 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
           </div>
           <dl className="event-meta detail-meta">
             <div>
-              <dt>판본</dt>
+              <dt>{siteText.metaEdition}</dt>
               <dd>{event.edition}</dd>
             </div>
             <div>
-              <dt>일자</dt>
+              <dt>{siteText.metaDate}</dt>
               <dd>{event.date}</dd>
             </div>
             <div>
-              <dt>형식</dt>
+              <dt>{siteText.metaFormat}</dt>
               <dd>{event.location}</dd>
             </div>
             <div>
-              <dt>주제</dt>
+              <dt>{siteText.detailThemeLabel}</dt>
               <dd>{event.themes.join(' / ')}</dd>
             </div>
           </dl>
           <a className="archive-cta" href={detailRootHref()}>
-            기록벽으로 돌아가기
+            {siteText.detailBackLabel}
           </a>
         </article>
       </main>
@@ -73,8 +82,43 @@ function EventDetail({ event }: { event: ArchiveEvent }) {
 }
 
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
+  const [version, setVersion] = useState(0);
+  const [siteText, setSiteText] = useState(() => getSiteText());
   const baseEvent = getEventById(id);
-  const event = baseEvent ? applyArchiveDrafts([baseEvent])[0] : undefined;
+  const event = useMemo(
+    () => (baseEvent ? applyArchiveDrafts([baseEvent])[0] : undefined),
+    [baseEvent, version],
+  );
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadPublicArchive() {
+      try {
+        const result = await loadServerSync<ArchiveSyncPayload>('archive');
+        if (ignore || !result.exists || !result.saved?.data) return;
+
+        if (result.saved.data.drafts) {
+          writeArchiveDrafts(result.saved.data.drafts);
+        }
+
+        if (result.saved.data.siteText) {
+          writeSiteTextDraft(result.saved.data.siteText);
+          setSiteText(getSiteText());
+        }
+
+        setVersion((current) => current + 1);
+      } catch (error) {
+        console.warn('Public archive sync skipped:', error);
+      }
+    }
+
+    void loadPublicArchive();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   if (!event) {
     return (
@@ -83,19 +127,19 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
-            <small lang="ko">여정과 기억의 장부</small>
+            <small lang="ko">{siteText.wordmarkSmall}</small>
           </a>
         </header>
         <main className="missing-record">
-          <p className="section-kicker">사라진 기록</p>
-          <h1 lang="ko">아직 벽에 걸리지 않은 포스터입니다.</h1>
+          <p className="section-kicker">{siteText.missingKicker}</p>
+          <h1 lang="ko">{siteText.missingTitle}</h1>
           <a className="archive-cta" href={detailRootHref()}>
-            기록벽으로 돌아가기
+            {siteText.detailBackLabel}
           </a>
         </main>
       </div>
     );
   }
 
-  return <EventDetail event={event} />;
+  return <EventDetail event={event} siteText={siteText} />;
 }

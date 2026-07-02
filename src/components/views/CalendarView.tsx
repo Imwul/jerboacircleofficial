@@ -38,9 +38,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     });
   };
 
+  const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   const days = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(currentMonth)),
-    end: endOfWeek(endOfMonth(currentMonth))
+    start: startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
   });
 
   const getEventsForDate = (date: Date) => {
@@ -72,24 +74,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       <div className="archive-calendar-grid grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
-        {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
-          <div key={d} className={`bg-white py-3 text-center text-[10px] font-black ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-stone-400'}`}>{d}</div>
+        {weekLabels.map((d, i) => (
+          <div key={d} className={`archive-weekday bg-white py-3 text-center text-[10px] font-black ${i === 6 ? 'is-sunday' : i === 5 ? 'is-saturday' : ''}`} lang="en">{d}</div>
         ))}
         {days.map(day => {
           const dateEvents = getEventsForDate(day);
-          const isSelected = isSameDay(day, selectedDate);
-          const isToday = isSameDay(day, new Date());
           const isCurrentMonth = isSameMonth(day, currentMonth);
           
           return (
             <div 
               key={day.toString()} 
               onClick={() => setSelectedDate(day)}
-              className={`bg-white min-h-[70px] p-1.5 cursor-pointer transition-all relative ${isSelected ? 'bg-stone-50' : 'hover:bg-stone-50/50'} ${!isCurrentMonth ? 'opacity-30' : ''}`}
+              className={`bg-white min-h-[70px] p-1.5 cursor-pointer transition-colors relative ${!isCurrentMonth ? 'opacity-30' : ''}`}
             >
               <div className="flex flex-col h-full justify-between">
                 <div className="flex justify-between items-start">
-                  <span className={`calendar-date-mark text-[11px] font-black w-6 h-6 flex items-center justify-center transition-colors ${isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''}`}>
+                  <span className="calendar-date-mark text-[11px] font-black w-6 h-6 flex items-center justify-center transition-colors">
                     {format(day, 'd')}
                   </span>
                 </div>
@@ -102,7 +102,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </div>
                 )}
               </div>
-              {isSelected && <div className="absolute inset-x-0 bottom-0 h-0.5 bg-stone-900" />}
             </div>
           );
         })}

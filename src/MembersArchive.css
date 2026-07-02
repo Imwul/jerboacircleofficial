@@ -297,6 +297,9 @@
   min-height: 5.6rem;
   padding: 0.9rem 1rem;
   border-right: 1px solid rgba(21, 18, 15, 0.55);
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
 }
 
 .archive-context div:last-child {
@@ -310,7 +313,7 @@
 
 .archive-context small {
   display: inline-block;
-  margin-top: 0.25rem;
+  margin-top: 0;
   font-family: var(--font-ko);
   font-size: 0.9rem;
   font-weight: 900;
@@ -740,6 +743,10 @@
   background: var(--register-action);
   font-size: 0.95rem;
   font-weight: 900;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .archive-topbar-actions button:hover,
@@ -756,6 +763,9 @@
 .archive-context div {
   min-height: 7rem;
   border-right: 2px solid var(--register-ink);
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
 }
 
 .archive-context span {
@@ -981,7 +991,9 @@
   overflow: hidden;
   border: 2px solid var(--register-ink) !important;
   border-radius: 0 !important;
-  background: var(--register-cream) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 240, 207, 0.88), rgba(255, 240, 207, 0.7)),
+    var(--register-cream) !important;
   color: var(--register-ink) !important;
   font-family: var(--font-ko) !important;
   font-size: 1.65rem !important;
@@ -994,17 +1006,11 @@
 .member-seal::after {
   content: "";
   position: absolute;
-  z-index: 1;
   pointer-events: none;
 }
 
 .member-seal::before {
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 0.78rem;
-  background: var(--seal-color, var(--register-red));
-  border-right: 2px solid var(--register-ink);
+  display: none;
 }
 
 .member-seal::after {
@@ -1048,7 +1054,7 @@
 }
 
 .member-seal.is-selected::before {
-  background: var(--seal-color, var(--register-red));
+  border-color: var(--register-ink);
 }
 
 .member-seal img {
@@ -1061,6 +1067,11 @@
   border-left: 0.78rem solid var(--seal-color, var(--register-red));
   filter: grayscale(0.28) contrast(1.12) !important;
   mix-blend-mode: normal;
+}
+
+.member-seal:has(img)::before,
+.member-seal:has(img)::after {
+  display: none;
 }
 
 .member-seal--small img {
@@ -1124,9 +1135,10 @@
 }
 
 .calendar-date-mark {
+  box-sizing: border-box;
   display: grid !important;
-  width: 2.45rem !important;
-  height: 2.45rem !important;
+  width: 1.85rem !important;
+  height: 1.85rem !important;
   place-items: center;
   border: 2px solid transparent;
   background: transparent !important;
@@ -1136,19 +1148,10 @@
   transform: none !important;
 }
 
-.calendar-date-mark.is-today {
-  border-color: var(--register-ink);
-  background: var(--register-red) !important;
-}
-
-.calendar-date-mark.is-selected {
-  border-color: var(--register-ink);
-  background: var(--register-gold) !important;
-}
-
 .members-archive .archive-calendar-grid {
   display: grid !important;
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  grid-auto-rows: clamp(5.1rem, 10vh, 7.2rem);
   gap: 0 !important;
   border-top: 2px solid var(--register-ink);
   border-left: 2px solid var(--register-ink);
@@ -1159,6 +1162,7 @@
   box-sizing: border-box;
   display: block !important;
   width: auto !important;
+  height: auto !important;
   min-width: 0 !important;
   transform: none !important;
   align-self: stretch;
@@ -1172,12 +1176,23 @@
 
 .members-archive .archive-calendar-grid > div:nth-child(-n + 7) {
   display: flex !important;
-  min-height: 3.5rem !important;
+  height: 3.2rem !important;
+  min-height: 3.2rem !important;
   align-items: center;
   justify-content: center;
   padding: 0 !important;
   min-height: 3.2rem;
   background: var(--register-gold) !important;
+}
+
+.members-archive .archive-calendar-grid .archive-weekday {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.1rem, 1.5vw, 1.7rem) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  color: var(--register-ink) !important;
+  transform: none !important;
 }
 
 .members-archive .archive-calendar-grid > div:nth-child(7n) {
@@ -1186,12 +1201,35 @@
 
 .members-archive .archive-calendar-grid > div:nth-child(n + 8) {
   display: block !important;
+  height: clamp(5.1rem, 10vh, 7.2rem) !important;
   min-height: clamp(5.1rem, 10vh, 7.2rem) !important;
+  max-height: clamp(5.1rem, 10vh, 7.2rem) !important;
   padding: 0.55rem !important;
 }
 
 .members-archive .archive-calendar-grid [class*="opacity-30"] {
   opacity: 0.45 !important;
+}
+
+.members-archive .archive-calendar-grid > div:not(.archive-weekday) {
+  background: var(--register-cream) !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.members-archive .archive-calendar-grid > div:not(.archive-weekday):hover {
+  background: var(--register-cream) !important;
+}
+
+.members-archive .archive-calendar-grid > div:not(.archive-weekday)::before,
+.members-archive .archive-calendar-grid > div:not(.archive-weekday)::after {
+  display: none !important;
+}
+
+.members-archive .archive-calendar-grid > div:not(.archive-weekday) > div {
+  background: transparent !important;
+  transform: none !important;
 }
 
 .members-archive .archive-main [class*="bg-stone-900"],
@@ -1202,14 +1240,15 @@
 
 .archive-empty-mark {
   display: grid;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 5.8rem;
+  height: 5.8rem;
   margin: 0 auto 1rem;
   place-items: center;
-  border: 2px solid var(--register-ink);
-  background: var(--register-gold);
+  border: 0;
+  background: url("./assets/identity/member-saf-seal-transparent.png") center / contain no-repeat;
+  color: transparent !important;
   font-family: var(--font-heavy-header);
-  font-size: 2.4rem;
+  font-size: 0;
   line-height: 1;
 }
 
@@ -1306,6 +1345,17 @@
   word-spacing: var(--ko-word-compensation) !important;
   transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
   transform-origin: left center;
+}
+
+.members-archive .archive-topbar-actions .archive-ko-label {
+  display: inline-flex;
+  width: auto;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: center center !important;
 }
 
 .members-archive label span[lang="en"],

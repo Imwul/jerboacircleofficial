@@ -1667,7 +1667,23 @@
 }
 
 .keeper-nav {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.keeper-nav a {
+  justify-items: center;
+}
+
+.keeper-nav a span[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko);
+  font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+  font-weight: 950;
+  line-height: 1.25;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: center;
 }
 
 .keeper-room {
@@ -2096,8 +2112,99 @@
   line-height: 1.45;
 }
 
+.keeper-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 2px solid var(--ink);
+}
+
+.keeper-mode-switch button {
+  min-height: 2.8rem;
+  border: 0;
+  border-right: 2px solid var(--ink);
+  background: var(--signal-cream);
+  color: var(--ink);
+  font-family: var(--font-ko);
+  font-size: 1rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.keeper-mode-switch button:last-child {
+  border-right: 0;
+}
+
+.keeper-mode-switch button.is-active {
+  background: var(--signal-blue, #8fb8c9);
+}
+
+.godmode-editor {
+  grid-template-columns: minmax(16rem, 28vw) 1fr;
+}
+
+.godmode-preview {
+  align-content: end;
+  background: var(--signal-blue, #8fb8c9) !important;
+}
+
+.godmode-preview > div {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.godmode-preview span {
+  width: fit-content;
+  padding: 0.25rem 0.4rem;
+  border: 2px solid var(--ink);
+  background: var(--signal-gold);
+  font-family: var(--font-heavy-header);
+  font-size: clamp(1.1rem, 2vw, 2rem);
+}
+
+.godmode-preview h2 {
+  margin: 0;
+  font-family: var(--font-heavy-header);
+  font-size: clamp(3rem, 7vw, 7rem);
+  line-height: 1.08;
+  font-weight: 400;
+}
+
+.godmode-preview p {
+  margin: 0;
+  font-family: var(--font-ko);
+  font-size: clamp(1rem, 1.3vw, 1.25rem);
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.godmode-form {
+  gap: 0;
+}
+
+.godmode-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 2px solid var(--ink);
+  border-left: 2px solid var(--ink);
+}
+
+.godmode-field {
+  border-top: 0;
+  border-left: 0;
+  grid-template-columns: minmax(7rem, 0.34fr) minmax(0, 1fr);
+}
+
+.godmode-field textarea {
+  min-height: 7rem;
+}
+
 @media (max-width: 720px) {
   .keeper-sync-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .godmode-editor,
+  .godmode-field-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -2319,9 +2426,9 @@
 .public-home .masthead-ring {
   position: absolute;
   z-index: 3;
-  width: min(82vw, 57rem);
-  height: min(82vw, 57rem);
-  max-height: 90vh;
+  width: min(86vw, 61rem);
+  height: min(86vw, 61rem);
+  max-height: 94vh;
   overflow: visible;
   pointer-events: none;
   transform: translateX(-4vw) rotate(-11deg);
@@ -2330,14 +2437,14 @@
 }
 
 .public-home .masthead-ring text {
-  fill: var(--signal-cream);
-  stroke: var(--ink);
-  stroke-width: 0.7px;
-  paint-order: stroke fill;
+  fill: var(--signal-pink);
+  stroke: none;
+  stroke-width: 0;
+  paint-order: fill;
   font-family: var(--font-heavy-header);
-  font-size: 22px;
+  font-size: 38px;
   line-height: 1;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.6px;
 }
 
 .public-home .masthead-seal-caption {

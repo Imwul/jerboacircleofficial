@@ -5,6 +5,7 @@ const distDir = path.resolve(__dirname, '..', 'dist');
 const indexPath = path.join(distDir, 'index.html');
 const membersDir = path.join(distDir, 'members');
 const keeperDir = path.join(distDir, 'keeper');
+const godmodeDir = path.join(distDir, 'godmode');
 const eventsPath = path.resolve(__dirname, '..', 'src', 'data', 'events.ts');
 
 if (!fs.existsSync(indexPath)) {
@@ -21,6 +22,8 @@ fs.mkdirSync(membersDir, { recursive: true });
 fs.writeFileSync(path.join(membersDir, 'index.html'), nestedIndex);
 fs.mkdirSync(keeperDir, { recursive: true });
 fs.writeFileSync(path.join(keeperDir, 'index.html'), nestedIndex);
+fs.mkdirSync(godmodeDir, { recursive: true });
+fs.writeFileSync(path.join(godmodeDir, 'index.html'), nestedIndex);
 
 for (const id of eventIds) {
   const eventDir = path.join(distDir, 'archive', id);
