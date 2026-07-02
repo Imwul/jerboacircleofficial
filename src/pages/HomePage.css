@@ -1909,11 +1909,11 @@
 
 /* Illuminated manuscript palette from the reference image. */
 .public-home {
-  --signal: #ad2f63;
-  --signal-pink: #ef3528;
-  --signal-green: #08703e;
-  --signal-gold: #f3c538;
-  --signal-cream: #fff0cf;
+  --signal: #cf6f8c;
+  --signal-pink: #e57758;
+  --signal-green: #8f9b57;
+  --signal-gold: #d4a23e;
+  --signal-cream: #f7efdd;
   --ink: #050505;
   --rubric: #050505;
   --blue-rule: #050505;
@@ -2135,7 +2135,7 @@
 }
 
 .keeper-mode-switch button.is-active {
-  background: var(--signal-blue, #8fb8c9);
+  background: var(--signal-blue, #979bc8);
 }
 
 .godmode-editor {
@@ -2144,7 +2144,7 @@
 
 .godmode-preview {
   align-content: start;
-  background: var(--signal-blue, #8fb8c9) !important;
+  background: var(--signal-blue, #979bc8) !important;
 }
 
 .godmode-preview > div {
@@ -2485,7 +2485,7 @@
 
 /* Keep the palette sharp without falling into a red/green holiday rhythm. */
 .public-home {
-  --signal-blue: #8fb8c9;
+  --signal-blue: #979bc8;
 }
 
 .public-home .archive-nav a {

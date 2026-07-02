@@ -56,7 +56,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
       <div className="flex flex-col items-center space-y-4">
         <div 
           className="member-seal member-seal--large group cursor-pointer"
-          style={{ '--seal-color': user.avatarColor || '#ef3528' } as React.CSSProperties}
+          style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
           onClick={() => setIsEditingAvatar(true)}
         >
           {user.profileImage ? (
@@ -140,7 +140,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
                     key={icon}
                     onClick={() => handleUpdateAvatar(icon, user.avatarColor || AVATAR_COLORS[0])}
                     className={`member-seal transition-all ${user.avatarIcon === icon ? 'is-selected' : ''}`}
-                    style={{ '--seal-color': user.avatarColor || '#ef3528' } as React.CSSProperties}
+                    style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
                   >
                     <span className="member-seal__mark">{icon}</span>
                   </button>

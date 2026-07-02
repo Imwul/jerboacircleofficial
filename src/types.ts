@@ -132,5 +132,5 @@ export const THEME_CONFIG = {
 
 export const AVATAR_ICONS = ['✣', '✦', '✧', '✠', '✥', '✶', '✷', '❖'];
 export const AVATAR_COLORS = [
-  '#ad2f63', '#ef3528', '#08703e', '#f3c538', '#6d2c8f', '#111111', '#fff0cf', '#c96b1f'
+  '#cf6f8c', '#e57758', '#8f9b57', '#d4a23e', '#979bc8', '#111111', '#f7efdd', '#b86b4f'
 ];

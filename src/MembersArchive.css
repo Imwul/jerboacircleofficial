@@ -523,12 +523,12 @@
 
 /* Illuminated register pass / matched to the public archive palette. */
 .members-archive {
-  --register-magenta: #ad2f63;
-  --register-red: #ef3528;
-  --register-green: #08703e;
-  --register-gold: #f3c538;
-  --register-cream: #fff0cf;
-  --register-action: #8fb8c9;
+  --register-magenta: #cf6f8c;
+  --register-red: #e57758;
+  --register-green: #8f9b57;
+  --register-gold: #d4a23e;
+  --register-cream: #f7efdd;
+  --register-action: #979bc8;
   --register-ink: #050505;
   grid-template-columns: minmax(20rem, 31vw) minmax(0, 1fr);
   background: var(--register-magenta) !important;

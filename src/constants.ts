@@ -16,7 +16,7 @@ export const INITIAL_USERS: User[] = [
     tierDurationWeeks: 2,
     enrolledEventIds: [],
     avatarIcon: '✣',
-    avatarColor: '#C44A3A'
+    avatarColor: '#cf6f8c'
   },
   {
     id: '2',
@@ -27,7 +27,7 @@ export const INITIAL_USERS: User[] = [
     tierDurationWeeks: 2,
     enrolledEventIds: [],
     avatarIcon: '⭑',
-    avatarColor: '#018790'
+    avatarColor: '#979bc8'
   },
   {
     id: '3',
@@ -38,7 +38,7 @@ export const INITIAL_USERS: User[] = [
     tierDurationWeeks: 2,
     enrolledEventIds: [],
     avatarIcon: '✦',
-    avatarColor: '#DE802B'
+    avatarColor: '#d4a23e'
   }
 ];
 
@@ -46,8 +46,8 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
   {
     id: 'evt-1',
     title: '첫 번째 문턱',
-    description: '현재 여정의 첫 텍스트를 함께 여는 시간입니다.',
-    detailedDescription: '프로그램의 첫 장을 천천히 읽고, 각자 붙잡은 상징과 질문을 장부에 남깁니다.\n\n준비물: 읽은 문장, 이미지 한 점, 질문 하나',
+    description: '현재 장의 첫 텍스트와 이미지를 함께 여는 시간입니다.',
+    detailedDescription: '프로그램의 첫 장을 천천히 읽고, 각자 붙잡은 상징과 질문을 장부에 남깁니다.\n\n준비물: 읽은 문장, 이미지 한 점, 아직 풀리지 않은 질문 하나',
     theme: ThemeColor.SAGE,
     themeName: '문턱',
     cost: 10,
@@ -59,8 +59,8 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
   {
     id: 'evt-2',
     title: '보관자 정리 시간',
-    description: '자료와 좌석과 기록을 조용히 정돈하는 시간입니다.',
-    detailedDescription: '포스터, 인쇄물, 좌석, 기록 양식을 정리합니다.\n도움을 준 사람에게는 다음 여정을 위한 문장이 지급됩니다.',
+    description: '자료, 좌석, 기록 양식을 다음 장을 위해 정돈합니다.',
+    detailedDescription: '포스터, 인쇄물, 좌석, 기록 양식을 정리합니다.\n도움을 준 사람에게는 다음 여정을 여는 문장 하나가 지급됩니다.',
     theme: ThemeColor.OLIVE,
     themeName: '보존',
     cost: 15,
@@ -72,7 +72,7 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
   {
     id: 'evt-3',
     title: '밤의 주석회',
-    description: '서로의 메모와 이미지, 남은 질문을 교환하는 느린 모임입니다.',
+    description: '서로의 메모, 이미지, 남은 질문을 교환하는 느린 모임입니다.',
     detailedDescription: '읽은 것보다 남은 것을 중심으로 말합니다.\n답을 정리하지 않고 다음 장으로 가져갈 단서를 고릅니다.',
     theme: ThemeColor.TERRACOTTA,
     themeName: '주석회',

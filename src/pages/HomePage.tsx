@@ -19,7 +19,7 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
       <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
         <span>Jerboa</span>
         <span>Circle</span>
-        <small lang="ko">{siteText.wordmarkSmall}</small>
+        <small lang="la">{siteText.wordmarkSmall}</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
         <a className="archive-nav-threshold" href="#featured"><span lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
@@ -246,7 +246,7 @@ function SiteFooter({ siteText }: { siteText: SiteText }) {
   return (
     <footer className="archive-footer">
       <span>{siteText.footerLeft}</span>
-      <span lang="ko">{siteText.footerRight}</span>
+      <span lang="it">{siteText.footerRight}</span>
     </footer>
   );
 }

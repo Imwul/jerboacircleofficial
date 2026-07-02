@@ -345,11 +345,11 @@ export default function KeeperPage() {
         <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
           <span>Jerboa</span>
           <span>Circle</span>
-          <small lang="ko">기록 보관자</small>
+          <small lang="ko">보관자의 책상</small>
         </a>
         <nav className="archive-nav keeper-nav" aria-label="Keeper navigation">
           <a className="archive-nav-memory" href="/"><span lang="ko">기록벽</span></a>
-          <a className="archive-private-door" href="/members/"><span lang="ko">회원실</span></a>
+          <a className="archive-private-door" href="/members/"><span lang="ko">비공개 장부</span></a>
           <a className="archive-nav-textroom" href="/godmode/"><span lang="ko">문구실</span></a>
         </nav>
       </header>
@@ -359,12 +359,12 @@ export default function KeeperPage() {
           <p className="section-kicker">Keeper desk / marginal edition room</p>
           <h1>Register of passages</h1>
           <p lang="ko">
-            포스터 / 문구 / 여정 / 자료 묶음을 고쳐 Circle의 보이는 기억에 반영합니다
+            포스터, 문구, 여정, 자료 묶음을 고쳐 서클의 보이는 기억에 반영합니다
           </p>
           <ul className="keeper-purpose-list">
-            <li lang="ko">프로그램 모드에서는 포스터와 개별 기록을 수정합니다</li>
-            <li lang="ko">문구실에서는 공개 화면의 고정 문장을 수정합니다</li>
-            <li lang="ko">서버 저장을 눌러 여러 사람에게 같은 기록을 보여줍니다</li>
+            <li lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</li>
+            <li lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</li>
+            <li lang="ko">서버 저장은 여러 사람에게 같은 판본을 보여줍니다</li>
           </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
@@ -439,7 +439,7 @@ export default function KeeperPage() {
               <button className="is-selected" type="button">
                 <span>✠ Text room</span>
                 <strong>Text register</strong>
-                <small>모든 고정 문구</small>
+                <small>반복되는 문장</small>
               </button>
             </div>
           )}
@@ -451,7 +451,7 @@ export default function KeeperPage() {
               <div>
                 <span>✠ Text room</span>
                 <h2>Text register</h2>
-                <p lang="ko">공개 기록벽의 고정 문구를 이곳에서 직접 고칩니다.</p>
+                <p lang="ko">공개 기록벽에 반복해서 나타나는 문장을 이곳에서 직접 고칩니다.</p>
               </div>
             </div>
 

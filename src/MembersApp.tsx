@@ -468,10 +468,10 @@ function App() {
       ? activeTab === 'admin' ? 'Scriptorium' : 'Itinerary'
       : activeTab === 'habit' ? 'Marginalia' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
   const archiveSectionNote = !currentUser
-    ? '회원 이름을 선택하면 개인 장부와 프로그램 기록으로 들어갑니다.'
+    ? '이름을 선택하면 개인 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
-      ? '프로그램 일정, 회원 기록, 서버 저장, 백업 파일을 관리하는 관리자 화면입니다.'
-      : '참여할 프로그램을 확인하고, 오늘의 기록과 개인 정보를 남기는 회원실입니다.';
+      ? '프로그램 일정, 회원 기록, 서버 저장, 백업 파일을 정돈하는 보관자 책상입니다.'
+      : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 남기는 비공개 장부입니다.';
 
   return (
     <ErrorBoundary>
@@ -489,12 +489,12 @@ function App() {
             <nav className="archive-cabinet" aria-label="Private room sequence">
               <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
                 <span lang="en">Itinerary</span>
-                <small lang="ko">프로그램 일정 {events.length}개</small>
+                <small lang="ko">열린 장 {events.length}개</small>
               </button>
               {currentUser !== 'admin' && (
                 <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => setActiveTab('habit')}>
                   <span lang="en">Marginalia</span>
-                  <small lang="ko">오늘 남긴 기록 {completedToday}개</small>
+                  <small lang="ko">오늘의 주석 {completedToday}개</small>
                 </button>
               )}
               <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
@@ -504,7 +504,7 @@ function App() {
               {currentUser === 'admin' && (
                 <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
                   <span lang="en">Keeper</span>
-                  <small lang="ko">관리자 기록실</small>
+                  <small lang="ko">보관자 필사실</small>
                 </button>
               )}
             </nav>
@@ -520,7 +520,7 @@ function App() {
           </div>
           <a className="archive-godmode-link" href="/godmode/">
             <span lang="en"><i aria-hidden="true">✠</i> Text room</span>
-            <small lang="ko">진입금지 / 문구실</small>
+            <small lang="ko">진입금지 / 고정 문구실</small>
           </a>
         </aside>
 
@@ -554,12 +554,12 @@ function App() {
             <section className="archive-context" aria-label="Archive summary">
               <div>
                 <span lang="en">Programme folios</span>
-                <small lang="ko">등록된 프로그램</small>
+                <small lang="ko">등록된 장</small>
                 <strong>{events.length}</strong>
               </div>
               <div>
                 <span lang="en">Filed attendances</span>
-                <small lang="ko">전체 참여 신청</small>
+                <small lang="ko">기록된 신청</small>
                 <strong>{totalEnrollments}</strong>
               </div>
               <div>
@@ -569,7 +569,7 @@ function App() {
               </div>
               <div>
                 <span lang="en">Marks today</span>
-                <small lang="ko">오늘 기록한 회원</small>
+                <small lang="ko">오늘 주석을 남긴 회원</small>
                 <strong>{completedToday}</strong>
               </div>
             </section>

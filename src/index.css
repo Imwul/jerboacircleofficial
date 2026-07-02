@@ -119,12 +119,12 @@ input::placeholder {
 /* Final editorial intent layer.
    This file loads last, so these rules protect the designed reading path from generic UI defaults. */
 .public-home {
-  --signal: #ad2f63;
-  --signal-pink: #ef3528;
-  --signal-green: #08703e;
-  --signal-gold: #f3c538;
-  --signal-blue: #8fb8c9;
-  --signal-cream: #fff0cf;
+  --signal: #cf6f8c;
+  --signal-pink: #e57758;
+  --signal-green: #8f9b57;
+  --signal-gold: #d4a23e;
+  --signal-blue: #979bc8;
+  --signal-cream: #f7efdd;
   --ink: #050505;
 }
 
@@ -177,17 +177,17 @@ input::placeholder {
 .members-archive select,
 .members-archive textarea {
   border-color: var(--ink, #050505) !important;
-  background: var(--signal-cream, #fff0cf) !important;
+  background: var(--signal-cream, #f7efdd) !important;
   color: var(--ink, #050505) !important;
 }
 
 .members-archive {
-  --register-magenta: #ad2f63;
-  --register-red: #ef3528;
-  --register-green: #08703e;
-  --register-gold: #f3c538;
-  --register-cream: #fff0cf;
-  --register-action: #8fb8c9;
+  --register-magenta: #cf6f8c;
+  --register-red: #e57758;
+  --register-green: #8f9b57;
+  --register-gold: #d4a23e;
+  --register-cream: #f7efdd;
+  --register-action: #979bc8;
   --register-ink: #050505;
 }
 
@@ -206,4 +206,80 @@ input::placeholder {
 
 .members-archive .archive-context {
   background: var(--register-gold) !important;
+}
+
+/* Keep public archive tables readable: manuscript letters need breathing room. */
+.public-home .orientation-ledger strong[lang="ko"] {
+  display: block !important;
+  line-height: 1.58 !important;
+  padding-block: 0.68rem !important;
+}
+
+.public-home .orientation-routes a {
+  min-height: 5.7rem !important;
+  align-content: start !important;
+  gap: 0.42rem !important;
+  padding: 0.68rem 0.75rem 0.78rem !important;
+  overflow: hidden;
+}
+
+.public-home .orientation-routes span[lang="en"] {
+  font-size: clamp(1rem, 1.22vw, 1.42rem) !important;
+  line-height: 1.18 !important;
+  white-space: normal !important;
+}
+
+.public-home .orientation-routes small[lang="ko"] {
+  display: block !important;
+  line-height: 1.52 !important;
+}
+
+.public-home .constellation-grid {
+  align-items: stretch;
+  background: var(--ink);
+  gap: 2px;
+  border: 2px solid var(--ink) !important;
+}
+
+.public-home .text-index {
+  border: 0 !important;
+  grid-template-rows: auto !important;
+}
+
+.public-home .text-index > span {
+  min-height: 3rem !important;
+  padding: 0.58rem 0.78rem !important;
+  border-bottom: 2px solid var(--ink);
+}
+
+.public-home .text-index li {
+  min-height: 2.72rem !important;
+  padding: 0.5rem 0.78rem !important;
+  border-bottom: 1px solid var(--ink);
+  font-size: clamp(0.82rem, 0.92vw, 0.98rem) !important;
+  line-height: 1.5 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+.public-home .event-meta {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.public-home .event-meta div {
+  min-width: 0;
+  min-height: 5.65rem !important;
+  padding: 0.78rem 0.8rem !important;
+}
+
+.public-home .event-meta dd {
+  line-height: 1.38 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .public-home .event-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

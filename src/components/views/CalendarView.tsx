@@ -182,7 +182,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                 <div
                                   key={u.id}
                                   className="member-seal member-seal--small"
-                                  style={{ '--seal-color': u.avatarColor || '#ef3528' } as React.CSSProperties}
+                                  style={{ '--seal-color': u.avatarColor || '#e57758' } as React.CSSProperties}
                                 >
                                   {u.profileImage ? <img src={u.profileImage} alt="" /> : <span className="member-seal__initial">{u.name.slice(0, 1)}</span>}
                                 </div>

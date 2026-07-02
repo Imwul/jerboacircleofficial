@@ -147,7 +147,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <span className="archive-ko-label">종료일 표시</span>
                 </button>
                 <button 
-                  onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [], avatarIcon: '✣', avatarColor: '#ef3528' })}
+                  onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [], avatarIcon: '✣', avatarColor: '#e57758' })}
                   className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg"
                 >
                   <span className="archive-ko-label">+ 기록 추가</span>
@@ -161,7 +161,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <div className="flex items-center gap-4">
                     <div
                       className="member-seal"
-                      style={{ '--seal-color': user.avatarColor || '#ef3528' } as React.CSSProperties}
+                      style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
                     >
                       {user.profileImage ? (
                         <img src={user.profileImage} alt={user.name} />

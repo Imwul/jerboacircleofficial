@@ -79,7 +79,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
             >
               <div 
                 className="member-seal"
-                style={{ '--seal-color': user.avatarColor || '#ef3528' } as React.CSSProperties}
+                style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
               >
                 {user.profileImage ? (
                   <img src={user.profileImage} alt={user.name} />

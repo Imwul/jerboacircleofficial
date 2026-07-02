@@ -22,7 +22,7 @@ function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteT
         <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
-          <small lang="ko">{siteText.wordmarkSmall}</small>
+          <small lang="la">{siteText.wordmarkSmall}</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
           <a className="archive-nav-memory" href={detailRootHref()}><span lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
@@ -127,7 +127,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           <a className="archive-wordmark" href={detailRootHref()}>
           <span>Jerboa</span>
           <span>Circle</span>
-            <small lang="ko">{siteText.wordmarkSmall}</small>
+            <small lang="la">{siteText.wordmarkSmall}</small>
           </a>
         </header>
         <main className="missing-record">
