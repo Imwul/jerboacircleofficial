@@ -25,8 +25,8 @@ function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteT
           <small lang="ko">{siteText.wordmarkSmall}</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
-          <a href={detailRootHref()}><span lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
-          <a href={`${detailRootHref()}members/`}><span lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
+          <a className="archive-nav-memory" href={detailRootHref()}><span lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
+          <a className="archive-private-door" href={`${detailRootHref()}members/`}><span lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
         </nav>
       </header>
       <main className="detail-record section-reveal">

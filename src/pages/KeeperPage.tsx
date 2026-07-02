@@ -342,9 +342,9 @@ export default function KeeperPage() {
           <small lang="ko">기록 보관자</small>
         </a>
         <nav className="archive-nav keeper-nav" aria-label="Keeper navigation">
-          <a href="/"><span lang="ko">기록벽</span></a>
-          <a href="/members/"><span lang="ko">회원실</span></a>
-          <a href="/godmode/"><span lang="ko">문구실</span></a>
+          <a className="archive-nav-memory" href="/"><span lang="ko">기록벽</span></a>
+          <a className="archive-private-door" href="/members/"><span lang="ko">회원실</span></a>
+          <a className="archive-nav-textroom" href="/godmode/"><span lang="ko">문구실</span></a>
         </nav>
       </header>
 

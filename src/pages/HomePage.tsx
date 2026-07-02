@@ -22,11 +22,11 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
         <small lang="ko">{siteText.wordmarkSmall}</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a href="#featured"><span lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
-        <a href="#archive"><span lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
-        <a href="#manifesto"><span lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
-        <a href="#join"><span lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
-        <a href="./members/"><span lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
+        <a className="archive-nav-threshold" href="#featured"><span lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
+        <a className="archive-nav-memory" href="#archive"><span lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
+        <a className="archive-nav-fragments" href="#manifesto"><span lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
+        <a className="archive-nav-letter" href="#join"><span lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
+        <a className="archive-private-door" href="./members/"><span lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
       </nav>
     </header>
   );
@@ -143,7 +143,6 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
           <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
         </div>
         <EventMeta event={featuredEvent} siteText={siteText} />
-        <ThemeList themes={featuredEvent.themes} />
         <a className="archive-cta" href={featuredEvent.ctaHref}>
           {featuredEvent.ctaLabel}
         </a>

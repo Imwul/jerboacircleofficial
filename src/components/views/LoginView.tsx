@@ -137,13 +137,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
         </div>
       </div>
 
-      <div className="absolute bottom-8 flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-green-500" />
-        <span className="text-[10px] font-bold text-stone-300 tracking-widest">
-          로컬 장부 준비됨
-        </span>
-      </div>
-
       {showAdminModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">

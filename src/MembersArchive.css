@@ -668,7 +668,38 @@
   font-weight: 950 !important;
 }
 
+.archive-cabinet-note {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.15rem 1.1rem;
+  border-bottom: 2px solid var(--register-ink);
+  background: var(--register-green);
+  color: var(--register-ink);
+}
+
+.archive-cabinet-note span[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.25rem, 1.75vw, 2rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+.archive-cabinet-note small[lang="ko"] {
+  display: inline-block;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.95rem, 1vw, 1.08rem);
+  font-weight: 950;
+  line-height: 1.4;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
 .archive-cabinet small,
+.archive-cabinet-note small,
 .archive-sidebar-foot,
 .archive-topbar p,
 .archive-topbar span,
@@ -1511,4 +1542,92 @@
 .members-archive .archive-main .member-login-actions > div,
 .members-archive .archive-main .member-login-actions {
   justify-items: end;
+}
+
+/* Whole-site pass: private tools read as rooms, status reads as status. */
+.members-archive .archive-sidebar-foot {
+  position: relative;
+  padding: 0.75rem 1.1rem;
+  border-top: 2px solid var(--register-ink);
+  border-bottom: 2px solid var(--register-ink);
+  background: var(--register-cream) !important;
+  cursor: default;
+}
+
+.members-archive .archive-sidebar-foot::before {
+  content: "";
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 2px solid var(--register-ink);
+  background: var(--register-action);
+}
+
+.members-archive .archive-sidebar-foot span[lang="en"] {
+  font-size: clamp(1.05rem, 1.45vw, 1.55rem) !important;
+  line-height: 1 !important;
+}
+
+.members-archive .archive-sidebar-foot span[lang="ko"] {
+  max-width: calc(100% - 1.4rem);
+  font-size: clamp(0.9rem, 1vw, 1.05rem) !important;
+  line-height: 1.35 !important;
+}
+
+.members-archive .archive-godmode-link {
+  position: relative;
+  width: min(78%, 12.5rem);
+  margin-top: auto;
+  margin-bottom: 0.9rem;
+  background: var(--register-action) !important;
+}
+
+.members-archive .archive-godmode-link::before {
+  content: "";
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  width: 0.95rem;
+  height: 0.95rem;
+  transform: translateY(-50%);
+  background:
+    linear-gradient(90deg, transparent 0 36%, var(--register-ink) 36% 64%, transparent 64% 100%),
+    linear-gradient(180deg, transparent 0 36%, var(--register-ink) 36% 64%, transparent 64% 100%);
+}
+
+.members-archive .archive-godmode-link span[lang="en"],
+.members-archive .archive-godmode-link small[lang="ko"] {
+  padding-left: 1.5rem;
+}
+
+.members-archive .archive-godmode-link:hover {
+  background: var(--register-red) !important;
+}
+
+.members-archive .archive-context {
+  background: var(--register-gold) !important;
+}
+
+.members-archive .archive-context div {
+  min-height: 6rem;
+  align-content: space-between;
+}
+
+.members-archive .archive-context span[lang="en"] {
+  max-width: 100%;
+  font-size: clamp(1.05rem, 1.35vw, 1.5rem) !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+.members-archive .archive-context small[lang="ko"] {
+  align-self: start;
+}
+
+.members-archive .archive-context strong {
+  align-self: end;
+  margin-top: 0;
+  font-size: clamp(2.4rem, 4.8vw, 5.4rem);
 }

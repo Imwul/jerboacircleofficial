@@ -485,34 +485,37 @@ function App() {
             <span lang="en">Public archive</span>
             <small lang="ko">메인 기록벽으로 돌아가기</small>
           </a>
-          <nav className="archive-cabinet">
-            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span lang="en">Itinerary</span>
-              <small lang="ko">프로그램 일정 {events.length}개</small>
-            </button>
-            <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
-              <span lang="en">Folio</span>
-              <small lang="ko">회원 장부 {users.length}명</small>
-            </button>
-            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span lang="en">Seats</span>
-              <small lang="ko">신청된 자리 {totalEnrollments}개</small>
-            </button>
-            <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
-              <span lang="en">Threshold</span>
-              <small lang="ko">지금 열려 있는 프로그램</small>
-            </button>
-            <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => currentUser && currentUser !== 'admin' && setActiveTab('habit')}>
-              <span lang="en">Marginalia</span>
-              <small lang="ko">오늘 남긴 기록 {completedToday}개</small>
-            </button>
-            <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser === 'admin' && setActiveTab('admin')}>
-              <span lang="en">Keeper</span>
-              <small lang="ko">{currentUser === 'admin' ? '관리자 화면 열림' : '관리자만 접근 가능'}</small>
-            </button>
-          </nav>
-          <div className="archive-sidebar-foot">
-              <span lang="en">Private memory room</span>
+          {currentUser ? (
+            <nav className="archive-cabinet" aria-label="Private room sequence">
+              <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+                <span lang="en">Itinerary</span>
+                <small lang="ko">프로그램 일정 {events.length}개</small>
+              </button>
+              {currentUser !== 'admin' && (
+                <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => setActiveTab('habit')}>
+                  <span lang="en">Marginalia</span>
+                  <small lang="ko">오늘 남긴 기록 {completedToday}개</small>
+                </button>
+              )}
+              <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
+                <span lang="en">Folio</span>
+                <small lang="ko">회원 장부 {users.length}명</small>
+              </button>
+              {currentUser === 'admin' && (
+                <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
+                  <span lang="en">Keeper</span>
+                  <small lang="ko">관리자 기록실</small>
+                </button>
+              )}
+            </nav>
+          ) : (
+            <div className="archive-cabinet-note">
+              <span lang="en">Choose a register</span>
+              <small lang="ko">이름을 선택하면 개인 장부가 열립니다</small>
+            </div>
+          )}
+          <div className="archive-sidebar-foot" aria-label="Server sync status">
+            <span lang="en">Memory status</span>
             <span lang="ko">{serverSyncStatus}</span>
           </div>
           <a className="archive-godmode-link" href="/godmode/">
@@ -547,28 +550,30 @@ function App() {
             </div>
           </header>
 
-          <section className="archive-context" aria-label="Archive summary">
-            <div>
-              <span lang="en">Open passages</span>
-              <small lang="ko">등록된 프로그램</small>
-              <strong>{events.length}</strong>
-            </div>
-            <div>
-              <span lang="en">Marked seats</span>
-              <small lang="ko">전체 참여 신청</small>
-              <strong>{totalEnrollments}</strong>
-            </div>
-            <div>
-              <span lang="en">Readers</span>
-              <small lang="ko">회원 수</small>
-              <strong>{users.length}</strong>
-            </div>
-            <div>
-              <span lang="en">Today notes</span>
-              <small lang="ko">오늘 기록한 회원</small>
-              <strong>{completedToday}</strong>
-            </div>
-          </section>
+          {currentUser && (
+            <section className="archive-context" aria-label="Archive summary">
+              <div>
+                <span lang="en">Programme folios</span>
+                <small lang="ko">등록된 프로그램</small>
+                <strong>{events.length}</strong>
+              </div>
+              <div>
+                <span lang="en">Filed attendances</span>
+                <small lang="ko">전체 참여 신청</small>
+                <strong>{totalEnrollments}</strong>
+              </div>
+              <div>
+                <span lang="en">Reader folios</span>
+                <small lang="ko">회원 수</small>
+                <strong>{users.length}</strong>
+              </div>
+              <div>
+                <span lang="en">Marks today</span>
+                <small lang="ko">오늘 기록한 회원</small>
+                <strong>{completedToday}</strong>
+              </div>
+            </section>
+          )}
 
           <main className="archive-main">
             {!currentUser ? (
