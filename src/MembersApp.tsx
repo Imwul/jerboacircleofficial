@@ -519,7 +519,7 @@ function App() {
             <span lang="ko">{serverSyncStatus}</span>
           </div>
           <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en"><i aria-hidden="true">✠</i> Text room</span>
+            <span lang="en"><i aria-hidden="true">⚜</i> Text room</span>
             <small lang="ko">진입금지 / 고정 문구실</small>
           </a>
         </aside>

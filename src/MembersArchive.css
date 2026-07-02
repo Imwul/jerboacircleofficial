@@ -1689,3 +1689,54 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Final private-room polish: one Frankish mark, no shadows, no broken room labels. */
+.members-archive [class*="shadow"],
+.members-archive [class*="drop-shadow"],
+.members-archive [style*="box-shadow"] {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.members-archive .archive-godmode-link {
+  width: min(86%, 15.5rem) !important;
+  gap: 0.16rem !important;
+  padding: 0.64rem 0.78rem 0.72rem !important;
+}
+
+.members-archive .archive-godmode-link::before {
+  content: none !important;
+  display: none !important;
+}
+
+.members-archive .archive-godmode-link span[lang="en"],
+.members-archive .archive-godmode-link small[lang="ko"] {
+  padding-left: 0 !important;
+}
+
+.members-archive .archive-godmode-link span[lang="en"] {
+  gap: 0.42rem !important;
+  white-space: nowrap !important;
+  font-size: clamp(1.08rem, 1.35vw, 1.48rem) !important;
+  line-height: 1.08 !important;
+}
+
+.members-archive .archive-godmode-link span[lang="en"] i {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 1em !important;
+  transform: translateY(-0.01em) !important;
+}
+
+.members-archive .archive-godmode-link small[lang="ko"] {
+  white-space: nowrap !important;
+  font-size: clamp(0.8rem, 0.9vw, 0.94rem) !important;
+}
+
+.members-archive .member-login-intent > span[lang="en"] {
+  overflow: hidden !important;
+  padding: 0.64rem 0.72rem 0.82rem !important;
+  font-size: clamp(1.1rem, 1.55vw, 1.68rem) !important;
+  line-height: 1.14 !important;
+  white-space: nowrap !important;
+}
