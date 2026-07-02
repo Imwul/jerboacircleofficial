@@ -200,13 +200,13 @@ export default function KeeperPage() {
   function saveSiteTextDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     writeSiteTextDraft(siteTextForm);
-    setSyncStatus(`GODMODE 문구 저장됨 / ${timeLabel()}`);
+    setSyncStatus(`문구실 저장됨 / ${timeLabel()}`);
   }
 
   function resetSiteTextDraft() {
     clearSiteTextDraft();
     setSiteTextForm(defaultSiteText);
-    setSyncStatus('GODMODE 문구 원본 복원됨');
+    setSyncStatus('문구실 원본 복원됨');
   }
 
   function resetDraft() {
@@ -357,7 +357,7 @@ export default function KeeperPage() {
           </p>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
-              ? isTextDirty ? '저장되지 않은 GODMODE 문구 있음' : 'GODMODE 문구 준비됨'
+              ? isTextDirty ? '저장되지 않은 문구실 수정 있음' : '문구실 준비됨'
               : isDirty ? '저장되지 않은 수정 있음' : `저장된 초안 ${draftCount}`}
           </p>
           <div className="keeper-mode-switch" aria-label="Keeper mode">
@@ -373,7 +373,7 @@ export default function KeeperPage() {
               onClick={() => setMode('text')}
               type="button"
             >
-              GODMODE
+              문구실
             </button>
           </div>
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
@@ -426,8 +426,8 @@ export default function KeeperPage() {
           ) : (
             <div className="keeper-list">
               <button className="is-selected" type="button">
-                <span>GODMODE</span>
-                <strong>Site text register</strong>
+                <span>✠ Text room</span>
+                <strong>Text register</strong>
                 <small>모든 고정 문구</small>
               </button>
             </div>
@@ -438,16 +438,16 @@ export default function KeeperPage() {
           <section className="keeper-editor godmode-editor" aria-label="Site text editor">
             <div className="keeper-preview godmode-preview">
               <div>
-                <span>GODMODE</span>
-                <h2>Text Register</h2>
+                <span>✠ Text room</span>
+                <h2>Text register</h2>
                 <p lang="ko">공개 기록벽의 고정 문구를 이곳에서 직접 고칩니다.</p>
               </div>
             </div>
 
             <form className="keeper-form godmode-form" onSubmit={saveSiteTextDraft}>
               <div className="keeper-editor-heading">
-                <p className="section-kicker">GODMODE / site language</p>
-                <h2>All text</h2>
+                <p className="section-kicker">Text room / site language</p>
+                <h2>Text fields</h2>
               </div>
 
               <div className="godmode-field-grid">

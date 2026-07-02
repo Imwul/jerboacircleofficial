@@ -2139,11 +2139,11 @@
 }
 
 .godmode-editor {
-  grid-template-columns: minmax(16rem, 28vw) 1fr;
+  grid-template-columns: minmax(21rem, 34vw) 1fr;
 }
 
 .godmode-preview {
-  align-content: end;
+  align-content: start;
   background: var(--signal-blue, #8fb8c9) !important;
 }
 
@@ -2164,9 +2164,12 @@
 .godmode-preview h2 {
   margin: 0;
   font-family: var(--font-heavy-header);
-  font-size: clamp(3rem, 7vw, 7rem);
-  line-height: 1.08;
+  max-width: 100%;
+  font-size: clamp(3.2rem, 5.2vw, 5.4rem);
+  line-height: 1.12;
   font-weight: 400;
+  overflow-wrap: normal;
+  text-wrap: nowrap;
 }
 
 .godmode-preview p {
