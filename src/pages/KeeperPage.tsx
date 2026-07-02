@@ -64,6 +64,12 @@ const siteTextFields: Array<{
   { key: 'mastheadCaptionKo', label: '인장 캡션 한글' },
   { key: 'mastheadIntroEn', label: '대문 영어 문장', area: true },
   { key: 'mastheadIntroKo', label: '대문 한글 설명', area: true },
+  { key: 'orientationKickerEn', label: '첫 안내 영어 표제' },
+  { key: 'orientationKickerKo', label: '첫 안내 한글 표제' },
+  { key: 'orientationStatementKo', label: '첫 안내 핵심 설명', area: true },
+  { key: 'orientationCurrentKo', label: '첫 안내 / 현재 프로그램' },
+  { key: 'orientationArchiveKo', label: '첫 안내 / 지난 기록' },
+  { key: 'orientationPrivateKo', label: '첫 안내 / 회원 장부' },
   { key: 'ritualOne', label: '의식 1' },
   { key: 'ritualTwo', label: '의식 2' },
   { key: 'ritualThree', label: '의식 3' },
@@ -355,6 +361,11 @@ export default function KeeperPage() {
           <p lang="ko">
             포스터 / 문구 / 여정 / 자료 묶음을 고쳐 Circle의 보이는 기억에 반영합니다
           </p>
+          <ul className="keeper-purpose-list">
+            <li lang="ko">프로그램 모드에서는 포스터와 개별 기록을 수정합니다</li>
+            <li lang="ko">문구실에서는 공개 화면의 고정 문장을 수정합니다</li>
+            <li lang="ko">서버 저장을 눌러 여러 사람에게 같은 기록을 보여줍니다</li>
+          </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
               ? isTextDirty ? '저장되지 않은 문구실 수정 있음' : '문구실 준비됨'

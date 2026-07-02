@@ -58,6 +58,28 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
       <div className="masthead-index">
         <p lang="en">{siteText.mastheadIntroEn}</p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
+        <div className="orientation-ledger" aria-label="How to read this archive">
+          <p className="orientation-kicker">
+            <span lang="en">{siteText.orientationKickerEn}</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="ko">{siteText.orientationKickerKo}</span>
+          </p>
+          <strong lang="ko">{siteText.orientationStatementKo}</strong>
+          <div className="orientation-routes">
+            <a href="#featured">
+              <span lang="en">{siteText.navFeaturedEn}</span>
+              <small lang="ko">{siteText.orientationCurrentKo}</small>
+            </a>
+            <a href="#archive">
+              <span lang="en">{siteText.navArchiveEn}</span>
+              <small lang="ko">{siteText.orientationArchiveKo}</small>
+            </a>
+            <a href="./members/">
+              <span lang="en">{siteText.navMembersEn}</span>
+              <small lang="ko">{siteText.orientationPrivateKo}</small>
+            </a>
+          </div>
+        </div>
         <ol className="masthead-ritual">
           <li>{siteText.ritualOne}</li>
           <li>{siteText.ritualTwo}</li>

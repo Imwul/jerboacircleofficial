@@ -15,6 +15,12 @@ export interface SiteText {
   mastheadCaptionKo: string;
   mastheadIntroEn: string;
   mastheadIntroKo: string;
+  orientationKickerEn: string;
+  orientationKickerKo: string;
+  orientationStatementKo: string;
+  orientationCurrentKo: string;
+  orientationArchiveKo: string;
+  orientationPrivateKo: string;
   ritualOne: string;
   ritualTwo: string;
   ritualThree: string;
@@ -72,6 +78,12 @@ export const defaultSiteText: SiteText = {
   mastheadCaptionKo: '공개 기록벽',
   mastheadIntroEn: 'A field of signs, entered slowly',
   mastheadIntroKo: '책, 이미지, 신화, 철학, 종교, 예술을 엮어 하나의 프로그램으로 만드는 연구 모임입니다.',
+  orientationKickerEn: 'How to enter',
+  orientationKickerKo: '처음 온 사람을 위한 읽는 순서',
+  orientationStatementKo: '저보아 서클은 프로그램을 만들고, 그 포스터와 문장을 남기는 공개 아카이브입니다.',
+  orientationCurrentKo: '현재 열린 프로그램을 먼저 확인합니다.',
+  orientationArchiveKo: '지난 포스터에서 서클의 관심사를 읽습니다.',
+  orientationPrivateKo: '회원은 비공개 장부에서 신청과 기록을 남깁니다.',
   ritualOne: 'Beginning',
   ritualTwo: 'Passage',
   ritualThree: 'Transformation',

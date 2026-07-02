@@ -1631,3 +1631,61 @@
   margin-top: 0;
   font-size: clamp(2.4rem, 4.8vw, 5.4rem);
 }
+
+.members-archive .member-login-intent {
+  display: grid;
+  width: min(100%, 42rem);
+  border-top: 2px solid var(--register-ink);
+  border-left: 2px solid var(--register-ink);
+  background: var(--register-cream);
+  text-align: left;
+}
+
+.members-archive .member-login-intent > span[lang="en"] {
+  padding: 0.58rem 0.72rem;
+  border-right: 2px solid var(--register-ink);
+  border-bottom: 2px solid var(--register-ink);
+  background: var(--register-action);
+  font-size: clamp(1.35rem, 2vw, 2.15rem) !important;
+  line-height: 1 !important;
+}
+
+.members-archive .member-login-intent p[lang="ko"] {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-right: 2px solid var(--register-ink);
+  border-bottom: 2px solid var(--register-ink);
+  font-size: clamp(1rem, 1.15vw, 1.16rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.5 !important;
+}
+
+.members-archive .member-login-intent ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.members-archive .member-login-intent li {
+  min-width: 0;
+  padding: 0.62rem 0.72rem;
+  border-right: 2px solid var(--register-ink);
+  border-bottom: 2px solid var(--register-ink);
+  background: var(--register-gold);
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.94rem, 1vw, 1.06rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.3 !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+@media (max-width: 720px) {
+  .members-archive .member-login-intent ol {
+    grid-template-columns: 1fr;
+  }
+}
