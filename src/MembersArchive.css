@@ -626,12 +626,14 @@
 
 .archive-cabinet {
   display: grid;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .archive-cabinet button {
-  min-height: 4.8rem;
-  padding: 0.9rem 1.1rem;
+  min-height: 4.25rem;
+  padding: 0.78rem 1.1rem;
   border-bottom: 2px solid var(--register-ink);
   background: var(--register-green);
   color: var(--register-ink);
@@ -694,10 +696,52 @@
 }
 
 .archive-sidebar-foot {
+  flex: 0 0 auto;
   gap: 0.65rem;
-  padding: 1rem 1.1rem;
+  padding: 0.7rem 1.1rem;
   border-top: 2px solid var(--register-ink);
   background: var(--register-gold);
+}
+
+.archive-godmode-link {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  min-height: 5rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border-top: 3px solid var(--register-ink);
+  border-bottom: 3px solid var(--register-ink);
+  background: var(--register-action) !important;
+  color: var(--register-ink);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.archive-godmode-link:hover {
+  background: var(--register-cream);
+}
+
+.archive-godmode-link span[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.25rem, 1.75vw, 2rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+.archive-godmode-link small[lang="ko"] {
+  justify-self: end;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.9rem, 1vw, 1.05rem);
+  font-weight: 950;
+  line-height: 1.2;
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: right center;
 }
 
 .archive-workbench {
@@ -735,20 +779,25 @@
   align-items: flex-start;
 }
 
-.archive-topbar-actions button {
+.archive-topbar-actions button,
+.archive-topbar-actions a {
   min-width: 8.5rem;
   min-height: 3rem;
   padding: 0.65rem 0.9rem !important;
   border: 2px solid var(--register-ink);
   background: var(--register-action);
+  color: var(--register-ink);
   font-size: 0.95rem;
   font-weight: 900;
   display: inline-flex !important;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  text-decoration: none;
 }
 
+.archive-topbar-actions a:hover,
 .archive-topbar-actions button:hover,
 .archive-mobile-tabs button.is-active {
   background: var(--register-cream) !important;
@@ -1230,6 +1279,54 @@
 .members-archive .archive-calendar-grid > div:not(.archive-weekday) > div {
   background: transparent !important;
   transform: none !important;
+}
+
+.members-archive .archive-main .habit-weekday {
+  box-sizing: border-box;
+  display: flex !important;
+  height: 5.2rem !important;
+  min-height: 5.2rem !important;
+  max-height: 5.2rem !important;
+  justify-content: center;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-cream) !important;
+  color: var(--register-ink) !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  transform: none !important;
+}
+
+.members-archive .archive-main .habit-weekday:hover {
+  background: var(--register-cream) !important;
+}
+
+.members-archive .archive-main .habit-weekday.is-selected {
+  background: var(--register-gold) !important;
+  transform: none !important;
+}
+
+.members-archive .archive-main .habit-weekday__name {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1rem, 1.25vw, 1.35rem) !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  color: var(--register-ink) !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+.members-archive .archive-main .habit-weekday__date {
+  width: 2rem !important;
+  height: 2rem !important;
+  border: 0 !important;
+  background: var(--register-cream) !important;
+  color: var(--register-ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.members-archive .archive-main .habit-weekday__date.is-rewarded {
+  background: var(--register-action) !important;
 }
 
 .members-archive .archive-main [class*="bg-stone-900"],

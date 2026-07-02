@@ -515,6 +515,10 @@ function App() {
               <span lang="en">Private memory room</span>
             <span lang="ko">{serverSyncStatus}</span>
           </div>
+          <a className="archive-godmode-link" href="/godmode/">
+            <span lang="en">Forbidden room</span>
+            <small lang="ko">진입금지 / 문구실</small>
+          </a>
         </aside>
 
         <div className="archive-workbench">

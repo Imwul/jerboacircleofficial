@@ -238,10 +238,10 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
                 )}
                 <button 
                   onClick={() => setSelectedDate(day)}
-                  className={`flex flex-col items-center gap-2 p-2 rounded-xl transition-all relative z-10 w-full ${isSelected ? 'bg-stone-900 text-white scale-110 shadow-lg' : 'hover:bg-stone-50'}`}
+                  className={`habit-weekday flex flex-col items-center gap-2 p-2 rounded-xl transition-colors relative z-10 w-full ${isSelected ? 'is-selected' : ''}`}
                 >
-                  <span className={`text-[8px] font-bold tracking-widest ${isSelected ? 'text-white/60' : 'text-stone-400'}`}>{format(day, 'EEE')}</span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black tracking-tighter relative ${isSelected ? 'bg-white/20' : rewarded ? 'bg-primary-500 text-white shadow-sm' : 'bg-stone-50 text-stone-400'}`}>
+                  <span className="habit-weekday__name text-[8px] font-bold tracking-widest">{format(day, 'EEE')}</span>
+                  <div className={`habit-weekday__date w-8 h-8 rounded-full flex items-center justify-center text-xs font-black tracking-tighter relative ${rewarded ? 'is-rewarded' : ''}`}>
                     {format(day, 'd')}
                     {record?.status === 'success' && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />}
                     {record?.status === 'fail' && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />}
@@ -343,4 +343,3 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
     </div>
   );
 };
-
