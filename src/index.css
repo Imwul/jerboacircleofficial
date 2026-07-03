@@ -418,7 +418,7 @@ input::placeholder {
 }
 
 .public-home .orientation-kicker,
-.public-home .orientation-ledger > strong[lang="ko"] {
+.public-home .orientation-ledger > strong {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
@@ -436,7 +436,7 @@ input::placeholder {
   padding: 0.62rem 0.78rem !important;
 }
 
-.public-home .orientation-ledger > strong[lang="ko"] {
+.public-home .orientation-ledger > strong {
   padding: 0.86rem 0.78rem !important;
 }
 
@@ -492,6 +492,7 @@ input::placeholder {
   border-bottom: 2px solid var(--ink) !important;
   background: var(--signal-gold) !important;
   box-sizing: border-box !important;
+  transform: none !important;
 }
 
 .public-home .text-index ol {
@@ -512,6 +513,7 @@ input::placeholder {
   border: 0 !important;
   border-bottom: 1px solid var(--ink) !important;
   box-sizing: border-box !important;
+  transform: none !important;
 }
 
 .public-home .text-index li:last-child {

@@ -4632,7 +4632,7 @@
 }
 
 .public-home .orientation-kicker,
-.public-home .orientation-ledger > strong[lang="ko"] {
+.public-home .orientation-ledger > strong {
   display: block !important;
   width: 100% !important;
   max-width: none !important;
@@ -4684,6 +4684,7 @@
   border: 0 !important;
   border-bottom: 2px solid var(--ink) !important;
   background: var(--signal-gold) !important;
+  transform: none !important;
 }
 
 .public-home .text-index ol {
@@ -4694,6 +4695,7 @@
 .public-home .text-index li {
   border: 0 !important;
   border-bottom: 1px solid var(--ink) !important;
+  transform: none !important;
 }
 
 .public-home .text-index li:last-child {

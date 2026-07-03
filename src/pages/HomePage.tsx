@@ -97,7 +97,7 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
             <span aria-hidden="true"> / </span>
             <span lang="ko">{siteText.orientationKickerKo}</span>
           </p>
-          <strong lang="ko">{siteText.orientationStatementKo}</strong>
+          <strong><span lang="ko">{siteText.orientationStatementKo}</span></strong>
           <div className="orientation-routes">
             <a href="#featured">
               <span lang="en">{siteText.navFeaturedEn}</span>
@@ -157,10 +157,10 @@ function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteTex
 function TextIndex({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="text-index">
-      <span lang={textLang(title)}>{title}</span>
+      <span className="text-index-title"><span lang={textLang(title)}>{title}</span></span>
       <ol>
         {items.map((item) => (
-          <li key={item} lang={textLang(item)}>{item}</li>
+          <li key={item}><span lang={textLang(item)}>{item}</span></li>
         ))}
       </ol>
     </div>
