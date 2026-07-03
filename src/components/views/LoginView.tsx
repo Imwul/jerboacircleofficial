@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { format, subDays } from 'date-fns';
+import { privateArchivePlate } from '../../data/manuscriptPlates';
 
 interface LoginViewProps {
   users: User[];
@@ -27,6 +28,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   };
 
   const todayKey = getTodayKey();
+  const entryImage = mainImage || privateArchivePlate;
 
   const handleAdminLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,17 +45,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   return (
     <div className="member-login flex flex-col items-center justify-center min-h-full p-6 space-y-8 bg-white relative">
       <div className="flex flex-col items-center space-y-4 text-center">
-        {mainImage && (
-          <div className="archive-frontispiece-image animate-in zoom-in duration-500">
-            <img src={mainImage} alt="Jerboa Circle" />
-          </div>
-        )}
         <div className="space-y-1">
           <p className="italic text-stone-400 text-sm font-medium"><span lang="en">Antecamera</span> / <span lang="ko">회원 입장 화면</span></p>
           <h1 className="text-4xl font-black text-stone-900" lang="en">
             Reader folios
           </h1>
         </div>
+        <figure className="member-login-manuscript">
+          <img src={entryImage} alt="" aria-hidden="true" />
+        </figure>
         <div className="member-login-intent">
           <span lang="en">Private archive room</span>
           <p lang="ko">회원실은 프로그램 신청, 오늘의 기록, 개인 장부를 남기는 비공개 공간입니다.</p>

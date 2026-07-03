@@ -18,6 +18,7 @@ import {
   mergeSiteText,
   writeSiteTextDraft,
 } from '../utils/siteTextDrafts';
+import { resizeImage } from '../utils/imageUtils';
 import './HomePage.css';
 
 interface KeeperFormState {
@@ -159,6 +160,15 @@ function toDraft(form: KeeperFormState): ArchiveEventDraft {
   };
 }
 
+function makeRecordId(title: string) {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 42);
+  return `${slug || 'new-programme'}-${Date.now().toString(36)}`;
+}
+
 function timeLabel(date = new Date()) {
   return date.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -217,10 +227,48 @@ export default function KeeperPage() {
 
   function resetDraft() {
     clearArchiveDraft(selectedEvent.id);
-    const baseEvent = events.find((event) => event.id === selectedEvent.id) ?? events[0];
-    setForm(toFormState(baseEvent));
+    const baseEvent = events.find((event) => event.id === selectedEvent.id);
+    if (baseEvent) {
+      setForm(toFormState(baseEvent));
+    } else {
+      const nextEvent = applyArchiveDrafts(events)[0];
+      setSelectedId(nextEvent.id);
+      setForm(toFormState(nextEvent));
+    }
     setVersion((current) => current + 1);
     setSyncStatus('선택 기록 원본 복원됨');
+  }
+
+  function createNewRecord() {
+    const nextId = makeRecordId('New Programme');
+    const nextDraft: ArchiveEventDraft = {
+      edition: `Edition ${String(archiveEvents.length + 1).padStart(3, '0')}`,
+      title: 'New Programme',
+      subtitle: 'A passage not yet named',
+      latinQuote: 'Ad quaerendum',
+      marginalia: '아직 이름 붙지 않은 여정의 첫 기록입니다.',
+      date: '새 프로그램',
+      status: 'upcoming',
+      posterImage: events[0].posterImage,
+      shortDescription: '새 프로그램의 짧은 설명을 입력하세요.',
+      longDescription: '책, 이미지, 사물, 장소가 어떻게 하나의 여정으로 엮이는지 이곳에 기록합니다.',
+      passage: ['부름', '통과', '귀환'],
+      materials: ['book', 'image', 'note'],
+      themes: ['Fragment', 'Passage'],
+      location: '저보아 서클',
+      ctaLabel: '기록 열기',
+      ctaHref: `./archive/${nextId}/`,
+      createdAt: new Date().toISOString(),
+      isCustom: true,
+    };
+
+    writeArchiveDraft(nextId, nextDraft);
+    const nextEvents = applyArchiveDrafts(events);
+    const nextEvent = nextEvents.find((event) => event.id === nextId) ?? nextEvents[0];
+    setSelectedId(nextEvent.id);
+    setForm(toFormState(nextEvent));
+    setVersion((current) => current + 1);
+    setSyncStatus('새 기록 초안 생성됨 / 서버 저장을 누르면 공개됩니다');
   }
 
   function updateServerKey(value: string) {
@@ -321,22 +369,27 @@ export default function KeeperPage() {
     if (!confirm('모든 포스터 초안을 지울까요? 공개 원본 데이터는 유지됩니다.')) return;
     clearAllArchiveDrafts();
     const baseEvent = events.find((event) => event.id === selectedId) ?? events[0];
+    setSelectedId(baseEvent.id);
     setForm(toFormState(baseEvent));
     setVersion((current) => current + 1);
     setSyncStatus('모든 로컬 초안 삭제됨');
   }
 
-  function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
+  async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      if (typeof reader.result === 'string') {
-        updateField('posterImage', reader.result);
-      }
-    });
-    reader.readAsDataURL(file);
+    try {
+      setSyncStatus('포스터를 웹용으로 줄이는 중');
+      const resizedPoster = await resizeImage(file, 1600, 2200);
+      updateField('posterImage', resizedPoster);
+      setSyncStatus('포스터 이미지 준비됨');
+    } catch (error) {
+      console.error('Poster upload failed:', error);
+      setSyncStatus('포스터를 읽을 수 없음');
+    } finally {
+      event.currentTarget.value = '';
+    }
   }
 
   return (
@@ -387,6 +440,11 @@ export default function KeeperPage() {
               문구실
             </button>
           </div>
+          {mode === 'events' && (
+            <button className="keeper-new-record" type="button" onClick={createNewRecord}>
+              새 프로그램 기록 추가
+            </button>
+          )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
             <label>
               <span>서버 키</span>
@@ -437,7 +495,7 @@ export default function KeeperPage() {
           ) : (
             <div className="keeper-list">
               <button className="is-selected" type="button">
-                <span>✠ Text room</span>
+                <span>⚜ Text room</span>
                 <strong>Text register</strong>
                 <small>반복되는 문장</small>
               </button>
@@ -449,7 +507,7 @@ export default function KeeperPage() {
           <section className="keeper-editor godmode-editor" aria-label="Site text editor">
             <div className="keeper-preview godmode-preview">
               <div>
-                <span>✠ Text room</span>
+                <span>⚜ Text room</span>
                 <h2>Text register</h2>
                 <p lang="ko">공개 기록벽에 반복해서 나타나는 문장을 이곳에서 직접 고칩니다.</p>
               </div>
@@ -551,10 +609,16 @@ export default function KeeperPage() {
               <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
             </label>
 
-            <label className="keeper-field">
-              <span>포스터 이미지 업로드</span>
-              <input accept="image/*" onChange={readPosterFile} type="file" />
-            </label>
+            <div className="keeper-poster-upload">
+              <figure>
+                <img src={form.posterImage} alt="" />
+              </figure>
+              <label className="keeper-field">
+                <span>포스터 이미지 업로드</span>
+                <small>파일을 올리면 웹용 크기로 줄인 뒤 이 프로그램 기록에 붙습니다</small>
+                <input accept="image/*" onChange={readPosterFile} type="file" />
+              </label>
+            </div>
 
             <label className="keeper-field">
               <span>짧은 설명</span>
@@ -616,6 +680,7 @@ export default function KeeperPage() {
             <div className="keeper-actions">
               <button className="archive-cta" type="submit">초안 저장</button>
               <button className="archive-cta inverse" onClick={resetDraft} type="button">원본 복원</button>
+              <button className="archive-cta" onClick={saveArchiveToServer} type="button">서버 저장</button>
               <a className="archive-cta" href="/">공개 화면 보기</a>
             </div>
 

@@ -1703,6 +1703,7 @@
   width: min(86%, 15.5rem) !important;
   gap: 0.16rem !important;
   padding: 0.64rem 0.78rem 0.72rem !important;
+  border: 2px solid var(--register-ink) !important;
 }
 
 .members-archive .archive-godmode-link::before {
@@ -1739,4 +1740,238 @@
   font-size: clamp(1.1rem, 1.55vw, 1.68rem) !important;
   line-height: 1.14 !important;
   white-space: nowrap !important;
+}
+
+/* Manuscript plate and full-border ledgers: remove stray one-sided rules. */
+.members-archive .member-login-manuscript {
+  width: min(100%, 42rem);
+  height: clamp(11rem, 24vw, 18rem);
+  margin: 0;
+  border: 2px solid var(--register-ink);
+  background: var(--register-cream);
+  overflow: hidden;
+}
+
+.members-archive .member-login-manuscript img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+  filter: none !important;
+  mix-blend-mode: normal;
+}
+
+.members-archive .member-login-intent {
+  border: 2px solid var(--register-ink) !important;
+  overflow: hidden;
+}
+
+.members-archive .member-login-intent > span[lang="en"],
+.members-archive .member-login-intent p[lang="ko"],
+.members-archive .member-login-intent li {
+  border-right: 0 !important;
+}
+
+.members-archive .member-login-intent > span[lang="en"],
+.members-archive .member-login-intent p[lang="ko"] {
+  border-bottom: 2px solid var(--register-ink) !important;
+}
+
+.members-archive .member-login-intent li {
+  border-bottom: 0 !important;
+  border-left: 2px solid var(--register-ink) !important;
+}
+
+.members-archive .member-login-intent li:first-child {
+  border-left: 0 !important;
+}
+
+.members-archive .member-login-intent ol {
+  border: 0 !important;
+}
+
+@media (max-width: 720px) {
+  .members-archive .member-login-intent li {
+    border-left: 0 !important;
+    border-top: 2px solid var(--register-ink) !important;
+  }
+
+  .members-archive .member-login-intent li:first-child {
+    border-top: 0 !important;
+  }
+}
+
+/* Upload and entry controls: clear archive interfaces, no stray half-rules. */
+.members-archive .archive-main .habit-proof-title {
+  font-size: clamp(1.02rem, 1.12vw, 1.18rem) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.members-archive .archive-main .habit-proof-uploader {
+  width: min(100%, 34rem);
+  aspect-ratio: 16 / 9;
+  min-height: 13rem;
+  border: 2px dashed var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: var(--register-cream) !important;
+  color: var(--register-ink) !important;
+  box-shadow: none !important;
+}
+
+.members-archive .archive-main .habit-proof-uploader label {
+  gap: 0.28rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.members-archive .archive-main .habit-proof-mark {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(2rem, 4vw, 3.7rem);
+  line-height: 1;
+}
+
+.members-archive .archive-main .habit-proof-uploader span:not(.habit-proof-mark),
+.members-archive .archive-main .habit-proof-uploader small,
+.members-archive .archive-main .habit-proof-status,
+.members-archive .archive-main .habit-proof-replace {
+  font-family: var(--font-ko) !important;
+  font-weight: 950 !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: center;
+}
+
+.members-archive .archive-main .habit-proof-uploader small {
+  font-size: clamp(0.86rem, 0.95vw, 1rem);
+  line-height: 1.45;
+}
+
+.members-archive .archive-main .habit-proof-overlay {
+  display: flex;
+  gap: 0.6rem;
+  background: rgba(17, 17, 17, 0.54) !important;
+}
+
+.members-archive .archive-main .habit-proof-small-action,
+.members-archive .archive-main .habit-proof-replace {
+  display: inline-flex !important;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: var(--register-action) !important;
+  color: var(--register-ink) !important;
+  padding: 0.46rem 0.72rem !important;
+  cursor: pointer;
+}
+
+.members-archive .archive-main .habit-proof-replace {
+  width: fit-content;
+}
+
+.members-archive .archive-main .habit-proof-replace input {
+  display: none;
+}
+
+.members-archive .archive-main .habit-proof-status {
+  width: fit-content;
+  margin: 0.35rem 0 0;
+  border-left: 2px solid var(--register-ink);
+  padding-left: 0.55rem;
+  font-size: 0.92rem !important;
+  color: var(--register-ink) !important;
+}
+
+.members-archive .archive-main .member-login-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(8rem, 1fr)) !important;
+  width: min(100%, 28rem) !important;
+  margin: 0.7rem 0 0 auto !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-action) !important;
+  overflow: visible !important;
+}
+
+.members-archive .archive-main .member-login-actions > button,
+.members-archive .archive-main .member-login-actions > div,
+.members-archive .archive-main .member-login-actions > div > button {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-self: stretch !important;
+}
+
+.members-archive .archive-main .member-login-actions > button,
+.members-archive .archive-main .member-login-actions > div > button {
+  min-height: 2.65rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0.5rem 0.65rem !important;
+}
+
+.members-archive .archive-main .member-login-actions > button {
+  border-right: 2px solid var(--register-ink) !important;
+}
+
+.members-archive .archive-main .member-login-import {
+  display: grid !important;
+  min-width: 0;
+}
+
+.members-archive .archive-main .member-login-import > div {
+  grid-column: 1 / -1;
+  width: 100% !important;
+  border-top: 2px solid var(--register-ink);
+  background: var(--register-cream);
+}
+
+.members-archive .archive-main .member-login-import textarea,
+.members-archive .archive-main .member-login-import > div > button {
+  width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .members-archive .archive-main .member-login-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .members-archive .archive-main .member-login-actions > button {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+}
+
+/* Private-room action buttons: each button is its own closed plaque. */
+.members-archive .archive-main .member-login-actions {
+  gap: 0.7rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.members-archive .archive-main .member-login-actions > button,
+.members-archive .archive-main .member-login-actions > div > button {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-action) !important;
+}
+
+.members-archive .archive-main .member-login-actions > button {
+  border-right: 2px solid var(--register-ink) !important;
+}
+
+.members-archive .archive-main .member-login-import > div {
+  margin-top: 0.7rem;
+  border: 2px solid var(--register-ink) !important;
+}
+
+@media (max-width: 640px) {
+  .members-archive .archive-main .member-login-actions > button {
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
 }

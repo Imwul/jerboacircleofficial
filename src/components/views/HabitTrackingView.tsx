@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, subDays, isAfter, startOfDay, addDays, addHours, isBefore, differenceInDays } from 'date-fns';
 import { User, HabitRecord, TIER_COLORS } from '../../types';
 import { StarRating } from '../ui/StarRating';
+import { resizeImage } from '../../utils/imageUtils';
 
 interface HabitTrackingViewProps {
   user: User;
@@ -16,6 +17,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [tempGoal, setTempGoal] = useState(user.habitGoal || '');
   const [comment, setComment] = useState('');
+  const [photoStatus, setPhotoStatus] = useState('');
 
   const getEffectiveTodayKey = () => {
     const now = new Date();
@@ -145,44 +147,26 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
     return user.habitRecords?.[dateKey]?.streakId;
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 800;
-        let width = img.width;
-        let height = img.height;
+    try {
+      setPhotoStatus('사진을 장부에 맞게 줄이는 중');
+      const compressedBase64 = await resizeImage(file, 1200, 1200);
+      handleUpdateRecord({ photo: compressedBase64, mediaType: 'image' });
+      setPhotoStatus('인증 사진 저장됨');
+    } catch (error) {
+      console.error('Habit photo upload failed:', error);
+      setPhotoStatus('사진을 읽을 수 없음');
+    } finally {
+      e.currentTarget.value = '';
+    }
+  };
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          handleUpdateRecord({ photo: compressedBase64, mediaType: 'image' });
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+  const clearPhoto = () => {
+    handleUpdateRecord({ photo: undefined, mediaType: undefined });
+    setPhotoStatus('인증 사진 삭제됨');
   };
 
   return (
@@ -278,21 +262,31 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
 
         <div className="space-y-6">
           <div className="space-y-4">
-            <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">인증 사진</h3>
-            <div className="aspect-square bg-stone-100 rounded-3xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400 hover:bg-stone-200 transition-colors cursor-pointer overflow-hidden relative group">
+            <h3 className="habit-proof-title text-sm font-black tracking-tighter text-stone-800 tracking-widest">인증 사진</h3>
+            <div className="habit-proof-uploader aspect-square bg-stone-100 rounded-3xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400 hover:bg-stone-200 transition-colors cursor-pointer overflow-hidden relative group">
               {currentRecord.photo ? (
                 <>
                   <img src={currentRecord.photo} alt="인증" className="w-full h-full object-cover" />
                   {(canEdit || isAdmin) && (
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <button onClick={(e) => { e.stopPropagation(); handleUpdateRecord({ photo: undefined }); }} className="bg-white text-red-500 px-4 py-2 rounded-xl text-xs font-bold shadow-lg">삭제하기</button>
+                    <div className="habit-proof-overlay absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <label className="habit-proof-small-action">
+                        사진 교체
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handlePhotoUpload}
+                        />
+                      </label>
+                      <button onClick={(e) => { e.stopPropagation(); clearPhoto(); }} className="habit-proof-small-action" type="button">삭제</button>
                     </div>
                   )}
                 </>
               ) : (
                 <label className={`w-full h-full flex flex-col items-center justify-center ${canEdit || isAdmin ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
-                  <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <span className="habit-proof-mark">⚜</span>
                   <span className="text-[10px] font-bold tracking-widest">사진 업로드</span>
+                  <small>오늘의 흔적을 한 장 남깁니다</small>
                   {(canEdit || isAdmin) && (
                     <input 
                       type="file" 
@@ -304,6 +298,17 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
                 </label>
               )}
             </div>
+            {(canEdit || isAdmin) && currentRecord.photo && (
+              <label className="habit-proof-replace">
+                인증 사진 다시 올리기
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                />
+              </label>
+            )}
+            {photoStatus && <p className="habit-proof-status" lang="ko">{photoStatus}</p>}
           </div>
 
           <div className="space-y-4">

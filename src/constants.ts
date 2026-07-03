@@ -15,7 +15,7 @@ export const INITIAL_USERS: User[] = [
     tierStartDate: format(today, 'yyyy-MM-dd'),
     tierDurationWeeks: 2,
     enrolledEventIds: [],
-    avatarIcon: '✣',
+    avatarIcon: '⚜',
     avatarColor: '#cf6f8c'
   },
   {

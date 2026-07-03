@@ -147,7 +147,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <span className="archive-ko-label">종료일 표시</span>
                 </button>
                 <button 
-                  onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [], avatarIcon: '✣', avatarColor: '#e57758' })}
+                  onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [], avatarIcon: '⚜', avatarColor: '#e57758' })}
                   className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg"
                 >
                   <span className="archive-ko-label">+ 기록 추가</span>

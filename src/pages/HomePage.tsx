@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { events, type ArchiveEvent } from '../data/events';
 import type { SiteText } from '../data/siteText';
 import { applyArchiveDrafts } from '../utils/archiveDrafts';
@@ -6,11 +6,81 @@ import { loadServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import jerboaSeal from '../assets/identity/jerboa-seal.png';
+import { editorialPlates } from '../data/manuscriptPlates';
 import './HomePage.css';
 
 interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
+}
+
+function textLang(text: string) {
+  return /[가-힣]/.test(text) ? 'ko' : 'en';
+}
+
+function EditorialPlate({
+  className,
+  image,
+}: {
+  className: string;
+  image: string;
+}) {
+  return (
+    <figure className={`editorial-plate ${className}`} aria-hidden="true">
+      <img src={image} alt="" loading="lazy" />
+    </figure>
+  );
+}
+
+function EditorialKicker({ en, ko }: { en: string; ko: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+
+    const english = element.querySelector<HTMLElement>('[data-kicker-en]');
+    const korean = element.querySelector<HTMLElement>('[data-kicker-ko]');
+    if (!english || !korean) return undefined;
+
+    const fit = () => {
+      element.dataset.kickerMode = 'inline';
+      english.style.removeProperty('--kicker-en-size');
+
+      const style = window.getComputedStyle(english);
+      const baseSize = Number.parseFloat(style.fontSize) || 34;
+      const spare = 52;
+      const available = element.clientWidth - korean.offsetWidth - spare;
+      const naturalWidth = english.scrollWidth;
+
+      if (available <= 0 || naturalWidth > available * 1.7) {
+        element.dataset.kickerMode = 'stacked';
+        english.style.setProperty('--kicker-en-size', `${Math.max(24, Math.min(baseSize, element.clientWidth / Math.max(en.length * 0.55, 1)))}px`);
+        return;
+      }
+
+      const ratio = Math.min(1, available / Math.max(naturalWidth, 1));
+      if (ratio < 0.92) {
+        element.dataset.kickerMode = 'compact';
+        english.style.setProperty('--kicker-en-size', `${Math.max(22, baseSize * ratio)}px`);
+      }
+    };
+
+    const observer = new ResizeObserver(fit);
+    observer.observe(element);
+    document.fonts?.ready.then(fit).catch(() => {});
+    fit();
+
+    return () => observer.disconnect();
+  }, [en, ko]);
+
+  return (
+    <p className="section-kicker" ref={ref}>
+      <span lang="en" data-kicker-en>{en}</span>
+      <span className="kicker-divider" aria-hidden="true"> / </span>
+      <span lang="ko" data-kicker-ko>{ko}</span>
+    </p>
+  );
 }
 
 function SiteHeader({ siteText }: { siteText: SiteText }) {
@@ -58,6 +128,10 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
       <div className="masthead-index">
         <p lang="en">{siteText.mastheadIntroEn}</p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
+        <EditorialPlate
+          className="editorial-plate--masthead"
+          image={editorialPlates.masthead}
+        />
         <div className="orientation-ledger" aria-label="How to read this archive">
           <p className="orientation-kicker">
             <span lang="en">{siteText.orientationKickerEn}</span>
@@ -102,20 +176,20 @@ function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteTex
   return (
     <dl className="event-meta" aria-label={`${event.title} metadata`}>
       <div>
-        <dt>{siteText.metaEdition}</dt>
-        <dd>{event.edition}</dd>
+        <dt lang={textLang(siteText.metaEdition)}>{siteText.metaEdition}</dt>
+        <dd lang={textLang(event.edition)}>{event.edition}</dd>
       </div>
       <div>
-        <dt>{siteText.metaDate}</dt>
-        <dd>{event.date}</dd>
+        <dt lang={textLang(siteText.metaDate)}>{siteText.metaDate}</dt>
+        <dd lang={textLang(event.date)}>{event.date}</dd>
       </div>
       <div>
-        <dt>{siteText.metaStatus}</dt>
-        <dd>{statusLabel(event.status, siteText)}</dd>
+        <dt lang={textLang(siteText.metaStatus)}>{siteText.metaStatus}</dt>
+        <dd lang={textLang(statusLabel(event.status, siteText))}>{statusLabel(event.status, siteText)}</dd>
       </div>
       <div>
-        <dt>{siteText.metaFormat}</dt>
-        <dd>{event.location}</dd>
+        <dt lang={textLang(siteText.metaFormat)}>{siteText.metaFormat}</dt>
+        <dd lang={textLang(event.location)}>{event.location}</dd>
       </div>
     </dl>
   );
@@ -124,10 +198,10 @@ function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteTex
 function TextIndex({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="text-index">
-      <span>{title}</span>
+      <span lang={textLang(title)}>{title}</span>
       <ol>
         {items.map((item) => (
-          <li key={item}>{item}</li>
+          <li key={item} lang={textLang(item)}>{item}</li>
         ))}
       </ol>
     </div>
@@ -151,7 +225,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
         <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
       </div>
       <div className="featured-copy">
-        <p className="section-kicker"><span lang="en">{siteText.featuredKickerEn}</span> / <span lang="ko">{siteText.featuredKickerKo}</span></p>
+        <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
         <h1>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
           {siteText.featuredAnnotation}
@@ -159,13 +233,17 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
         <p className="event-subtitle">{featuredEvent.subtitle}</p>
         <p className="latin-line">{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
+        <EditorialPlate
+          className="editorial-plate--featured"
+          image={editorialPlates.featured}
+        />
         <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
         <div className="constellation-grid" aria-label="Programme constellation">
           <TextIndex title={siteText.journeyLabel} items={featuredEvent.passage} />
           <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
         </div>
         <EventMeta event={featuredEvent} siteText={siteText} />
-        <a className="archive-cta" href={featuredEvent.ctaHref}>
+        <a className="archive-cta" href={featuredEvent.ctaHref} lang={textLang(featuredEvent.ctaLabel)}>
           {featuredEvent.ctaLabel}
         </a>
       </div>
@@ -197,8 +275,12 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
-        <p className="section-kicker"><span lang="en">{siteText.archiveKickerEn}</span> / <span lang="ko">{siteText.archiveKickerKo}</span></p>
+        <EditorialKicker en={siteText.archiveKickerEn} ko={siteText.archiveKickerKo} />
         <h2 lang="ko">{siteText.archiveHeading}</h2>
+        <EditorialPlate
+          className="editorial-plate--archive"
+          image={editorialPlates.archive}
+        />
       </div>
       <div className="archive-ledger" aria-label="Programme index">
         {archiveEvents.map((event) => (
@@ -222,7 +304,11 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
 function ManifestoBlock({ siteText }: { siteText: SiteText }) {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
-      <p className="section-kicker"><span lang="en">{siteText.manifestoKickerEn}</span> / <span lang="ko">{siteText.manifestoKickerKo}</span></p>
+      <EditorialKicker en={siteText.manifestoKickerEn} ko={siteText.manifestoKickerKo} />
+      <EditorialPlate
+        className="editorial-plate--manifesto"
+        image={editorialPlates.manifesto}
+      />
       <p lang="ko">{siteText.manifestoBody}</p>
     </section>
   );
@@ -232,10 +318,14 @@ function JoinBlock({ siteText }: { siteText: SiteText }) {
   return (
     <section className="join-block section-reveal" id="join">
       <div>
-        <p className="section-kicker"><span lang="en">{siteText.joinKickerEn}</span> / <span lang="ko">{siteText.joinKickerKo}</span></p>
+        <EditorialKicker en={siteText.joinKickerEn} ko={siteText.joinKickerKo} />
+        <EditorialPlate
+          className="editorial-plate--join"
+          image={editorialPlates.join}
+        />
         <h2 lang="ko">{siteText.joinHeading}</h2>
       </div>
-      <a className="archive-cta inverse" href={siteText.joinCtaHref}>
+      <a className="archive-cta inverse" href={siteText.joinCtaHref} lang={textLang(siteText.joinCtaLabel)}>
         {siteText.joinCtaLabel}
       </a>
     </section>

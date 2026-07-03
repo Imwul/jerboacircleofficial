@@ -134,7 +134,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
-            <div className="archive-empty-mark" aria-hidden="true">✣</div>
+            <div className="archive-empty-mark" aria-hidden="true">⚜</div>
             <p className="text-xs font-bold text-stone-300 tracking-widest">이 날짜에 등록된 프로그램이 없습니다</p>
           </div>
         ) : (

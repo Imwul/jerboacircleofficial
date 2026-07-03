@@ -6,6 +6,7 @@ const indexPath = path.join(distDir, 'index.html');
 const membersDir = path.join(distDir, 'members');
 const keeperDir = path.join(distDir, 'keeper');
 const godmodeDir = path.join(distDir, 'godmode');
+const archiveDir = path.join(distDir, 'archive');
 const eventsPath = path.resolve(__dirname, '..', 'src', 'data', 'events.ts');
 
 if (!fs.existsSync(indexPath)) {
@@ -13,6 +14,7 @@ if (!fs.existsSync(indexPath)) {
 }
 
 const rootIndex = fs.readFileSync(indexPath, 'utf8');
+const absoluteIndex = rootIndex.replaceAll('./assets/', '/assets/');
 const nestedIndex = rootIndex.replaceAll('./assets/', '../assets/');
 const deeplyNestedIndex = rootIndex.replaceAll('./assets/', '../../assets/');
 const eventSource = fs.readFileSync(eventsPath, 'utf8');
@@ -24,6 +26,8 @@ fs.mkdirSync(keeperDir, { recursive: true });
 fs.writeFileSync(path.join(keeperDir, 'index.html'), nestedIndex);
 fs.mkdirSync(godmodeDir, { recursive: true });
 fs.writeFileSync(path.join(godmodeDir, 'index.html'), nestedIndex);
+fs.mkdirSync(archiveDir, { recursive: true });
+fs.writeFileSync(path.join(archiveDir, 'index.html'), absoluteIndex);
 
 for (const id of eventIds) {
   const eventDir = path.join(distDir, 'archive', id);
@@ -31,5 +35,5 @@ for (const id of eventIds) {
   fs.writeFileSync(path.join(eventDir, 'index.html'), deeplyNestedIndex);
 }
 
-fs.writeFileSync(path.join(distDir, '404.html'), rootIndex);
+fs.writeFileSync(path.join(distDir, '404.html'), absoluteIndex);
 fs.writeFileSync(path.join(distDir, '.nojekyll'), '');

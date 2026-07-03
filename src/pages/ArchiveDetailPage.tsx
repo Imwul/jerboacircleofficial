@@ -1,9 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getEventById, type ArchiveEvent } from '../data/events';
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { ADMIN_PASSWORD } from '../constants';
+import { events, type ArchiveEvent, type EventStatus } from '../data/events';
 import type { SiteText } from '../data/siteText';
-import { applyArchiveDrafts, writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
-import { loadServerSync } from '../utils/serverSync';
+import {
+  applyArchiveDrafts,
+  readArchiveDrafts,
+  writeArchiveDraft,
+  writeArchiveDrafts,
+  type ArchiveDraftMap,
+  type ArchiveEventDraft,
+} from '../utils/archiveDrafts';
+import { loadServerSync, saveServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
+import { editorialPlates } from '../data/manuscriptPlates';
+import { resizeImage } from '../utils/imageUtils';
 import './HomePage.css';
 
 interface ArchiveSyncPayload {
@@ -15,7 +25,213 @@ function detailRootHref() {
   return window.location.pathname.includes('/archive/') ? '../../' : './';
 }
 
-function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteText }) {
+interface DetailFormState {
+  edition: string;
+  title: string;
+  subtitle: string;
+  latinQuote: string;
+  marginalia: string;
+  date: string;
+  status: EventStatus;
+  posterImage: string;
+  shortDescription: string;
+  longDescription: string;
+  passageText: string;
+  materialsText: string;
+  themesText: string;
+  location: string;
+  ctaLabel: string;
+}
+
+function toDetailForm(event: ArchiveEvent): DetailFormState {
+  return {
+    edition: event.edition,
+    title: event.title,
+    subtitle: event.subtitle,
+    latinQuote: event.latinQuote,
+    marginalia: event.marginalia,
+    date: event.date,
+    status: event.status,
+    posterImage: event.posterImage,
+    shortDescription: event.shortDescription,
+    longDescription: event.longDescription,
+    passageText: event.passage.join(' / '),
+    materialsText: event.materials.join(' / '),
+    themesText: event.themes.join(' / '),
+    location: event.location,
+    ctaLabel: event.ctaLabel,
+  };
+}
+
+function toDetailDraft(form: DetailFormState, event: ArchiveEvent): ArchiveEventDraft {
+  return {
+    edition: form.edition,
+    title: form.title,
+    subtitle: form.subtitle,
+    latinQuote: form.latinQuote,
+    marginalia: form.marginalia,
+    date: form.date,
+    status: form.status,
+    posterImage: form.posterImage,
+    shortDescription: form.shortDescription,
+    longDescription: form.longDescription,
+    passage: form.passageText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
+    materials: form.materialsText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
+    themes: form.themesText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
+    location: form.location,
+    ctaLabel: form.ctaLabel,
+    ctaHref: event.ctaHref || `./archive/${event.id}/`,
+  };
+}
+
+function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: () => void }) {
+  const [code, setCode] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
+  const [unlocked, setUnlocked] = useState(false);
+  const [form, setForm] = useState(() => toDetailForm(event));
+  const [status, setStatus] = useState('보관자 코드 필요');
+
+  function updateField<Key extends keyof DetailFormState>(key: Key, value: DetailFormState[Key]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function unlockEditor() {
+    if (!code.trim()) {
+      setStatus('코드를 입력하세요');
+      return;
+    }
+
+    localStorage.setItem('jerboa_keeper_sync_key', code);
+    setUnlocked(true);
+    setStatus(code === ADMIN_PASSWORD ? '로컬 편집 열림' : '서버 코드로 편집 열림');
+  }
+
+  async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setStatus('포스터를 웹용으로 줄이는 중');
+      const resizedPoster = await resizeImage(file, 1600, 2200);
+      updateField('posterImage', resizedPoster);
+      setStatus('포스터 이미지 준비됨');
+    } catch (error) {
+      console.error('Poster upload failed:', error);
+      setStatus('포스터를 읽을 수 없음');
+    } finally {
+      event.currentTarget.value = '';
+    }
+  }
+
+  function saveLocal(eventForm: FormEvent<HTMLFormElement>) {
+    eventForm.preventDefault();
+    writeArchiveDraft(event.id, toDetailDraft(form, event));
+    setStatus('상세 기록 초안 저장됨');
+    onSaved();
+  }
+
+  async function publishToServer() {
+    try {
+      const nextDraft = toDetailDraft(form, event);
+      writeArchiveDraft(event.id, nextDraft);
+      await saveServerSync<ArchiveSyncPayload>('archive', {
+        drafts: {
+          ...readArchiveDrafts(),
+          [event.id]: nextDraft,
+        },
+        siteText: getSiteText(),
+      }, code);
+      setStatus('서버에 반영됨');
+      onSaved();
+    } catch (error) {
+      console.error('Detail archive save failed:', error);
+      setStatus('서버 반영 실패 / 코드 확인');
+    }
+  }
+
+  return (
+    <section className="detail-keeper-panel" aria-label="Archive record editor">
+      <div className="detail-keeper-lock">
+        <span lang="en">Keeper edit</span>
+        <input
+          type="password"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          placeholder="관리자 코드"
+        />
+        <button type="button" onClick={unlockEditor}>편집 열기</button>
+      </div>
+      <p lang="ko">{status}</p>
+
+      {unlocked && (
+        <form className="detail-keeper-form" onSubmit={saveLocal}>
+          <label>
+            <span>제목</span>
+            <input value={form.title} onChange={(event) => updateField('title', event.target.value)} />
+          </label>
+          <label>
+            <span>부제</span>
+            <input value={form.subtitle} onChange={(event) => updateField('subtitle', event.target.value)} />
+          </label>
+          <label>
+            <span>짧은 설명</span>
+            <textarea rows={3} value={form.shortDescription} onChange={(event) => updateField('shortDescription', event.target.value)} />
+          </label>
+          <label>
+            <span>긴 설명</span>
+            <textarea rows={5} value={form.longDescription} onChange={(event) => updateField('longDescription', event.target.value)} />
+          </label>
+          <div className="detail-keeper-grid">
+            <label>
+              <span>판본</span>
+              <input value={form.edition} onChange={(event) => updateField('edition', event.target.value)} />
+            </label>
+            <label>
+              <span>일자</span>
+              <input value={form.date} onChange={(event) => updateField('date', event.target.value)} />
+            </label>
+            <label>
+              <span>상태</span>
+              <select value={form.status} onChange={(event) => updateField('status', event.target.value as EventStatus)}>
+                <option value="current">current</option>
+                <option value="upcoming">upcoming</option>
+                <option value="past">past</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>포스터 URL</span>
+            <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
+          </label>
+          <div className="keeper-poster-upload">
+            <figure>
+              <img src={form.posterImage} alt="" />
+            </figure>
+            <label>
+              <span>포스터 업로드</span>
+              <small>파일을 올리면 웹용 크기로 줄인 뒤 이 기록에 붙습니다</small>
+              <input accept="image/*" onChange={readPosterFile} type="file" />
+            </label>
+          </div>
+          <label>
+            <span>여정 / 자료 / 주제</span>
+            <textarea rows={4} value={`${form.passageText}\n${form.materialsText}\n${form.themesText}`} onChange={(event) => {
+              const [passageText = '', materialsText = '', themesText = ''] = event.target.value.split('\n');
+              updateField('passageText', passageText);
+              updateField('materialsText', materialsText);
+              updateField('themesText', themesText);
+            }} />
+          </label>
+          <div className="detail-keeper-actions">
+            <button type="submit">초안 저장</button>
+            <button type="button" onClick={publishToServer}>서버 반영</button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
+function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteText: SiteText; onSaved: () => void }) {
   return (
     <div className="public-home detail-home">
       <header className="archive-header">
@@ -39,6 +255,9 @@ function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteT
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="latin-line">{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
+          <figure className="detail-manuscript-plate" aria-hidden="true">
+            <img src={editorialPlates.detail} alt="" />
+          </figure>
           <p className="detail-long" lang="ko">{event.longDescription}</p>
           <div className="constellation-grid" aria-label="Archive record path and materials">
             <div className="text-index">
@@ -75,6 +294,7 @@ function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteT
           <a className="archive-cta" href={detailRootHref()}>
             {siteText.detailBackLabel}
           </a>
+          <DetailKeeperPanel event={event} onSaved={onSaved} />
         </article>
       </main>
     </div>
@@ -84,10 +304,10 @@ function EventDetail({ event, siteText }: { event: ArchiveEvent; siteText: SiteT
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
-  const baseEvent = getEventById(id);
+  const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const event = useMemo(
-    () => (baseEvent ? applyArchiveDrafts([baseEvent])[0] : undefined),
-    [baseEvent, version],
+    () => archiveEvents.find((archiveEvent) => archiveEvent.id === id),
+    [archiveEvents, id],
   );
 
   useEffect(() => {
@@ -141,5 +361,5 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     );
   }
 
-  return <EventDetail event={event} siteText={siteText} />;
+  return <EventDetail event={event} siteText={siteText} onSaved={() => setVersion((current) => current + 1)} />;
 }
