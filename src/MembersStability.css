@@ -1,0 +1,1345 @@
+/*
+  Final private-register layer.
+  Earlier experiments remain in MembersArchive.css; this file is imported after
+  them so the member room has one reliable editorial system.
+*/
+
+.members-archive {
+  --register-ink: #050505;
+  --register-paper: #f7efdd;
+  --register-cream: #f7efdd;
+  --register-gold: #d6a740;
+  --register-coral: #e77758;
+  --register-rose: #cf7194;
+  --register-moss: #96a25b;
+  --register-blue: #9bbdcc;
+  --register-blue-soft: #bdd4dc;
+  --register-danger: #cf7194;
+  display: grid !important;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr) !important;
+  min-height: 100vh;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+}
+
+.members-archive *,
+.members-archive *::before,
+.members-archive *::after {
+  box-sizing: border-box;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+}
+
+.members-archive *::first-letter {
+  color: inherit !important;
+}
+
+.members-archive :is([class*="rounded"], [class*="shadow"], [class*="backdrop"], [class*="ring"]) {
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+}
+
+.members-archive [lang="en"] {
+  display: inline-block;
+  font-family: var(--font-heavy-header) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.02 !important;
+  word-spacing: normal !important;
+  text-transform: none !important;
+  transform: none !important;
+}
+
+.members-archive :is([lang="ko"], .archive-ko-label) {
+  display: inline-block;
+  max-width: calc(100% / var(--ko-ritual-scale-x));
+  font-family: var(--font-ko) !important;
+  font-size: 0.95em;
+  font-weight: 800 !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  line-height: 1.45 !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  text-transform: none !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center;
+}
+
+.members-archive button,
+.members-archive a {
+  color: var(--register-ink);
+  text-decoration: none;
+}
+
+.members-archive button {
+  appearance: none;
+  cursor: pointer;
+}
+
+.archive-sidebar {
+  position: sticky !important;
+  top: 0;
+  display: grid !important;
+  min-height: 100vh;
+  grid-template-rows: auto auto auto 1fr auto auto;
+  align-content: start;
+  border-right: 3px solid var(--register-ink) !important;
+  background: var(--register-moss) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-sigil {
+  display: grid !important;
+  min-height: 8rem !important;
+  padding: 1rem !important;
+  align-content: center;
+  border-bottom: 3px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-sigil span {
+  display: block;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(2.6rem, 5vw, 4.7rem) !important;
+  line-height: 0.78 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap;
+}
+
+.archive-public-return {
+  display: grid !important;
+  min-height: 5.2rem !important;
+  padding: 0.85rem 1rem !important;
+  align-content: center;
+  justify-items: end;
+  border-bottom: 3px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  text-align: right;
+}
+
+.archive-public-return span[lang="en"] {
+  font-size: clamp(1.9rem, 3vw, 3.1rem) !important;
+  line-height: 0.92 !important;
+  white-space: normal;
+}
+
+.archive-public-return small[lang="ko"],
+.archive-godmode-link small[lang="ko"] {
+  transform-origin: right center !important;
+}
+
+.archive-cabinet {
+  display: grid !important;
+  gap: 0 !important;
+  border-bottom: 3px solid var(--register-ink) !important;
+}
+
+.archive-cabinet button,
+.archive-cabinet-note {
+  display: grid !important;
+  min-height: 5.2rem !important;
+  padding: 0.8rem 1rem !important;
+  align-content: center;
+  justify-items: start;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  text-align: left;
+}
+
+.archive-cabinet button:last-child {
+  border-bottom: 0 !important;
+}
+
+.archive-cabinet button.is-active {
+  background: var(--register-coral) !important;
+}
+
+.archive-cabinet button span[lang="en"],
+.archive-cabinet-note span[lang="en"] {
+  font-size: clamp(1.6rem, 2.7vw, 2.6rem) !important;
+  line-height: 0.95 !important;
+  white-space: normal !important;
+}
+
+.archive-cabinet button small[lang="ko"],
+.archive-cabinet-note small[lang="ko"] {
+  font-size: 0.82rem !important;
+}
+
+.archive-sidebar-foot {
+  align-self: end;
+  display: grid !important;
+  gap: 0.2rem;
+  margin: 1rem !important;
+  padding: 0.7rem 0.85rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-sidebar-foot span[lang="en"] {
+  font-size: clamp(1.15rem, 2vw, 1.65rem) !important;
+}
+
+.archive-godmode-link {
+  justify-self: stretch;
+  display: grid !important;
+  min-height: 5.4rem !important;
+  margin: 0 1rem 1rem !important;
+  padding: 0.75rem 0.95rem !important;
+  align-content: center;
+  justify-items: end;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-blue) !important;
+  color: var(--register-ink) !important;
+  text-align: right;
+}
+
+.archive-godmode-link span[lang="en"] {
+  display: flex !important;
+  max-width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  font-size: clamp(1.45rem, 2.4vw, 2.15rem) !important;
+  line-height: 0.96 !important;
+  white-space: normal !important;
+}
+
+.archive-godmode-link i {
+  font-family: Georgia, serif !important;
+  font-size: 0.8em;
+  font-style: normal;
+  line-height: 1;
+}
+
+.archive-workbench {
+  position: relative;
+  min-width: 0;
+  background: var(--register-paper) !important;
+}
+
+.archive-workbench::before,
+.archive-workbench::after,
+.archive-topbar::before,
+.archive-topbar::after,
+.archive-context::before,
+.archive-context::after,
+.archive-main::before,
+.archive-main::after {
+  content: none !important;
+  display: none !important;
+}
+
+.archive-save-notice,
+.archive-notice {
+  position: fixed !important;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 0.55rem 0.8rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-blue) !important;
+  color: var(--register-ink) !important;
+  font-weight: 900 !important;
+}
+
+.archive-notice {
+  top: 4.1rem;
+  background: var(--register-gold) !important;
+}
+
+.archive-topbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  min-height: 12rem !important;
+  padding: clamp(1.1rem, 2vw, 2rem) !important;
+  align-items: end;
+  border-bottom: 3px solid var(--register-ink) !important;
+  background: var(--register-coral) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-topbar > div:first-child {
+  min-width: 0;
+}
+
+.archive-topbar p[lang="en"] {
+  margin: 0 0 0.45rem !important;
+  font-size: clamp(1.25rem, 2.2vw, 2rem) !important;
+  line-height: 0.98 !important;
+}
+
+.archive-topbar h1[lang="en"] {
+  margin: 0 !important;
+  max-width: 100%;
+  font-size: clamp(3.1rem, 7vw, 8.5rem) !important;
+  line-height: 0.86 !important;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.archive-topbar span[lang="ko"] {
+  margin-top: 0.8rem;
+  font-size: clamp(0.96rem, 1.25vw, 1.2rem) !important;
+}
+
+.archive-server-line {
+  display: block !important;
+  width: fit-content;
+  margin-top: 0.65rem !important;
+  padding: 0.2rem 0.45rem;
+  border: 2px solid var(--register-ink);
+  background: var(--register-paper);
+}
+
+.archive-topbar-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.archive-topbar-actions button {
+  min-height: 2.65rem !important;
+  padding: 0.42rem 0.7rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-align: center;
+}
+
+.archive-topbar-actions button span {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform-origin: center center !important;
+}
+
+.archive-context {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+  gap: 0 !important;
+  margin: 0 !important;
+  border-bottom: 3px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+}
+
+.archive-context > div {
+  display: grid !important;
+  min-height: 8.4rem !important;
+  padding: 0.8rem 0.95rem !important;
+  align-content: space-between;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  overflow: visible !important;
+}
+
+.archive-context > div:nth-child(even) {
+  background: var(--register-blue) !important;
+}
+
+.archive-context > div:last-child {
+  border-right: 0 !important;
+}
+
+.archive-context span[lang="en"] {
+  display: block !important;
+  max-width: 100%;
+  font-size: clamp(1.55rem, 2.6vw, 2.45rem) !important;
+  line-height: 0.96 !important;
+  overflow-wrap: normal;
+  text-wrap: balance;
+  white-space: normal !important;
+}
+
+.archive-context small[lang="ko"] {
+  font-size: 0.82rem !important;
+}
+
+.archive-context strong {
+  display: block !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(3rem, 7vw, 5.7rem) !important;
+  font-weight: 400 !important;
+  line-height: 0.78 !important;
+}
+
+.archive-main {
+  min-width: 0;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-main > .bg-stone-50,
+.archive-main .bg-white,
+.archive-main [class*="bg-white"],
+.archive-main [class*="bg-stone"] {
+  background-color: var(--register-paper) !important;
+}
+
+.archive-main [class*="text-white"] {
+  color: var(--register-ink) !important;
+}
+
+.archive-main :is(input, textarea, select) {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  font-family: var(--font-ko) !important;
+}
+
+.archive-main :is(button, .member-login-actions button) {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-weight: 900 !important;
+  transform: none !important;
+}
+
+.archive-main button:hover,
+.archive-main button:focus-visible {
+  background: var(--register-blue) !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-main :is(.habit-proof-uploader, .habit-proof-replace, .habit-proof-status) {
+  border-color: var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+}
+
+.habit-proof-uploader {
+  min-height: clamp(16rem, 32vw, 26rem) !important;
+  border-style: solid !important;
+}
+
+.habit-proof-uploader img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.habit-proof-overlay {
+  background: rgba(247, 239, 221, 0.9) !important;
+  opacity: 0 !important;
+}
+
+.habit-proof-uploader:hover .habit-proof-overlay {
+  opacity: 1 !important;
+}
+
+.habit-proof-small-action,
+.habit-proof-replace {
+  display: inline-grid !important;
+  min-height: 2.65rem;
+  place-items: center;
+  padding: 0.45rem 0.75rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-weight: 900 !important;
+}
+
+.habit-proof-mark {
+  color: var(--register-ink) !important;
+  font-family: Georgia, serif !important;
+  font-size: clamp(3rem, 8vw, 5.5rem) !important;
+  line-height: 0.85 !important;
+}
+
+.member-login {
+  background: var(--register-paper) !important;
+}
+
+.member-login-actions,
+.member-login-actions > div {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.member-login-actions > button,
+.member-login-actions > div > button {
+  width: auto !important;
+  min-width: 7.6rem !important;
+  min-height: 2.55rem !important;
+  padding: 0.42rem 0.65rem !important;
+}
+
+.member-login-manuscript {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+.member-login-manuscript > * {
+  border-color: var(--register-ink) !important;
+}
+
+.member-login-intent {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+.member-login-intent > * {
+  min-width: 0;
+  min-height: 7.6rem;
+  padding: 0.8rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: visible !important;
+}
+
+.member-login-intent > *:last-child {
+  border-right: 0 !important;
+  background: var(--register-blue) !important;
+}
+
+.member-login-intent [lang="en"] {
+  display: block !important;
+  max-width: 100%;
+  font-size: clamp(1.7rem, 3vw, 3rem) !important;
+  line-height: 0.92 !important;
+  white-space: normal !important;
+  overflow-wrap: normal;
+}
+
+.member-login-intent [lang="ko"] {
+  font-size: 0.86rem !important;
+}
+
+.member-record-row {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+.member-seal {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+}
+
+.archive-calendar-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  grid-auto-rows: clamp(5.5rem, 9vw, 7.1rem) !important;
+  gap: 0 !important;
+  width: 100%;
+  border-top: 2px solid var(--register-ink) !important;
+  border-left: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+.archive-calendar-grid > div {
+  display: block !important;
+  min-width: 0 !important;
+  width: auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0.55rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  transform: none !important;
+  outline: 0 !important;
+}
+
+.archive-calendar-grid > .archive-weekday {
+  display: flex !important;
+  min-height: 3.2rem !important;
+  height: auto !important;
+  padding: 0.2rem !important;
+  align-items: center;
+  justify-content: center;
+  background: var(--register-gold) !important;
+}
+
+.archive-calendar-grid .archive-weekday[lang="en"] {
+  font-size: clamp(1.25rem, 1.7vw, 1.85rem) !important;
+  line-height: 1 !important;
+}
+
+.archive-calendar-grid > div:not(.archive-weekday):hover {
+  background: var(--register-paper) !important;
+}
+
+.archive-calendar-grid > div:not(.archive-weekday)::before,
+.archive-calendar-grid > div:not(.archive-weekday)::after {
+  content: none !important;
+  display: none !important;
+}
+
+.calendar-date-mark {
+  display: grid !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  place-items: center;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--register-ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.archive-calendar-grid [class*="rounded-full"],
+.archive-calendar-grid [class*="shadow"],
+.archive-calendar-grid [class*="ring"] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  ring-width: 0 !important;
+}
+
+.archive-main .habit-weekday {
+  display: grid !important;
+  min-height: 5.2rem !important;
+  height: 5.2rem !important;
+  max-height: 5.2rem !important;
+  padding: 0.55rem !important;
+  place-items: center;
+  gap: 0.3rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  transform: none !important;
+  outline: 0 !important;
+}
+
+.archive-main .habit-weekday.is-selected {
+  background: var(--register-gold) !important;
+  transform: none !important;
+}
+
+.archive-main .habit-weekday:hover {
+  background: var(--register-paper) !important;
+}
+
+.archive-main .habit-weekday.is-selected:hover {
+  background: var(--register-gold) !important;
+}
+
+.habit-weekday__name {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.1rem, 1.5vw, 1.55rem) !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.habit-weekday__date {
+  display: grid !important;
+  width: 1.9rem !important;
+  height: 1.9rem !important;
+  place-items: center;
+  border: 0 !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  transform: none !important;
+}
+
+.habit-weekday [class*="bg-green"],
+.habit-weekday [class*="bg-red"] {
+  width: 0.48rem !important;
+  height: 0.48rem !important;
+  border: 1px solid var(--register-ink) !important;
+  background: var(--register-rose) !important;
+}
+
+.archive-empty-mark {
+  display: block !important;
+  width: clamp(7rem, 15vw, 12rem) !important;
+  height: clamp(7rem, 15vw, 12rem) !important;
+  margin: 0 auto 1rem !important;
+  border: 0 !important;
+  background-color: transparent !important;
+  background-image: url("./assets/identity/member-saf-seal-transparent.png") !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  mix-blend-mode: multiply;
+}
+
+.archive-empty-mark + p {
+  color: var(--register-ink) !important;
+  font-size: 1rem !important;
+}
+
+.archive-mobile-tabs {
+  border-top: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+}
+
+.archive-mobile-tabs button {
+  border-right: 1px solid var(--register-ink) !important;
+  background: transparent !important;
+  color: var(--register-ink) !important;
+}
+
+.archive-mobile-tabs button.is-active {
+  background: var(--register-blue) !important;
+}
+
+@media (max-width: 980px) {
+  .members-archive {
+    grid-template-columns: 1fr !important;
+  }
+
+  .archive-sidebar {
+    position: static !important;
+    min-height: auto;
+    border-right: 0 !important;
+    border-bottom: 3px solid var(--register-ink) !important;
+  }
+
+  .archive-cabinet {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .archive-cabinet button {
+    border-right: 2px solid var(--register-ink) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .archive-topbar {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+
+  .archive-context {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .archive-context > div:nth-child(2n) {
+    border-right: 0 !important;
+  }
+
+  .member-login-intent {
+    grid-template-columns: 1fr !important;
+  }
+
+  .member-login-intent > * {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+
+  .member-login-intent > *:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* High-specificity seal: wins against the older experimental register rules. */
+html body .members-archive {
+  --register-blue: #9bbdcc !important;
+  --register-gold: #d6a740 !important;
+  --register-coral: #e77758 !important;
+  --register-rose: #cf7194 !important;
+  --register-moss: #96a25b !important;
+  --register-paper: #f7efdd !important;
+  --register-cream: #f7efdd !important;
+}
+
+html body .members-archive .archive-sidebar-foot {
+  border: 2px solid var(--register-ink) !important;
+  background: #d6a740 !important;
+  color: var(--register-ink) !important;
+}
+
+html body .members-archive .archive-godmode-link,
+html body .members-archive .archive-godmode-link:visited {
+  display: grid !important;
+  min-height: 5.4rem !important;
+  margin: 0 1rem 1rem !important;
+  padding: 0.75rem 0.95rem !important;
+  align-content: center !important;
+  justify-items: end !important;
+  border: 2px solid var(--register-ink) !important;
+  background: #9bbdcc !important;
+  color: var(--register-ink) !important;
+  text-align: right !important;
+}
+
+html body .members-archive .archive-godmode-link:hover,
+html body .members-archive .archive-godmode-link:focus-visible {
+  background: #bdd4dc !important;
+  color: var(--register-ink) !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  display: flex !important;
+  max-width: 100% !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.45rem !important;
+  font-size: clamp(1.45rem, 2.4vw, 2.15rem) !important;
+  line-height: 0.98 !important;
+  white-space: normal !important;
+  text-align: right !important;
+}
+
+html body .members-archive .archive-godmode-link small[lang="ko"] {
+  transform-origin: right center !important;
+}
+
+html body .members-archive .archive-topbar,
+html body .members-archive .archive-context,
+html body .members-archive .archive-main,
+html body .members-archive .archive-calendar-grid,
+html body .members-archive .member-login-manuscript,
+html body .members-archive .member-login-intent {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html body .members-archive .archive-workbench::before,
+html body .members-archive .archive-workbench::after,
+html body .members-archive .archive-topbar::before,
+html body .members-archive .archive-topbar::after,
+html body .members-archive .member-login-manuscript::before,
+html body .members-archive .member-login-manuscript::after,
+html body .members-archive .member-login-intent::before,
+html body .members-archive .member-login-intent::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .members-archive .archive-main .member-login-actions,
+html body .members-archive .archive-main .member-login-actions > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+}
+
+html body .members-archive .archive-main .member-login-actions {
+  width: min(100%, 34rem) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+html body .members-archive .archive-main .member-login-actions > .member-login-import {
+  display: grid !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  justify-items: end !important;
+}
+
+html body .members-archive .archive-main .member-login-actions > button,
+html body .members-archive .archive-main .member-login-actions > div > button {
+  width: auto !important;
+  min-width: 7.6rem !important;
+  min-height: 2.55rem !important;
+  padding: 0.42rem 0.65rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: #d6a740 !important;
+  color: var(--register-ink) !important;
+  text-align: center !important;
+}
+
+html body .members-archive .archive-main .member-login-actions > .member-login-import > div {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  width: min(32rem, calc(100vw - 3rem)) !important;
+  gap: 0.55rem !important;
+  margin-top: 0.3rem !important;
+}
+
+html body .members-archive .archive-calendar-grid {
+  border-top: 2px solid var(--register-ink) !important;
+  border-left: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-grid > div,
+html body .members-archive .archive-main .habit-weekday {
+  transform: none !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .members-archive .archive-main .habit-weekday.is-selected {
+  background: #d6a740 !important;
+  transform: none !important;
+}
+
+/* Density pass: private room is a register, not a poster wall. */
+html body .members-archive .archive-sigil {
+  min-height: 6.5rem !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-sigil span {
+  font-size: clamp(2rem, 3.2vw, 3.3rem) !important;
+  line-height: 0.88 !important;
+}
+
+html body .members-archive .archive-public-return {
+  min-height: 4.8rem !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-public-return span[lang="en"] {
+  font-size: clamp(1.45rem, 2vw, 2.05rem) !important;
+  line-height: 1 !important;
+}
+
+html body .members-archive .archive-cabinet button,
+html body .members-archive .archive-cabinet-note {
+  min-height: 4.7rem !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-cabinet button span[lang="en"],
+html body .members-archive .archive-cabinet-note span[lang="en"] {
+  font-size: clamp(1.55rem, 2.3vw, 2.35rem) !important;
+  line-height: 1 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-cabinet button small[lang="ko"] {
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.3 !important;
+}
+
+html body .members-archive .archive-topbar {
+  min-height: 10rem !important;
+  padding: 1.1rem 1.35rem !important;
+  align-items: end !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-topbar h1[lang="en"] {
+  font-size: clamp(3rem, 5.2vw, 5.4rem) !important;
+  line-height: 0.92 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-topbar p[lang="en"] {
+  font-size: clamp(1rem, 1.6vw, 1.55rem) !important;
+  line-height: 1.05 !important;
+}
+
+html body .members-archive .archive-topbar span[lang="ko"] {
+  font-size: 0.95rem !important;
+  line-height: 1.45 !important;
+}
+
+html body .members-archive .archive-context {
+  border-top: 0 !important;
+  border-bottom: 3px solid var(--register-ink) !important;
+}
+
+html body .members-archive .archive-context > div {
+  min-height: 6.7rem !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-context > div:last-child {
+  border-right: 0 !important;
+}
+
+html body .members-archive .archive-context span[lang="en"] {
+  font-size: clamp(1.2rem, 1.65vw, 1.85rem) !important;
+  line-height: 1.02 !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-context small[lang="ko"] {
+  font-size: 0.76rem !important;
+}
+
+html body .members-archive .archive-context strong {
+  font-size: clamp(2.6rem, 4.8vw, 4.2rem) !important;
+  line-height: 0.9 !important;
+}
+
+html body .members-archive .archive-calendar-grid {
+  grid-auto-rows: clamp(4.8rem, 7.6vw, 6.2rem) !important;
+  border: 2px solid var(--register-ink) !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+}
+
+html body .members-archive .archive-calendar-grid > div {
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-weekday {
+  min-height: 2.85rem !important;
+}
+
+html body .members-archive .archive-calendar-grid .archive-weekday[lang="en"],
+html body .members-archive .archive-main .habit-weekday__name {
+  font-size: clamp(1rem, 1.25vw, 1.35rem) !important;
+  line-height: 1 !important;
+}
+
+html body .members-archive .calendar-date-mark {
+  font-size: 1rem !important;
+}
+
+html body .members-archive .archive-main .habit-weekday {
+  height: 4.7rem !important;
+  min-height: 4.7rem !important;
+  max-height: 4.7rem !important;
+}
+
+/* Stability pass 4: members is a working register, so nothing may clip. */
+html body .members-archive {
+  grid-template-columns: minmax(12.5rem, 16rem) minmax(0, 1fr) !important;
+  overflow-x: hidden !important;
+}
+
+html body .members-archive .archive-sidebar {
+  overflow: hidden auto !important;
+}
+
+html body .members-archive .archive-sigil {
+  min-height: 5.8rem !important;
+  padding: 0.85rem 0.95rem !important;
+}
+
+html body .members-archive .archive-sigil span {
+  font-size: clamp(1.75rem, 2.55vw, 2.65rem) !important;
+  line-height: 0.92 !important;
+  white-space: nowrap !important;
+}
+
+html body .members-archive .archive-public-return {
+  min-height: 4rem !important;
+  padding: 0.7rem 0.9rem !important;
+}
+
+html body .members-archive .archive-public-return span[lang="en"] {
+  font-size: clamp(1.2rem, 1.65vw, 1.6rem) !important;
+  line-height: 1.02 !important;
+}
+
+html body .members-archive .archive-public-return small[lang="ko"] {
+  font-size: 0.74rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-cabinet button,
+html body .members-archive .archive-cabinet-note {
+  min-height: 4.15rem !important;
+  padding: 0.68rem 0.85rem !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-cabinet button span[lang="en"],
+html body .members-archive .archive-cabinet-note span[lang="en"] {
+  font-size: clamp(1.28rem, 1.9vw, 1.9rem) !important;
+  line-height: 1.02 !important;
+}
+
+html body .members-archive .archive-cabinet button small[lang="ko"],
+html body .members-archive .archive-cabinet-note small[lang="ko"] {
+  font-size: 0.72rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-sidebar-foot {
+  margin: 0.85rem !important;
+  padding: 0.6rem 0.72rem !important;
+}
+
+html body .members-archive .archive-sidebar-foot span[lang="en"] {
+  font-size: clamp(0.98rem, 1.5vw, 1.25rem) !important;
+  line-height: 1.05 !important;
+}
+
+html body .members-archive .archive-sidebar-foot span[lang="ko"] {
+  font-size: 0.76rem !important;
+  line-height: 1.4 !important;
+}
+
+html body .members-archive .archive-godmode-link {
+  min-height: 4.55rem !important;
+  margin: 0 0.85rem 0.85rem !important;
+  padding: 0.6rem 0.72rem !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  font-size: clamp(1.25rem, 1.75vw, 1.65rem) !important;
+  line-height: 1.02 !important;
+}
+
+html body .members-archive .archive-godmode-link small[lang="ko"] {
+  font-size: 0.76rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-topbar {
+  min-height: 8.25rem !important;
+  padding: 1rem 1.25rem !important;
+  align-items: end !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-topbar > div:first-child {
+  min-width: 0 !important;
+}
+
+html body .members-archive .archive-topbar h1[lang="en"] {
+  font-size: clamp(2.45rem, 4vw, 4.25rem) !important;
+  line-height: 1.02 !important;
+  max-width: min(100%, 48rem) !important;
+  margin: 0.1rem 0 0.35rem !important;
+}
+
+html body .members-archive .archive-topbar p[lang="en"] {
+  font-size: clamp(0.95rem, 1.35vw, 1.2rem) !important;
+  line-height: 1.1 !important;
+}
+
+html body .members-archive .archive-topbar span[lang="ko"] {
+  display: block !important;
+  max-width: min(42rem, calc(100% / var(--ko-ritual-scale-x))) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.55 !important;
+}
+
+html body .members-archive .archive-server-line {
+  display: inline-block !important;
+  width: fit-content !important;
+  margin-top: 0.45rem !important;
+  font-size: 0.78rem !important;
+  line-height: 1.3 !important;
+}
+
+html body .members-archive .archive-topbar-actions button {
+  min-width: 5.8rem !important;
+  min-height: 2.35rem !important;
+  padding: 0.42rem 0.58rem !important;
+}
+
+html body .members-archive .archive-context {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(8rem, 1fr)) !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-context > div {
+  min-height: 5.2rem !important;
+  padding: 0.62rem 0.78rem !important;
+  border-top: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  align-content: start !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-context span[lang="en"] {
+  font-size: clamp(1rem, 1.25vw, 1.3rem) !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+}
+
+html body .members-archive .archive-context small[lang="ko"] {
+  font-size: 0.68rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-context strong {
+  font-size: clamp(2.2rem, 3.4vw, 3.2rem) !important;
+  line-height: 0.9 !important;
+}
+
+html body .members-archive .member-login {
+  padding: 1.35rem !important;
+  gap: 1.15rem !important;
+}
+
+html body .members-archive .member-login > div:first-child {
+  display: grid !important;
+  width: min(100%, 43rem) !important;
+  justify-items: center !important;
+  gap: 0 !important;
+}
+
+html body .members-archive .member-login > div:first-child > * {
+  margin: 0 !important;
+}
+
+html body .members-archive .member-login > div:first-child > div:first-child {
+  margin-bottom: 0.95rem !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  display: block !important;
+  width: min(100%, 43rem) !important;
+  height: clamp(10rem, 23vw, 18rem) !important;
+  border: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-manuscript img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 36% !important;
+}
+
+html body .members-archive .member-login-intent {
+  display: grid !important;
+  width: min(100%, 43rem) !important;
+  grid-template-columns: minmax(9.5rem, 0.85fr) minmax(13rem, 1.25fr) minmax(10rem, 0.9fr) !important;
+  border: 2px solid var(--register-ink) !important;
+  border-top: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"],
+html body .members-archive .member-login-intent > p[lang="ko"],
+html body .members-archive .member-login-intent > ol {
+  min-width: 0 !important;
+  min-height: 5.65rem !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0.72rem 0.82rem !important;
+  font-size: clamp(1.25rem, 1.85vw, 1.85rem) !important;
+  line-height: 1.04 !important;
+  white-space: normal !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  display: flex !important;
+  align-items: center !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  padding: 0.72rem 0.82rem !important;
+  font-size: 0.82rem !important;
+  line-height: 1.55 !important;
+  transform-origin: left center !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  padding: 0 !important;
+  border-right: 0 !important;
+  list-style: none !important;
+  background: var(--register-blue) !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  display: flex !important;
+  min-height: 100% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.58rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+  text-align: center !important;
+  background: var(--register-gold) !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}
+
+html body .members-archive .member-login-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(8rem, 1fr)) !important;
+  width: min(100%, 28rem) !important;
+  margin: 0.4rem 0 0 auto !important;
+  gap: 0.62rem !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .members-archive .member-login-actions > button,
+html body .members-archive .member-login-actions > div > button {
+  display: grid !important;
+  min-height: 2.42rem !important;
+  place-items: center !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  padding: 0.42rem 0.58rem !important;
+  text-align: center !important;
+}
+
+html body .members-archive .member-login-actions .archive-ko-label {
+  transform-origin: center !important;
+}
+
+@media (max-width: 980px) {
+  html body .members-archive {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .archive-context {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .members-archive .member-login-intent {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-login-intent > span[lang="en"],
+  html body .members-archive .member-login-intent > p[lang="ko"],
+  html body .members-archive .member-login-intent > ol {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+
+  html body .members-archive .member-login-intent > ol {
+    border-bottom: 0 !important;
+  }
+}

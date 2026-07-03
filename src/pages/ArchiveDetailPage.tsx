@@ -15,6 +15,7 @@ import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
 import { resizeImage } from '../utils/imageUtils';
 import './HomePage.css';
+import './EditorialStability.css';
 
 interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
@@ -102,7 +103,7 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
 
     localStorage.setItem('jerboa_keeper_sync_key', code);
     setUnlocked(true);
-    setStatus(code === ADMIN_PASSWORD ? '로컬 편집 열림' : '서버 코드로 편집 열림');
+    setStatus(code === ADMIN_PASSWORD ? '로컬 편집 열림' : '공동 장부 열쇠로 편집 열림');
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -140,25 +141,29 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
         },
         siteText: getSiteText(),
       }, code);
-      setStatus('서버에 반영됨');
+      setStatus('공동 장부에 반영됨');
       onSaved();
     } catch (error) {
       console.error('Detail archive save failed:', error);
-      setStatus('서버 반영 실패 / 코드 확인');
+      setStatus('공동 장부 반영 실패 / 열쇠 확인');
     }
   }
 
   return (
-    <section className="detail-keeper-panel" aria-label="Archive record editor">
+    <details className="detail-keeper-panel" aria-label="Archive record editor">
+      <summary>
+        <span lang="en">Keeper seal</span>
+        <small lang="ko">기록 수정 문 열기</small>
+      </summary>
       <div className="detail-keeper-lock">
         <span lang="en">Keeper edit</span>
         <input
           type="password"
           value={code}
           onChange={(event) => setCode(event.target.value)}
-          placeholder="관리자 코드"
+          placeholder="Keeper code"
         />
-        <button type="button" onClick={unlockEditor}>편집 열기</button>
+        <button type="button" onClick={unlockEditor}>수정 문 열기</button>
       </div>
       <p lang="ko">{status}</p>
 
@@ -222,12 +227,13 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
             }} />
           </label>
           <div className="detail-keeper-actions">
-            <button type="submit">초안 저장</button>
-            <button type="button" onClick={publishToServer}>서버 반영</button>
+            <button type="submit">로컬 초안 봉인</button>
+            <button type="button" onClick={publishToServer}>공동 장부에 반영</button>
+            <a href={`${detailRootHref()}godmode/`}>새 기록 만들기</a>
           </div>
         </form>
       )}
-    </section>
+    </details>
   );
 }
 
@@ -241,8 +247,8 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           <small lang="la">{siteText.wordmarkSmall}</small>
         </a>
         <nav className="archive-nav" aria-label="Archive record navigation">
-          <a className="archive-nav-memory" href={detailRootHref()}><span lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
-          <a className="archive-private-door" href={`${detailRootHref()}members/`}><span lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
+          <a className="archive-nav-memory" href={detailRootHref()}><span className="nav-en" lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
+          <a className="archive-private-door" href={`${detailRootHref()}members/`}><span className="nav-en" lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
         </nav>
       </header>
       <main className="detail-record section-reveal">
@@ -250,7 +256,11 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           <img src={event.posterImage} alt={`${event.title} poster`} />
         </aside>
         <article className="detail-copy">
-          <p className="section-kicker"><span lang="en">{event.edition}</span> / <span lang="ko">{siteText.detailKickerKo}</span></p>
+          <p className="section-kicker">
+            <span className="kicker-en" lang="en">{event.edition}</span>
+            <span className="kicker-divider" aria-hidden="true"> / </span>
+            <span className="kicker-ko" lang="ko">{siteText.detailKickerKo}</span>
+          </p>
           <h1>{event.title}</h1>
           <p className="event-subtitle">{event.subtitle}</p>
           <p className="latin-line">{event.latinQuote}</p>
@@ -261,15 +271,19 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           <p className="detail-long" lang="ko">{event.longDescription}</p>
           <div className="constellation-grid" aria-label="Archive record path and materials">
             <div className="text-index">
-              <span>여정</span>
+              <span className="text-index-title"><span lang="ko">여정</span></span>
               <ol>
-                {event.passage.map((item) => <li key={item}>{item}</li>)}
+                {event.passage.map((item) => (
+                  <li key={item}><span lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</span></li>
+                ))}
               </ol>
             </div>
             <div className="text-index">
-              <span>자료</span>
+              <span className="text-index-title"><span lang="ko">자료</span></span>
               <ol>
-                {event.materials.map((item) => <li key={item}>{item}</li>)}
+                {event.materials.map((item) => (
+                  <li key={item}><span lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</span></li>
+                ))}
               </ol>
             </div>
           </div>

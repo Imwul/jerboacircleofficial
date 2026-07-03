@@ -8,6 +8,7 @@ import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts
 import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import { editorialPlates } from '../data/manuscriptPlates';
 import './HomePage.css';
+import './EditorialStability.css';
 
 interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
@@ -33,11 +34,13 @@ function EditorialPlate({
 }
 
 function EditorialKicker({ en, ko }: { en: string; ko: string }) {
+  const mode = en.length > 20 ? 'long' : 'short';
+
   return (
-    <p className="section-kicker">
-      <span lang="en" data-kicker-en>{en}</span>
+    <p className="section-kicker" data-kicker-mode={mode}>
+      <span className="kicker-en" lang="en" data-kicker-en>{en}</span>
       <span className="kicker-divider" aria-hidden="true"> / </span>
-      <span lang="ko" data-kicker-ko>{ko}</span>
+      <span className="kicker-ko" lang="ko" data-kicker-ko>{ko}</span>
     </p>
   );
 }
@@ -51,11 +54,11 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
         <small lang="la">{siteText.wordmarkSmall}</small>
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
-        <a className="archive-nav-threshold" href="#featured"><span lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
-        <a className="archive-nav-memory" href="#archive"><span lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
-        <a className="archive-nav-fragments" href="#manifesto"><span lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
-        <a className="archive-nav-letter" href="#join"><span lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
-        <a className="archive-private-door" href="./members/"><span lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
+        <a className="archive-nav-threshold" href="#featured"><span className="nav-en" lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
+        <a className="archive-nav-memory" href="#archive"><span className="nav-en" lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
+        <a className="archive-nav-fragments" href="#manifesto"><span className="nav-en" lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
+        <a className="archive-nav-letter" href="#join"><span className="nav-en" lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
+        <a className="archive-private-door" href="./members/"><span className="nav-en" lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
       </nav>
     </header>
   );
@@ -100,15 +103,15 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
           <strong><span lang="ko">{siteText.orientationStatementKo}</span></strong>
           <div className="orientation-routes">
             <a href="#featured">
-              <span lang="en">{siteText.navFeaturedEn}</span>
+              <span className="route-en" lang="en">{siteText.navFeaturedEn}</span>
               <small lang="ko">{siteText.orientationCurrentKo}</small>
             </a>
             <a href="#archive">
-              <span lang="en">{siteText.navArchiveEn}</span>
+              <span className="route-en" lang="en">{siteText.navArchiveEn}</span>
               <small lang="ko">{siteText.orientationArchiveKo}</small>
             </a>
             <a href="./members/">
-              <span lang="en">{siteText.navMembersEn}</span>
+              <span className="route-en" lang="en">{siteText.navMembersEn}</span>
               <small lang="ko">{siteText.orientationPrivateKo}</small>
             </a>
           </div>
@@ -171,7 +174,7 @@ function ThemeList({ themes }: { themes: string[] }) {
   return (
     <ul className="theme-tags" aria-label="Themes">
       {themes.map((theme) => (
-        <li key={theme}>{theme}</li>
+        <li key={theme} lang={textLang(theme)}>{theme}</li>
       ))}
     </ul>
   );
@@ -235,7 +238,7 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
         <EditorialKicker en={siteText.archiveKickerEn} ko={siteText.archiveKickerKo} />
-        <h2 lang="ko">{siteText.archiveHeading}</h2>
+        <h2 className="ko-display"><span lang="ko">{siteText.archiveHeading}</span></h2>
         <EditorialPlate
           className="editorial-plate--archive"
           image={editorialPlates.archive}
@@ -268,7 +271,7 @@ function ManifestoBlock({ siteText }: { siteText: SiteText }) {
         className="editorial-plate--manifesto"
         image={editorialPlates.manifesto}
       />
-      <p lang="ko">{siteText.manifestoBody}</p>
+      <p className="ko-display"><span lang="ko">{siteText.manifestoBody}</span></p>
     </section>
   );
 }
@@ -282,7 +285,7 @@ function JoinBlock({ siteText }: { siteText: SiteText }) {
           className="editorial-plate--join"
           image={editorialPlates.join}
         />
-        <h2 lang="ko">{siteText.joinHeading}</h2>
+        <h2 className="ko-display"><span lang="ko">{siteText.joinHeading}</span></h2>
       </div>
       <a className="archive-cta inverse" href={siteText.joinCtaHref} lang={textLang(siteText.joinCtaLabel)}>
         {siteText.joinCtaLabel}

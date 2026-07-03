@@ -12,6 +12,7 @@ import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
 import { loadServerSync, saveServerSync } from './utils/serverSync';
 import './MembersArchive.css';
+import './MembersStability.css';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -122,7 +123,8 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | 'admin' | null>(null);
   const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'profile' | 'admin'>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
-  const [serverSyncStatus, setServerSyncStatus] = useState('서버 연결 대기');
+  const [notice, setNotice] = useState<string | null>(null);
+  const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결 대기');
   const hasServerHydrated = useRef(false);
   const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -149,10 +151,10 @@ function App() {
     try {
       setServerSyncStatus(`${source} 중`);
       const result = await saveServerSync('members', createMembersSyncPayload());
-      setServerSyncStatus(`서버 저장됨 / ${format(new Date(result.savedAt || new Date()), 'HH mm ss')}`);
+      setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH mm ss')}`);
       return true;
     } catch (error) {
-      setServerSyncStatus('서버 저장 실패 / 로컬 보관 중');
+      setServerSyncStatus('공동 장부 봉인 실패 / 로컬 보관 중');
       console.error('Server save failed:', error);
       return false;
     }
@@ -160,19 +162,19 @@ function App() {
 
   const loadMembersFromServer = async () => {
     try {
-      setServerSyncStatus('서버 장부 불러오는 중');
+      setServerSyncStatus('공동 장부 여는 중');
       const result = await loadServerSync<MembersSyncPayload>('members');
 
       if (result.exists && result.saved?.data) {
         applyMembersSyncPayload(result.saved.data);
-        setServerSyncStatus(`서버 장부 적용됨 / ${format(new Date(result.saved.savedAt), 'HH mm ss')}`);
+        setServerSyncStatus(`공동 장부 적용됨 / ${format(new Date(result.saved.savedAt), 'HH mm ss')}`);
       } else {
-        setServerSyncStatus('서버 장부 없음 / 새 장부 생성 중');
+        setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
         await saveServerSync('members', createMembersSyncPayload());
-        setServerSyncStatus('서버 장부 생성됨');
+        setServerSyncStatus('공동 장부 생성됨');
       }
     } catch (error) {
-      setServerSyncStatus('서버 미연결 / 로컬 장부 사용 중');
+      setServerSyncStatus('공동 장부 미연결 / 로컬 장부 사용 중');
       console.error('Server load failed:', error);
     } finally {
       hasServerHydrated.current = true;
@@ -198,7 +200,7 @@ function App() {
     } catch (e) {
       console.error('Error saving to localStorage:', e);
       if (e instanceof Error && e.name === 'QuotaExceededError') {
-        alert('저장 공간이 부족합니다. 사진 크기를 줄이거나 데이터를 정리해주세요.');
+        setNotice('로컬 장부가 가득 찼습니다. 사진 크기를 줄이거나 오래된 데이터를 정리해주세요.');
       }
     }
     triggerSaveNotification();
@@ -223,6 +225,13 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [lastSaved]);
+
+  useEffect(() => {
+    if (notice) {
+      const timer = setTimeout(() => setNotice(null), 4200);
+      return () => clearTimeout(timer);
+    }
+  }, [notice]);
 
   const triggerSaveNotification = () => {
     setLastSaved(format(new Date(), 'HH mm ss'));
@@ -264,20 +273,20 @@ function App() {
         if (confirm("비공개 장부 데이터를 불러오시겠습니까?\n(기존 기록이 덮어씌워집니다)")) {
           applyMembersSyncPayload(data);
           void saveServerSync('members', data).then(() => {
-            setServerSyncStatus('가져오기 완료 / 서버 저장됨');
+            setServerSyncStatus('가져오기 완료 / 공동 장부에 봉인됨');
           }).catch((error) => {
             console.error('Import server save failed:', error);
-            setServerSyncStatus('가져오기 완료 / 서버 저장 실패');
+            setServerSyncStatus('가져오기 완료 / 공동 장부 봉인 실패');
           });
-          alert("데이터를 성공적으로 불러왔습니다.");
+          setNotice('비공개 장부를 불러왔습니다.');
           return true;
         }
       } else {
-        alert("데이터 형식이 올바르지 않습니다.");
+        setNotice('장부 형식이 올바르지 않습니다.');
       }
     } catch (err) { 
       console.error("Import error:", err);
-      alert("잘못된 장부 코드입니다. 코드를 다시 확인해주세요."); 
+      setNotice('잘못된 장부 코드입니다. 코드를 다시 확인해주세요.');
     }
     return false;
   };
@@ -305,19 +314,19 @@ function App() {
       const payload = JSON.parse(raw);
       const data = payload.data || payload;
       if (!data.users || !data.events || !data.themeNames) {
-        alert('데이터 형식이 올바르지 않습니다.');
+        setNotice('장부 형식이 올바르지 않습니다.');
         return false;
       }
 
       if (confirm('백업 파일의 장부를 불러오시겠습니까? 기존 데이터가 덮어씌워집니다.')) {
         applyMembersSyncPayload(data);
         await saveServerSync('members', data);
-        setServerSyncStatus('백업 파일 적용 / 서버 저장됨');
+        setServerSyncStatus('백업 파일 적용 / 공동 장부에 봉인됨');
         return true;
       }
     } catch (error) {
       console.error('File import failed:', error);
-      alert('백업 파일을 읽을 수 없습니다.');
+      setNotice('백업 파일을 읽을 수 없습니다.');
     }
     return false;
   };
@@ -436,10 +445,10 @@ function App() {
     if (!activeUserData) return;
     const currentParticipants = users.filter(u => u.enrolledEventIds.includes(event.id)).length;
     if (event.maxParticipants && currentParticipants >= event.maxParticipants) {
-      alert("정원이 초과되었습니다."); return;
+      setNotice('이 장은 이미 정원이 찼습니다.'); return;
     }
     if (!event.isReward && activeUserData.coins < event.cost) {
-      alert("문장이 부족합니다."); return;
+      setNotice('이 장에 들어가기 위한 문장이 부족합니다.'); return;
     }
     const updatedUser = {
       ...activeUserData,
@@ -470,7 +479,7 @@ function App() {
   const archiveSectionNote = !currentUser
     ? '이름을 선택하면 개인 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
-      ? '프로그램 일정, 회원 기록, 서버 저장, 백업 파일을 정돈하는 보관자 책상입니다.'
+      ? '프로그램 일정, 회원 기록, 공동 장부, 백업 파일을 정돈하는 보관자 책상입니다.'
       : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 남기는 비공개 장부입니다.';
 
   return (
@@ -514,12 +523,12 @@ function App() {
               <small lang="ko">이름을 선택하면 개인 장부가 열립니다</small>
             </div>
           )}
-          <div className="archive-sidebar-foot" aria-label="Server sync status">
-            <span lang="en">Memory status</span>
+          <div className="archive-sidebar-foot" aria-label="Common register sync status">
+            <span lang="en">Common register</span>
             <span lang="ko">{serverSyncStatus}</span>
           </div>
           <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en"><i aria-hidden="true">⚜</i> Text room</span>
+            <span lang="en"><i aria-hidden="true">⚜</i> Forbidden room</span>
             <small lang="ko">진입금지 / 고정 문구실</small>
           </a>
         </aside>
@@ -528,6 +537,11 @@ function App() {
           {lastSaved && (
             <div className="archive-save-notice">
               장부에 기록됨 / {lastSaved}
+            </div>
+          )}
+          {notice && (
+            <div className="archive-notice" role="status" lang="ko">
+              {notice}
             </div>
           )}
           
@@ -604,7 +618,7 @@ function App() {
                   onExportAllData={handleExportAllData} 
                   onDownloadAllData={handleDownloadAllData}
                   onImportAllDataFile={handleImportAllDataFile}
-                  onSaveServerData={() => saveMembersToServer('수동 서버 저장')}
+                  onSaveServerData={() => saveMembersToServer('수동 공동 장부 봉인')}
                   onLoadServerData={loadMembersFromServer}
                   serverSyncStatus={serverSyncStatus}
                   onLogout={handleLogout} 

@@ -20,6 +20,7 @@ import {
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
 import './HomePage.css';
+import './EditorialStability.css';
 
 interface KeeperFormState {
   edition: string;
@@ -189,7 +190,7 @@ export default function KeeperPage() {
   const [siteTextForm, setSiteTextForm] = useState<SiteText>(() => getSiteText());
   const draftCount = useMemo(() => Object.keys(readArchiveDrafts()).length, [version]);
   const [serverKey, setServerKey] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
-  const [syncStatus, setSyncStatus] = useState('서버 보관소 대기');
+  const [syncStatus, setSyncStatus] = useState('공동 장부 대기');
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
 
@@ -210,13 +211,13 @@ export default function KeeperPage() {
     event.preventDefault();
     writeArchiveDraft(selectedEvent.id, toDraft(form));
     setVersion((current) => current + 1);
-    setSyncStatus(`로컬 초안 저장됨 / ${timeLabel()}`);
+    setSyncStatus(`로컬 초안 봉인됨 / ${timeLabel()}`);
   }
 
   function saveSiteTextDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     writeSiteTextDraft(siteTextForm);
-    setSyncStatus(`문구실 저장됨 / ${timeLabel()}`);
+    setSyncStatus(`문구실 초안 봉인됨 / ${timeLabel()}`);
   }
 
   function resetSiteTextDraft() {
@@ -268,7 +269,7 @@ export default function KeeperPage() {
     setSelectedId(nextEvent.id);
     setForm(toFormState(nextEvent));
     setVersion((current) => current + 1);
-    setSyncStatus('새 기록 초안 생성됨 / 서버 저장을 누르면 공개됩니다');
+    setSyncStatus('새 기록 초안 생성됨 / 공동 장부에 봉인하면 공개됩니다');
   }
 
   function updateServerKey(value: string) {
@@ -281,7 +282,7 @@ export default function KeeperPage() {
       if (isDirty) {
         writeArchiveDraft(selectedEvent.id, toDraft(form));
       }
-      setSyncStatus('서버 보관소 저장 중');
+      setSyncStatus('공동 장부에 봉인 중');
       if (mode === 'text' || isTextDirty) {
         writeSiteTextDraft(siteTextForm);
       }
@@ -295,16 +296,16 @@ export default function KeeperPage() {
         siteText: siteTextForm,
       }, serverKey);
       setVersion((current) => current + 1);
-      setSyncStatus(`서버 저장됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
+      setSyncStatus(`공동 장부에 봉인됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
     } catch (error) {
       console.error('Archive server save failed:', error);
-      setSyncStatus('서버 저장 실패 / 키 또는 연결 확인');
+      setSyncStatus('공동 장부 봉인 실패 / 열쇠 또는 연결 확인');
     }
   }
 
   async function loadArchiveFromServer() {
     try {
-      setSyncStatus('서버 보관소 불러오는 중');
+      setSyncStatus('공동 장부 여는 중');
       const result = await loadServerSync<ArchiveSyncPayload>('archive', serverKey);
       if (result.exists && result.saved?.data) {
         if (result.saved.data.drafts) {
@@ -319,13 +320,13 @@ export default function KeeperPage() {
         const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
         setForm(toFormState(nextSelected));
         setVersion((current) => current + 1);
-        setSyncStatus(`서버 초안 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
+        setSyncStatus(`공동 장부 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
       } else {
-        setSyncStatus('서버에 저장된 초안 없음');
+        setSyncStatus('공동 장부에 보존된 초안 없음');
       }
     } catch (error) {
       console.error('Archive server load failed:', error);
-      setSyncStatus('서버 불러오기 실패 / 키 또는 연결 확인');
+      setSyncStatus('공동 장부 열람 실패 / 열쇠 또는 연결 확인');
     }
   }
 
@@ -417,7 +418,7 @@ export default function KeeperPage() {
           <ul className="keeper-purpose-list">
             <li lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</li>
             <li lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</li>
-            <li lang="ko">서버 저장은 여러 사람에게 같은 판본을 보여줍니다</li>
+            <li lang="ko">공동 장부에 봉인하면 여러 사람에게 같은 판본을 보여줍니다</li>
           </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
@@ -447,7 +448,7 @@ export default function KeeperPage() {
           )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
             <label>
-              <span>서버 키</span>
+              <span>공동 장부 열쇠</span>
               <input
                 type="password"
                 value={serverKey}
@@ -456,8 +457,8 @@ export default function KeeperPage() {
               />
             </label>
             <div className="keeper-sync-actions">
-              <button type="button" onClick={saveArchiveToServer}>서버 저장</button>
-              <button type="button" onClick={loadArchiveFromServer}>서버 불러오기</button>
+              <button type="button" onClick={saveArchiveToServer}>공동 장부에 봉인</button>
+              <button type="button" onClick={loadArchiveFromServer}>공동 장부 열람</button>
               <button type="button" onClick={downloadArchiveDrafts}>파일 백업</button>
               <label>
                 파일 적용
@@ -495,7 +496,7 @@ export default function KeeperPage() {
           ) : (
             <div className="keeper-list">
               <button className="is-selected" type="button">
-                <span>⚜ Text room</span>
+                <span>⚜ Scriptorium</span>
                 <strong>Text register</strong>
                 <small>반복되는 문장</small>
               </button>
@@ -507,7 +508,7 @@ export default function KeeperPage() {
           <section className="keeper-editor godmode-editor" aria-label="Site text editor">
             <div className="keeper-preview godmode-preview">
               <div>
-                <span>⚜ Text room</span>
+                <span>⚜ Scriptorium</span>
                 <h2>Text register</h2>
                 <p lang="ko">공개 기록벽에 반복해서 나타나는 문장을 이곳에서 직접 고칩니다.</p>
               </div>
@@ -515,7 +516,7 @@ export default function KeeperPage() {
 
             <form className="keeper-form godmode-form" onSubmit={saveSiteTextDraft}>
               <div className="keeper-editor-heading">
-                <p className="section-kicker">Text room / site language</p>
+                <p className="section-kicker"><span className="kicker-en" lang="en">Scriptorium</span><span className="kicker-divider" aria-hidden="true"> / </span><span className="kicker-ko" lang="ko">고정 문구 장부</span></p>
                 <h2>Text fields</h2>
               </div>
 
@@ -540,9 +541,9 @@ export default function KeeperPage() {
               </div>
 
               <div className="keeper-actions">
-                <button className="archive-cta" type="submit">문구 초안 저장</button>
+                <button className="archive-cta" type="submit">문구 초안 봉인</button>
                 <button className="archive-cta inverse" onClick={resetSiteTextDraft} type="button">문구 원본 복원</button>
-                <button className="archive-cta" onClick={saveArchiveToServer} type="button">서버 저장</button>
+                <button className="archive-cta" onClick={saveArchiveToServer} type="button">공동 장부에 봉인</button>
                 <a className="archive-cta" href="/">공개 화면 보기</a>
               </div>
             </form>
@@ -678,9 +679,9 @@ export default function KeeperPage() {
             </div>
 
             <div className="keeper-actions">
-              <button className="archive-cta" type="submit">초안 저장</button>
+              <button className="archive-cta" type="submit">초안 봉인</button>
               <button className="archive-cta inverse" onClick={resetDraft} type="button">원본 복원</button>
-              <button className="archive-cta" onClick={saveArchiveToServer} type="button">서버 저장</button>
+              <button className="archive-cta" onClick={saveArchiveToServer} type="button">공동 장부에 봉인</button>
               <a className="archive-cta" href="/">공개 화면 보기</a>
             </div>
 

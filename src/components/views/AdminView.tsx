@@ -239,7 +239,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">서버 동기화</h3>
+              <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">공동 장부 동기화</h3>
               <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm space-y-3">
                 <div>
                   <div className="font-bold text-stone-800">공유 장부</div>
@@ -250,13 +250,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     onClick={onSaveServerData}
                     className="w-full p-3 bg-stone-900 text-white border border-stone-900 rounded-xl text-xs font-bold"
                   >
-                    <span className="archive-ko-label">서버에 저장</span>
+                    <span className="archive-ko-label">공동 장부에 봉인</span>
                   </button>
                   <button
                     onClick={onLoadServerData}
                     className="w-full p-3 bg-stone-100 text-stone-700 border border-stone-200 rounded-xl text-xs font-bold"
                   >
-                    <span className="archive-ko-label">서버에서 불러오기</span>
+                    <span className="archive-ko-label">공동 장부 열람</span>
                   </button>
                 </div>
               </div>
@@ -282,7 +282,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <label className="w-full p-4 bg-white border border-stone-100 rounded-2xl flex items-center justify-between group hover:bg-stone-50 transition-colors cursor-pointer">
                   <div className="text-left">
                     <div className="font-bold text-stone-800">백업 파일 가져오기</div>
-                    <div className="text-[10px] text-stone-400 font-medium">복구 후 서버 장부에 바로 저장합니다</div>
+                    <div className="text-[10px] text-stone-400 font-medium">복구 후 공동 장부에 바로 봉인합니다</div>
                   </div>
                   <span className="archive-ko-label text-[10px] text-stone-400 font-black">불러오기</span>
                   <input
@@ -304,7 +304,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
               <div className="font-bold text-stone-800">로컬 장부</div>
               <div className="text-[10px] text-stone-400 font-medium mt-1">
-                이 브라우저에도 저장하고, 연결되면 서버 장부와 맞춥니다
+                이 브라우저에도 저장하고, 연결되면 공동 장부와 맞춥니다
               </div>
             </div>
           </div>
