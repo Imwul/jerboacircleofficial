@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+import './JerboaFinalRepair.css';
 
 console.log('index.tsx starting');
 const container = document.getElementById('root');

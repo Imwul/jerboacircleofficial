@@ -1343,3 +1343,99 @@ html body .members-archive .member-login-actions .archive-ko-label {
     border-bottom: 0 !important;
   }
 }
+
+/* Stability pass 5: login entrance is one ledger, not split plaques. */
+html body .members-archive .member-login {
+  min-height: 100% !important;
+  justify-content: start !important;
+}
+
+html body .members-archive .member-login > div:first-child {
+  width: min(100%, 44rem) !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  width: min(100%, 44rem) !important;
+  height: clamp(11rem, 26vw, 19rem) !important;
+}
+
+html body .members-archive .member-login-intent {
+  width: min(100%, 44rem) !important;
+  display: grid !important;
+  grid-template-columns: minmax(12rem, 0.34fr) minmax(0, 0.66fr) !important;
+  grid-template-rows: auto auto !important;
+  border: 2px solid var(--register-ink) !important;
+  border-top: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  min-height: 6.5rem !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  font-size: clamp(1.45rem, 2.2vw, 2.2rem) !important;
+  line-height: 0.98 !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  width: auto !important;
+  min-height: 6.5rem !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.55 !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  min-height: 3.9rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: var(--register-gold) !important;
+  list-style: none !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  display: flex !important;
+  min-height: 3.9rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-size: 0.9rem !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}
+
+@media (max-width: 720px) {
+  html body .members-archive .member-login-intent {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-login-intent > span[lang="en"],
+  html body .members-archive .member-login-intent > p[lang="ko"],
+  html body .members-archive .member-login-intent > ol {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    border-right: 0 !important;
+  }
+}
