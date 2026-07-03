@@ -283,3 +283,269 @@ input::placeholder {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Final public archive safeguards.
+   HomePage.css carries the composition, but this file loads last; keep the
+   editorial boxes resilient when Godmode text gets longer or shorter. */
+.public-home {
+  --signal-blue: #9bbdcc;
+}
+
+.public-home .section-kicker {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 0.16rem 0.52rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 5rem !important;
+  height: auto !important;
+  padding: 0.85rem 1rem !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .featured-copy .section-kicker {
+  width: min(100%, 38rem) !important;
+}
+
+.public-home .section-kicker span[lang="en"] {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  font-size: clamp(1.35rem, 2vw, 2.18rem) !important;
+  line-height: 1.04 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+.public-home .section-kicker span[lang="ko"] {
+  flex: 1 1 12rem !important;
+  min-width: 9rem !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+.public-home .section-kicker .kicker-divider {
+  flex: 0 0 auto !important;
+  align-self: center !important;
+  line-height: 1 !important;
+}
+
+.public-home .archive-section-title .section-kicker,
+.public-home .manifesto-block .section-kicker,
+.public-home .join-block .section-kicker {
+  min-height: 5.6rem !important;
+  height: auto !important;
+}
+
+.public-home .archive-nav {
+  align-items: stretch !important;
+}
+
+.public-home .archive-nav a,
+.public-home .archive-nav a:nth-child(2n),
+.public-home .archive-nav a:nth-child(3n),
+.public-home .archive-nav a:nth-child(4n),
+.public-home .archive-nav a:nth-child(5n) {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 8.75rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+  padding: 0.9rem 1rem !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .archive-nav a span[lang="en"] {
+  max-width: 100% !important;
+  line-height: 0.98 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+.public-home .archive-nav a small[lang="ko"] {
+  display: block !important;
+  max-width: 100% !important;
+  line-height: 1.32 !important;
+  text-align: center !important;
+  word-break: keep-all !important;
+}
+
+.public-home .archive-nav .archive-nav-threshold {
+  background: var(--signal-pink) !important;
+}
+
+.public-home .archive-nav .archive-nav-memory {
+  background: var(--signal-gold) !important;
+}
+
+.public-home .archive-nav .archive-nav-fragments {
+  background: var(--signal-cream) !important;
+}
+
+.public-home .archive-nav .archive-nav-letter {
+  background: var(--signal) !important;
+}
+
+.public-home .archive-nav a.archive-private-door,
+.public-home .archive-nav .archive-private-door,
+.public-home .archive-nav a.archive-private-door:nth-child(5n) {
+  background: var(--signal-blue) !important;
+  color: var(--ink) !important;
+}
+
+.public-home .orientation-ledger {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  border: 3px solid var(--ink) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .orientation-kicker,
+.public-home .orientation-ledger > strong[lang="ko"] {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .orientation-kicker {
+  gap: 0.24rem 0.44rem !important;
+  padding: 0.62rem 0.78rem !important;
+}
+
+.public-home .orientation-ledger > strong[lang="ko"] {
+  padding: 0.86rem 0.78rem !important;
+}
+
+.public-home .orientation-routes {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border: 0 !important;
+}
+
+.public-home .orientation-routes a {
+  min-width: 0 !important;
+  min-height: 7.1rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .orientation-routes a:last-child {
+  border-right: 0 !important;
+}
+
+.public-home .constellation-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 3px solid var(--ink) !important;
+  background: transparent !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .text-index {
+  display: grid !important;
+  grid-template-rows: auto 1fr !important;
+  min-width: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .text-index:last-child {
+  border-right: 0 !important;
+}
+
+.public-home .text-index > span {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 3.35rem !important;
+  align-items: center !important;
+  padding: 0.62rem 0.78rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-gold) !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .text-index ol {
+  display: grid !important;
+  grid-auto-rows: minmax(2.62rem, auto) !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: var(--signal-cream) !important;
+}
+
+.public-home .text-index li {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 2.62rem !important;
+  padding: 0.45rem 0.78rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  box-sizing: border-box !important;
+}
+
+.public-home .text-index li:last-child {
+  border-bottom: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .public-home .archive-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .public-home .archive-nav a,
+  .public-home .archive-nav a:nth-child(2n),
+  .public-home .archive-nav a:nth-child(3n),
+  .public-home .archive-nav a:nth-child(4n),
+  .public-home .archive-nav a:nth-child(5n) {
+    min-height: 7rem !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-home .orientation-routes,
+  .public-home .constellation-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .public-home .orientation-routes a,
+  .public-home .text-index {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  .public-home .orientation-routes a:last-child,
+  .public-home .text-index:last-child {
+    border-bottom: 0 !important;
+  }
+}

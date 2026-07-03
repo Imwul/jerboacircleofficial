@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { events, type ArchiveEvent } from '../data/events';
 import type { SiteText } from '../data/siteText';
 import { applyArchiveDrafts } from '../utils/archiveDrafts';
@@ -33,49 +33,8 @@ function EditorialPlate({
 }
 
 function EditorialKicker({ en, ko }: { en: string; ko: string }) {
-  const ref = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return undefined;
-
-    const english = element.querySelector<HTMLElement>('[data-kicker-en]');
-    const korean = element.querySelector<HTMLElement>('[data-kicker-ko]');
-    if (!english || !korean) return undefined;
-
-    const fit = () => {
-      element.dataset.kickerMode = 'inline';
-      english.style.removeProperty('--kicker-en-size');
-
-      const style = window.getComputedStyle(english);
-      const baseSize = Number.parseFloat(style.fontSize) || 34;
-      const spare = 52;
-      const available = element.clientWidth - korean.offsetWidth - spare;
-      const naturalWidth = english.scrollWidth;
-
-      if (available <= 0 || naturalWidth > available * 1.7) {
-        element.dataset.kickerMode = 'stacked';
-        english.style.setProperty('--kicker-en-size', `${Math.max(24, Math.min(baseSize, element.clientWidth / Math.max(en.length * 0.55, 1)))}px`);
-        return;
-      }
-
-      const ratio = Math.min(1, available / Math.max(naturalWidth, 1));
-      if (ratio < 0.92) {
-        element.dataset.kickerMode = 'compact';
-        english.style.setProperty('--kicker-en-size', `${Math.max(22, baseSize * ratio)}px`);
-      }
-    };
-
-    const observer = new ResizeObserver(fit);
-    observer.observe(element);
-    document.fonts?.ready.then(fit).catch(() => {});
-    fit();
-
-    return () => observer.disconnect();
-  }, [en, ko]);
-
   return (
-    <p className="section-kicker" ref={ref}>
+    <p className="section-kicker">
       <span lang="en" data-kicker-en>{en}</span>
       <span className="kicker-divider" aria-hidden="true"> / </span>
       <span lang="ko" data-kicker-ko>{ko}</span>

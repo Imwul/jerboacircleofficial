@@ -4552,3 +4552,168 @@
 .public-home .join-block .section-kicker {
   background: var(--signal-blue);
 }
+
+/* Stable editorial layout pass: future text edits should expand boxes, not break them. */
+.public-home {
+  --signal-blue: #9bbdcc;
+}
+
+.public-home .section-kicker {
+  display: flex !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 4.9rem !important;
+  flex-wrap: wrap !important;
+  align-content: center !important;
+  align-items: center !important;
+  gap: 0.18rem 0.46rem !important;
+  overflow: visible !important;
+  padding: 0.82rem 1rem !important;
+}
+
+.public-home .featured-copy .section-kicker {
+  width: min(100%, 34rem) !important;
+}
+
+.public-home .section-kicker span[lang="en"] {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  font-size: clamp(1.45rem, 2.05vw, 2.25rem) !important;
+  line-height: 1 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+.public-home .section-kicker .kicker-divider {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 1.8vw, 2rem);
+  line-height: 1;
+}
+
+.public-home .section-kicker span[lang="ko"] {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+.public-home .archive-section-title .section-kicker,
+.public-home .manifesto-block .section-kicker,
+.public-home .join-block .section-kicker {
+  height: auto !important;
+  min-height: 5.4rem !important;
+}
+
+.public-home .archive-nav a.archive-private-door,
+.public-home .archive-nav a.archive-private-door:visited {
+  background: var(--signal-blue) !important;
+  color: var(--ink) !important;
+}
+
+.public-home .archive-nav a.archive-private-door:hover {
+  background: var(--ink) !important;
+  color: var(--signal-blue) !important;
+}
+
+.public-home .orientation-ledger {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  border: 3px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+.public-home .orientation-kicker,
+.public-home .orientation-ledger > strong[lang="ko"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  transform-origin: left center !important;
+}
+
+.public-home .orientation-routes {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border: 0 !important;
+}
+
+.public-home .orientation-routes a {
+  min-width: 0 !important;
+  min-height: 6.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+.public-home .orientation-routes a:last-child {
+  border-right: 0 !important;
+}
+
+.public-home .constellation-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  border: 3px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+.public-home .text-index {
+  display: grid !important;
+  grid-template-rows: auto 1fr;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+.public-home .text-index:last-child {
+  border-right: 0 !important;
+}
+
+.public-home .text-index > span {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 3.35rem;
+  align-items: center;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-gold) !important;
+}
+
+.public-home .text-index ol {
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+.public-home .text-index li {
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+}
+
+.public-home .text-index li:last-child {
+  border-bottom: 0 !important;
+}
+
+@media (max-width: 720px) {
+  .public-home .constellation-grid,
+  .public-home .orientation-routes {
+    grid-template-columns: 1fr !important;
+  }
+
+  .public-home .text-index,
+  .public-home .orientation-routes a {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  .public-home .text-index:last-child,
+  .public-home .orientation-routes a:last-child {
+    border-bottom: 0 !important;
+  }
+}
