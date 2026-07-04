@@ -1215,3 +1215,85 @@ html body .members-archive .archive-godmode-link span[lang="en"] {
     border-right: 0 !important;
   }
 }
+
+/* Hard guard for the two compact ritual strips that were still clipping in
+   screenshots: here Deigrat becomes a label, not a headline. */
+html body .public-home .orientation-routes a {
+  min-height: 5.7rem !important;
+  padding: 0.72rem 0.76rem 0.82rem !important;
+  justify-items: start !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .orientation-routes .route-en,
+html body .public-home .orientation-routes a:last-child .route-en {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: clamp(0.86rem, 1.18vw, 1.22rem) !important;
+  line-height: 0.94 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  transform: scaleX(0.78) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .orientation-routes small[lang="ko"] {
+  margin-top: 0.16rem !important;
+  font-size: clamp(0.78rem, 0.86vw, 0.94rem) !important;
+  line-height: 1.55 !important;
+}
+
+html body .public-home .orientation-kicker span[lang="en"] {
+  max-width: 48% !important;
+  font-size: clamp(1rem, 1.35vw, 1.55rem) !important;
+  line-height: 0.98 !important;
+  overflow-wrap: anywhere !important;
+  transform: scaleX(0.86) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .orientation-kicker span[lang="ko"] {
+  min-width: 0 !important;
+  font-size: clamp(0.78rem, 0.88vw, 0.96rem) !important;
+}
+
+html body .members-archive .member-login-intent {
+  grid-template-rows: minmax(5.75rem, auto) auto !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  align-items: center !important;
+  min-height: 5.75rem !important;
+  padding: 0.7rem 0.82rem !important;
+  font-size: clamp(1.02rem, 1.4vw, 1.48rem) !important;
+  line-height: 0.96 !important;
+  transform: scaleX(0.84) !important;
+  transform-origin: left center !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  min-height: 5.75rem !important;
+  padding: 0.78rem 1rem !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  min-height: 3.55rem !important;
+  border-top: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  min-height: 3.55rem !important;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:first-child {
+  border-left: 0 !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}
