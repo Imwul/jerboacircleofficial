@@ -964,3 +964,254 @@ html body .members-archive .archive-main .habit-weekday.is-selected {
     border-bottom: 0 !important;
   }
 }
+
+/* Curatorial stability pass:
+   compact labels must shrink before they clip, and ledger boxes must close on
+   all four sides even when future text gets longer. */
+html body .public-home .archive-nav a,
+html body .public-home .orientation-routes a,
+html body .members-archive .archive-cabinet button,
+html body .members-archive .archive-public-return,
+html body .members-archive .archive-godmode-link {
+  contain: layout paint !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .archive-nav a .nav-en,
+html body .public-home .orientation-routes .route-en,
+html body .members-archive .archive-cabinet span[lang="en"],
+html body .members-archive .archive-public-return span[lang="en"],
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  display: block !important;
+  max-width: 100% !important;
+  line-height: 0.96 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  text-wrap: balance !important;
+}
+
+html body .public-home .archive-nav a .nav-en {
+  font-size: clamp(1.05rem, 1.45vw, 1.78rem) !important;
+}
+
+html body .public-home .archive-nav a.archive-private-door .nav-en {
+  font-size: clamp(1.0rem, 1.36vw, 1.62rem) !important;
+}
+
+html body .public-home .orientation-routes {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border: 2px solid var(--ink) !important;
+  border-top: 0 !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .orientation-routes a {
+  display: grid !important;
+  min-width: 0 !important;
+  min-height: 6.1rem !important;
+  grid-template-rows: auto 1fr !important;
+  align-content: start !important;
+  gap: 0.28rem !important;
+  padding: 0.78rem 0.9rem 0.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .orientation-routes a:last-child {
+  border-right: 0 !important;
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .orientation-routes .route-en {
+  font-size: clamp(1.16rem, 1.75vw, 1.95rem) !important;
+}
+
+html body .public-home .orientation-routes a:last-child .route-en {
+  font-size: clamp(1.02rem, 1.55vw, 1.72rem) !important;
+}
+
+html body .public-home .orientation-routes small[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-size: clamp(0.78rem, 0.92vw, 1rem) !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .public-home .orientation-ledger {
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .orientation-kicker {
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-gold) !important;
+}
+
+html body .public-home .orientation-kicker span[lang="en"] {
+  font-size: clamp(1.18rem, 1.65vw, 2rem) !important;
+}
+
+html body .public-home .orientation-ledger > strong {
+  display: block !important;
+  padding: 1rem 1.12rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .orientation-ledger > strong span[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-size: clamp(1.05rem, 1.22vw, 1.35rem) !important;
+  line-height: 1.58 !important;
+  word-break: keep-all !important;
+}
+
+html body .public-home .section-kicker .kicker-en,
+html body .public-home .poster-caption h2,
+html body .public-home .archive-ledger strong {
+  overflow-wrap: anywhere !important;
+  text-wrap: balance !important;
+}
+
+html body .public-home .poster-caption h2 {
+  font-size: clamp(1.8rem, 3.25vw, 3.8rem) !important;
+  line-height: 0.92 !important;
+}
+
+html body .public-home .poster-caption p[lang="ko"],
+html body .public-home .poster-caption em[lang="ko"],
+html body .public-home .archive-ledger small[lang="ko"],
+html body .public-home .event-description[lang="ko"],
+html body .public-home .detail-long[lang="ko"],
+html body .public-home .ko-display span[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .members-archive .member-login {
+  gap: 1.15rem !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .member-login > .flex.flex-col.items-center {
+  width: min(100%, 44rem) !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  width: min(100%, 44rem) !important;
+  height: clamp(12rem, 34vw, 19rem) !important;
+  margin: 0 !important;
+  border: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+}
+
+html body .members-archive .member-login-intent {
+  width: min(100%, 44rem) !important;
+  margin: 0 !important;
+  grid-template-columns: minmax(11.5rem, 0.34fr) minmax(0, 0.66fr) !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  min-height: 5.55rem !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  font-size: clamp(1.2rem, 1.65vw, 1.76rem) !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  min-height: 5.55rem !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  font-size: clamp(0.78rem, 0.92vw, 0.98rem) !important;
+  line-height: 1.55 !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  border-top: 0 !important;
+  background: var(--register-gold) !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  min-height: 3.7rem !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+}
+
+html body .members-archive .member-login-actions {
+  width: min(100%, 44rem) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  margin: -0.6rem 0 0 !important;
+}
+
+html body .members-archive .member-login-actions > button,
+html body .members-archive .member-login-actions > div > button {
+  display: flex !important;
+  min-height: 2.55rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-blue) !important;
+  color: var(--register-ink) !important;
+}
+
+html body .members-archive .member-login-actions > div > button {
+  background: var(--register-gold) !important;
+}
+
+html body .members-archive .archive-server-line,
+html body .members-archive .archive-sidebar-foot span[lang="ko"] {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+}
+
+html body .members-archive .archive-godmode-link {
+  background: var(--register-blue) !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  font-size: clamp(1rem, 1.45vw, 1.55rem) !important;
+}
+
+@media (max-width: 760px) {
+  html body .public-home .archive-nav,
+  html body .public-home .orientation-routes {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .archive-nav a,
+  html body .public-home .orientation-routes a {
+    min-height: 4.6rem !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .members-archive .member-login-intent {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-login-intent > span[lang="en"],
+  html body .members-archive .member-login-intent > p[lang="ko"] {
+    border-right: 0 !important;
+  }
+}

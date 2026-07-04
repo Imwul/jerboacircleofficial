@@ -149,12 +149,12 @@ function App() {
 
   const saveMembersToServer = async (source = '자동 저장') => {
     try {
-      setServerSyncStatus(`${source} 중`);
+      setServerSyncStatus(`${source} / 공동 장부에 봉인 중`);
       const result = await saveServerSync('members', createMembersSyncPayload());
-      setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH mm ss')}`);
+      setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH:mm:ss')}`);
       return true;
     } catch (error) {
-      setServerSyncStatus('공동 장부 봉인 실패 / 로컬 보관 중');
+      setServerSyncStatus('공동 장부가 잠시 닫힘 / 로컬 장부 보관 중');
       console.error('Server save failed:', error);
       return false;
     }
@@ -167,7 +167,7 @@ function App() {
 
       if (result.exists && result.saved?.data) {
         applyMembersSyncPayload(result.saved.data);
-        setServerSyncStatus(`공동 장부 적용됨 / ${format(new Date(result.saved.savedAt), 'HH mm ss')}`);
+        setServerSyncStatus(`공동 장부 열람됨 / ${format(new Date(result.saved.savedAt), 'HH:mm:ss')}`);
       } else {
         setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
         await saveServerSync('members', createMembersSyncPayload());
