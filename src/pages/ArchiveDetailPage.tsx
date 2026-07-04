@@ -89,7 +89,13 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
   const [code, setCode] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
   const [unlocked, setUnlocked] = useState(false);
   const [form, setForm] = useState(() => toDetailForm(event));
-  const [status, setStatus] = useState('보관자 코드 필요');
+  const [status, setStatus] = useState('Keeper seal이 닫혀 있습니다');
+
+  const statusTone = status.includes('실패') || status.includes('닫혔') || status.includes('없음')
+    ? 'warning'
+    : status.includes('봉인') || status.includes('반영') || status.includes('준비')
+      ? 'sealed'
+      : 'idle';
 
   function updateField<Key extends keyof DetailFormState>(key: Key, value: DetailFormState[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -97,13 +103,13 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
 
   function unlockEditor() {
     if (!code.trim()) {
-      setStatus('코드를 입력하세요');
+      setStatus('Keeper seal을 열 열쇠를 입력하세요');
       return;
     }
 
     localStorage.setItem('jerboa_keeper_sync_key', code);
     setUnlocked(true);
-    setStatus(code === ADMIN_PASSWORD ? '로컬 편집 열림' : '공동 장부 열쇠로 편집 열림');
+    setStatus(code === ADMIN_PASSWORD ? '로컬 초안층이 열렸습니다' : '공동 장부 열쇠로 초안층이 열렸습니다');
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -111,13 +117,13 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
     if (!file) return;
 
     try {
-      setStatus('포스터를 웹용으로 줄이는 중');
+      setStatus('새 도판을 웹용으로 줄이는 중');
       const resizedPoster = await resizeImage(file, 1600, 2200);
       updateField('posterImage', resizedPoster);
-      setStatus('포스터 이미지 준비됨');
+      setStatus('새 도판이 초안에 붙었습니다');
     } catch (error) {
       console.error('Poster upload failed:', error);
-      setStatus('포스터를 읽을 수 없음');
+      setStatus('도판을 읽을 수 없음');
     } finally {
       event.currentTarget.value = '';
     }
@@ -126,7 +132,7 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
   function saveLocal(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
     writeArchiveDraft(event.id, toDetailDraft(form, event));
-    setStatus('상세 기록 초안 저장됨');
+    setStatus('로컬 초안 보관 중');
     onSaved();
   }
 
@@ -141,11 +147,11 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
         },
         siteText: getSiteText(),
       }, code);
-      setStatus('공동 장부에 반영됨');
+      setStatus('공동 장부에 봉인됨');
       onSaved();
     } catch (error) {
       console.error('Detail archive save failed:', error);
-      setStatus('공동 장부 반영 실패 / 열쇠 확인');
+      setStatus('공동 장부 봉인 실패 / 열쇠 확인');
     }
   }
 
@@ -153,19 +159,19 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
     <details className="detail-keeper-panel" aria-label="Archive record editor">
       <summary>
         <span lang="en">Keeper seal</span>
-        <small lang="ko">기록 수정 문 열기</small>
+        <small lang="ko">숨은 초안층 열기</small>
       </summary>
       <div className="detail-keeper-lock">
-        <span lang="en">Keeper edit</span>
+        <span lang="en">Keeper layer</span>
         <input
           type="password"
           value={code}
           onChange={(event) => setCode(event.target.value)}
-          placeholder="Keeper code"
+          placeholder="Keeper seal key"
         />
-        <button type="button" onClick={unlockEditor}>수정 문 열기</button>
+        <button type="button" onClick={unlockEditor}>Seal 열기</button>
       </div>
-      <p lang="ko">{status}</p>
+      <p className="detail-keeper-status" data-sync-state={statusTone} lang="ko">{status}</p>
 
       {unlocked && (
         <form className="detail-keeper-form" onSubmit={saveLocal}>
@@ -212,7 +218,7 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
               <img src={form.posterImage} alt="" />
             </figure>
             <label>
-              <span>포스터 업로드</span>
+              <span>새 도판 붙이기</span>
               <small>파일을 올리면 웹용 크기로 줄인 뒤 이 기록에 붙습니다</small>
               <input accept="image/*" onChange={readPosterFile} type="file" />
             </label>
@@ -228,8 +234,8 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
           </label>
           <div className="detail-keeper-actions">
             <button type="submit">로컬 초안 봉인</button>
-            <button type="button" onClick={publishToServer}>공동 장부에 반영</button>
-            <a href={`${detailRootHref()}godmode/`}>새 기록 만들기</a>
+            <button type="button" onClick={publishToServer}>공동 장부에 봉인</button>
+            <a href={`${detailRootHref()}godmode/`}>Keeper Desk</a>
           </div>
         </form>
       )}

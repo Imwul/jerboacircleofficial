@@ -793,6 +793,1124 @@ html body .members-archive .member-login-intent > ol > li:last-child {
   border-right: 0 !important;
 }
 
+/* Final lower-band alignment. Keep this at the end of the file. */
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  display: grid !important;
+  grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 0.58fr) !important;
+  grid-template-rows: minmax(5.2rem, auto) clamp(18rem, 28vw, 30rem) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-green) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .join-block {
+  background: var(--signal) !important;
+}
+
+html body .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  height: auto !important;
+  min-height: 5.2rem !important;
+  align-items: center !important;
+  align-content: center !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 1 / 2 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img,
+html body .public-home .join-block .editorial-plate--join img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: clamp(1.2rem, 3vw, 3.4rem) !important;
+  border: 0 !important;
+  background: inherit !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  width: max-content !important;
+  height: auto !important;
+  min-height: 3.2rem !important;
+  align-self: end !important;
+  justify-self: start !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 0 clamp(1.2rem, 2.3vw, 2rem) clamp(1.2rem, 3vw, 3.4rem) !important;
+  padding: 0.6rem 0.95rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-blue) !important;
+  z-index: 2 !important;
+}
+
+html body .public-home .manifesto-block::after {
+  content: none !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .manifesto-block > p.ko-display,
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display,
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+
+  html body .public-home .manifesto-block::after {
+    content: none !important;
+  }
+}
+
+/* Final lower-band alignment refinement: three shared columns, with the
+   Correspondence CTA treated as an invitation inside the text column. */
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  grid-template-columns: minmax(14rem, 18rem) minmax(18rem, 30rem) minmax(0, 1fr) !important;
+  grid-template-rows: clamp(18rem, 24vw, 27rem) !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / 2 !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 2 / 3 !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 3 / 4 !important;
+  border-right: 0 !important;
+}
+
+html body .public-home .join-block h2.ko-display {
+  padding-bottom: clamp(4.8rem, 7vw, 6rem) !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 3 / 4 !important;
+  grid-row: 1 !important;
+  align-self: end !important;
+  justify-self: start !important;
+  width: max-content !important;
+  height: auto !important;
+  min-height: 3.2rem !important;
+  margin: 0 0 clamp(1rem, 2vw, 1.5rem) clamp(1rem, 2.5vw, 3rem) !important;
+  padding: 0.6rem 0.9rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-blue) !important;
+  z-index: 2 !important;
+}
+
+html body .public-home .manifesto-block::after {
+  content: none !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-right: 0 !important;
+    border-left: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+}
+
+/* Final lower-band composition: title row, then plate + readable copy. */
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  display: grid !important;
+  grid-template-columns: minmax(20rem, 0.42fr) minmax(0, 0.58fr) !important;
+  grid-template-rows: minmax(5.2rem, auto) clamp(18rem, 28vw, 30rem) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block {
+  background: var(--signal-green) !important;
+}
+
+html body .public-home .join-block {
+  background: var(--signal) !important;
+}
+
+html body .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  height: auto !important;
+  min-height: 5.2rem !important;
+  align-items: center !important;
+  align-content: center !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 1 / 2 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img,
+html body .public-home .join-block .editorial-plate--join img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 44% !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 !important;
+  display: flex !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: clamp(1.2rem, 3vw, 3.4rem) !important;
+  border: 0 !important;
+  background: inherit !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display span[lang="ko"],
+html body .public-home .join-block h2.ko-display span[lang="ko"] {
+  display: block !important;
+  width: auto !important;
+  max-width: min(42rem, calc(100% / var(--ko-ritual-scale-x))) !important;
+  font-size: clamp(1rem, 1.55vw, 1.85rem) !important;
+  line-height: 1.62 !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .public-home .join-block h2.ko-display {
+  padding-bottom: clamp(5rem, 7vw, 6.4rem) !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 !important;
+  align-self: end !important;
+  justify-self: start !important;
+  width: max-content !important;
+  height: auto !important;
+  min-height: 3.2rem !important;
+  margin: 0 0 clamp(1.2rem, 2.3vw, 2rem) clamp(1.2rem, 3vw, 3.4rem) !important;
+  padding: 0.6rem 0.95rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-blue) !important;
+  z-index: 2 !important;
+}
+
+html body .public-home .manifesto-block::after {
+  content: none !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .manifesto-block > p.ko-display,
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display,
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+
+  html body .public-home .join-block > .archive-cta {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Grid alignment pass for the lower editorial bands. Fragments and
+   Correspondence now share the same vertical rules instead of forming
+   separate table fragments. */
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  grid-template-columns: minmax(18rem, 28rem) minmax(22rem, 42rem) minmax(0, 1fr) minmax(10rem, 14rem) !important;
+  grid-template-rows: clamp(18rem, 24vw, 28rem) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-content: start !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img,
+html body .public-home .join-block .editorial-plate--join img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 3 / 4 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: clamp(1rem, 2.5vw, 3rem) !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 4 / 5 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .manifesto-block::after {
+  content: "" !important;
+  display: block !important;
+  grid-column: 4 / 5 !important;
+  grid-row: 1 !important;
+  background: var(--signal-green) !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .manifesto-block > p.ko-display,
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display,
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+
+  html body .public-home .manifesto-block::after {
+    content: none !important;
+  }
+}
+
+/* Final compacting pass for lower public bands. Images should act as chapter
+   plates, not force the whole section into an oversized billboard. */
+html body .public-home .masthead-latin {
+  display: none !important;
+}
+
+html body .public-home .manifesto-block {
+  grid-template-columns: minmax(12rem, 19rem) minmax(16rem, 26rem) minmax(0, 1fr) !important;
+  min-height: 0 !important;
+  height: clamp(18rem, 28vw, 30rem) !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .manifesto-block > p.ko-display {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+html body .public-home .join-block {
+  display: grid !important;
+  grid-template-columns: minmax(12rem, 20rem) minmax(18rem, 34rem) minmax(0, 1fr) minmax(10rem, 14rem) !important;
+  grid-template-rows: minmax(5.2rem, auto) clamp(18rem, 28vw, 30rem) !important;
+  min-height: 0 !important;
+  height: auto !important;
+  align-items: stretch !important;
+  background: var(--signal) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  min-height: 5.2rem !important;
+  height: auto !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 4 / 5 !important;
+  grid-row: 1 !important;
+  min-height: 5.2rem !important;
+  height: auto !important;
+  border: 0 !important;
+  border-left: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 2 / 3 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  border: 0 !important;
+  border-left: 2px solid var(--ink) !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .join-block .editorial-plate--join img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 44% !important;
+}
+
+html body .public-home .join-block h2.ko-display {
+  grid-column: 3 / 5 !important;
+  grid-row: 2 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  align-items: center !important;
+  padding: clamp(1rem, 2.4vw, 2.5rem) !important;
+}
+
+html body .public-home .join-block h2.ko-display span[lang="ko"] {
+  font-size: clamp(1rem, 1.28vw, 1.42rem) !important;
+  line-height: 1.58 !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    height: auto !important;
+  }
+
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block > .archive-cta,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+}
+
+/* Pilgrimage structure pass:
+   close every ledger box on four sides and keep the first room readable. */
+html body .public-home .publication-masthead {
+  display: grid !important;
+  grid-template-columns: minmax(16rem, 0.34fr) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  min-height: min(760px, calc(100vh - 7rem)) !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .masthead-mark {
+  display: grid !important;
+  min-width: 0 !important;
+  min-height: 100% !important;
+  place-items: center !important;
+  padding: clamp(1rem, 2.5vw, 2rem) !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .masthead-logo {
+  width: min(72%, 18rem) !important;
+  max-height: 42vh !important;
+  object-fit: contain !important;
+}
+
+html body .public-home .masthead-ring {
+  inset: clamp(0.7rem, 1.5vw, 1.2rem) !important;
+}
+
+html body .public-home .masthead-index {
+  display: grid !important;
+  min-width: 0 !important;
+  align-content: start !important;
+  gap: 1rem !important;
+  padding: clamp(1.2rem, 3vw, 3rem) !important;
+  border: 0 !important;
+  background: var(--signal-cream) !important;
+  overflow: visible !important;
+}
+
+html body .public-home .gate-label {
+  display: inline-grid !important;
+  width: max-content !important;
+  margin: 0 !important;
+  padding: 0.32rem 0.52rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-pink) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.05rem, 1.55vw, 1.55rem) !important;
+  line-height: 1 !important;
+}
+
+html body .public-home .masthead-index > p[lang="en"]:not(.gate-label) {
+  max-width: 20ch !important;
+  margin: 0 !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(2.45rem, 5.9vw, 5.45rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: 0 !important;
+  text-wrap: balance !important;
+}
+
+html body .public-home .masthead-index > p[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: min(48rem, calc(100% / var(--ko-ritual-scale-x))) !important;
+  margin: 0.25rem 0 0 !important;
+  font-size: clamp(1rem, 1.22vw, 1.28rem) !important;
+  line-height: 1.7 !important;
+  word-break: keep-all !important;
+}
+
+html body .public-home .pilgrimage-order {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .pilgrimage-order > span {
+  display: grid !important;
+  min-width: 0 !important;
+  min-height: 4.8rem !important;
+  align-content: start !important;
+  gap: 0.32rem !important;
+  padding: 0.66rem 0.72rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  background: var(--signal-gold) !important;
+}
+
+html body .public-home .pilgrimage-order > span:nth-child(2) {
+  background: var(--signal-pink) !important;
+}
+
+html body .public-home .pilgrimage-order > span:nth-child(5) {
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .pilgrimage-order > span:last-child {
+  border-right: 0 !important;
+}
+
+html body .public-home .pilgrimage-order strong[lang="en"] {
+  display: block !important;
+  max-width: 100% !important;
+  font-family: var(--font-heavy-header) !important;
+  font-weight: 400 !important;
+  font-size: clamp(1.02rem, 1.35vw, 1.42rem) !important;
+  line-height: 0.96 !important;
+  letter-spacing: 0 !important;
+  overflow-wrap: anywhere !important;
+  transform: scaleX(0.9) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .pilgrimage-order small[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-size: clamp(0.7rem, 0.78vw, 0.86rem) !important;
+  line-height: 1.45 !important;
+  word-break: keep-all !important;
+}
+
+html body .public-home .masthead-index .editorial-plate--masthead {
+  width: min(100%, 42rem) !important;
+  height: clamp(11rem, 22vw, 19rem) !important;
+  margin: 0 !important;
+  border: 2px solid var(--ink) !important;
+}
+
+html body .public-home .masthead-index .orientation-ledger {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+html body .public-home .masthead-ritual {
+  display: none !important;
+}
+
+html body .public-home .masthead-latin {
+  position: absolute !important;
+  right: clamp(1rem, 2vw, 1.6rem) !important;
+  bottom: clamp(1rem, 2vw, 1.6rem) !important;
+  max-width: min(24rem, 36vw) !important;
+  margin: 0 !important;
+  padding: 0.48rem 0.62rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  font-size: clamp(0.78rem, 0.94vw, 1rem) !important;
+  line-height: 1.3 !important;
+}
+
+html body .public-home :is(.orientation-ledger, .orientation-routes, .constellation-grid, .event-meta, .archive-ledger, .poster-grid, .detail-record, .detail-poster, .detail-copy, .detail-keeper-panel, .keeper-sync-panel, .keeper-list, .keeper-record-preview) {
+  border-color: var(--ink) !important;
+}
+
+html body .public-home .archive-ledger {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 2px solid var(--ink) !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .archive-ledger a {
+  display: grid !important;
+  min-width: 0 !important;
+  min-height: 8rem !important;
+  padding: 0.82rem 0.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .archive-ledger a:nth-child(1) {
+  background: var(--signal-pink) !important;
+}
+
+html body .public-home .archive-ledger a:nth-child(2) {
+  background: var(--signal-gold) !important;
+}
+
+html body .public-home .archive-ledger a:nth-child(4) {
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .poster-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 2px solid var(--ink) !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  background: var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .poster-tile {
+  min-width: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .poster-frame {
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .archive-cta,
+html body .public-home .archive-cta.inverse,
+html body .members-archive .archive-main button,
+html body .members-archive .member-login-actions > button,
+html body .members-archive .member-login-actions > div > button {
+  border: 2px solid var(--ink, var(--register-ink)) !important;
+  min-height: 2.65rem !important;
+}
+
+/* Public detail: the editor exists as a hidden keeper layer, not as page UI. */
+html body .public-home .detail-keeper-panel {
+  width: min(100%, 18rem) !important;
+  margin: 1.2rem 0 0 auto !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-panel[open] {
+  width: 100% !important;
+}
+
+html body .public-home .detail-keeper-panel summary {
+  display: grid !important;
+  min-height: 3.1rem !important;
+  align-items: center !important;
+  gap: 0.18rem !important;
+  padding: 0.56rem 0.72rem !important;
+  border: 0 !important;
+  background: var(--signal-blue) !important;
+  cursor: pointer !important;
+}
+
+html body .public-home .detail-keeper-panel[open] summary {
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-panel summary span[lang="en"] {
+  font-size: clamp(1.05rem, 1.45vw, 1.45rem) !important;
+  line-height: 1 !important;
+}
+
+html body .public-home .detail-keeper-panel summary small[lang="ko"] {
+  font-size: 0.72rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .public-home .detail-keeper-status {
+  display: block !important;
+  width: auto !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  margin: 0 !important;
+  padding: 0.58rem 0.72rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  font-weight: 900 !important;
+  line-height: 1.45 !important;
+}
+
+html body .public-home .detail-keeper-status[data-sync-state="sealed"] {
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .detail-keeper-status[data-sync-state="warning"] {
+  background: var(--signal) !important;
+}
+
+/* Member room: one closed entrance ledger. This fixes the broken line in the
+   attached screenshot where the bottom row painted over its own top rule. */
+html body .members-archive .archive-sidebar-foot {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .members-archive .archive-sync-ledger {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 0.22rem !important;
+  padding: 0.7rem 0.78rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-sync-ledger[data-sync-state="pending"] {
+  background: var(--register-gold) !important;
+}
+
+html body .members-archive .archive-sync-ledger[data-sync-state="sealed"] {
+  background: var(--register-blue) !important;
+}
+
+html body .members-archive .archive-sync-ledger[data-sync-state="local"] {
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .archive-sync-ledger[data-sync-state="warning"] {
+  background: var(--register-rose) !important;
+}
+
+html body .members-archive .archive-sync-ledger span[lang="en"] {
+  display: block !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1rem, 1.35vw, 1.42rem) !important;
+  line-height: 0.96 !important;
+  letter-spacing: 0 !important;
+  transform: scaleX(0.9) !important;
+  transform-origin: left center !important;
+}
+
+html body .members-archive .archive-sync-ledger strong[lang="ko"],
+html body .members-archive .archive-sync-ledger small[lang="ko"] {
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  word-break: keep-all !important;
+}
+
+html body .members-archive .archive-sync-ledger strong[lang="ko"] {
+  font-size: clamp(0.86rem, 0.95vw, 1rem) !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-sync-ledger small[lang="ko"] {
+  font-size: clamp(0.68rem, 0.78vw, 0.82rem) !important;
+  line-height: 1.42 !important;
+}
+
+html body .members-archive .archive-sync-ledger:not(.is-compact) {
+  width: min(100%, 29rem) !important;
+  margin-top: 0.72rem !important;
+}
+
+html body .members-archive .archive-server-line {
+  display: none !important;
+}
+
+html body .members-archive .member-login {
+  align-items: center !important;
+}
+
+html body .members-archive .member-login > .flex.flex-col.items-center,
+html body .members-archive .member-login > div:first-child {
+  display: grid !important;
+  width: min(100%, 44rem) !important;
+  justify-items: center !important;
+  gap: 0 !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  width: 100% !important;
+  height: clamp(12rem, 34vw, 19rem) !important;
+  margin: 0 !important;
+  border: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-intent {
+  position: relative !important;
+  display: grid !important;
+  width: 100% !important;
+  grid-template-columns: minmax(12rem, 0.3fr) minmax(0, 0.7fr) !important;
+  grid-template-rows: minmax(5.75rem, auto) auto !important;
+  margin: 0 !important;
+  border: 2px solid var(--register-ink) !important;
+  border-top: 0 !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 5.75rem !important;
+  align-items: center !important;
+  padding: 0.78rem 0.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  font-size: clamp(1.08rem, 1.48vw, 1.62rem) !important;
+  line-height: 0.96 !important;
+  transform: scaleX(0.86) !important;
+  transform-origin: left center !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 5.75rem !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0.78rem 1rem !important;
+  border: 0 !important;
+  background: var(--register-paper) !important;
+  font-size: clamp(0.82rem, 0.92vw, 0.98rem) !important;
+  line-height: 1.55 !important;
+  word-break: keep-all !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  position: relative !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  min-height: 3.85rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: var(--register-gold) !important;
+  list-style: none !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-intent > ol::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 3 !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: var(--register-ink) !important;
+  pointer-events: none !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 3.85rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0.82rem 0.76rem 0.68rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-size: clamp(0.78rem, 0.88vw, 0.94rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+  word-break: keep-all !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}
+
+html body .members-archive .member-login-actions {
+  width: min(100%, 44rem) !important;
+  margin: 0.74rem 0 0 !important;
+}
+
+html body .members-archive .member-record-row {
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .publication-masthead {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  html body .public-home .masthead-mark {
+    min-height: 18rem !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .masthead-latin {
+    position: static !important;
+    max-width: 100% !important;
+  }
+
+  html body .public-home .archive-ledger,
+  html body .public-home .poster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .members-archive .archive-topbar .archive-sync-ledger {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body .public-home .pilgrimage-order,
+  html body .public-home .archive-ledger,
+  html body .public-home .poster-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .pilgrimage-order > span {
+    min-height: 3.4rem !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .pilgrimage-order > span:last-child {
+    border-bottom: 0 !important;
+  }
+
+  html body .members-archive .member-login-intent {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-login-intent > span[lang="en"],
+  html body .members-archive .member-login-intent > p[lang="ko"] {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    border-right: 0 !important;
+  }
+
+  html body .members-archive .member-login-intent > span[lang="en"] {
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+
+  html body .members-archive .member-login-intent > ol {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-login-intent > ol > li {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+
+  html body .members-archive .member-login-intent > ol > li:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
 html body .members-archive .member-login-actions {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(8rem, 1fr)) !important;
@@ -1296,4 +2414,127 @@ html body .members-archive .member-login-intent > ol > li:first-child {
 
 html body .members-archive .member-login-intent > ol > li:last-child {
   border-right: 0 !important;
+}
+
+/* Final lower-band alignment. Keep this at the end of the file. */
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  display: grid !important;
+  grid-template-columns: minmax(18rem, 28rem) minmax(22rem, 42rem) minmax(0, 1fr) minmax(10rem, 14rem) !important;
+  grid-template-rows: clamp(18rem, 24vw, 28rem) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block {
+  background: var(--signal-green) !important;
+}
+
+html body .public-home .join-block {
+  background: var(--signal) !important;
+}
+
+html body .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-content: start !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 0 !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img,
+html body .public-home .join-block .editorial-plate--join img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 3 / 4 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: clamp(1rem, 2.5vw, 3rem) !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  background: inherit !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 4 / 5 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .manifesto-block::after {
+  content: "" !important;
+  display: block !important;
+  grid-column: 4 / 5 !important;
+  grid-row: 1 !important;
+  background: var(--signal-green) !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .manifesto-block > p.ko-display,
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display,
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+
+  html body .public-home .manifesto-block::after {
+    content: none !important;
+  }
 }

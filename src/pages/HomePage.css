@@ -4719,3 +4719,129 @@
     border-bottom: 0 !important;
   }
 }
+
+/* Keeper Desk stability: working fields must read like a ledger, not clipped decoration. */
+.public-home.keeper-home .keeper-room {
+  grid-template-columns: minmax(18rem, 25rem) minmax(0, 1fr) !important;
+}
+
+.public-home.keeper-home .keeper-register {
+  overflow: hidden !important;
+}
+
+.public-home.keeper-home .keeper-purpose-list {
+  width: min(100%, 28rem) !important;
+  border: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+.public-home.keeper-home .keeper-purpose-list li {
+  display: block !important;
+  max-width: 100% !important;
+  padding: 0.72rem 0.9rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  font-size: clamp(0.9rem, 0.94vw, 1rem) !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  transform: none !important;
+}
+
+.public-home.keeper-home .keeper-purpose-list li:last-child {
+  border-bottom: 0 !important;
+}
+
+.public-home.keeper-home .godmode-editor {
+  grid-template-columns: minmax(17rem, 24rem) minmax(0, 1fr) !important;
+}
+
+.public-home.keeper-home .godmode-preview {
+  min-height: 16rem !important;
+}
+
+.public-home.keeper-home .godmode-preview h2 {
+  font-size: clamp(2.2rem, 3.6vw, 4.2rem) !important;
+  white-space: normal !important;
+}
+
+.public-home.keeper-home .godmode-form {
+  min-width: 0 !important;
+  padding: clamp(1rem, 1.6vw, 1.45rem) !important;
+  overflow: visible !important;
+}
+
+.public-home.keeper-home .godmode-field-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(15rem, 1fr)) !important;
+  gap: 0 !important;
+  border: 2px solid var(--ink) !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  overflow: visible !important;
+}
+
+.public-home.keeper-home .godmode-field {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto auto !important;
+  gap: 0.48rem !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0.78rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: visible !important;
+}
+
+.public-home.keeper-home .godmode-field > span {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.9rem !important;
+  font-weight: 950 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+.public-home.keeper-home .godmode-field input,
+.public-home.keeper-home .godmode-field textarea {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 3.1rem !important;
+  height: auto !important;
+  padding: 0.68rem 0.74rem !important;
+  border: 2px solid var(--ink) !important;
+  background: #f7efdd !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.95rem !important;
+  font-weight: 850 !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  transform: none !important;
+}
+
+.public-home.keeper-home .godmode-field textarea {
+  min-height: 6.8rem !important;
+  resize: vertical !important;
+}
+
+@media (max-width: 980px) {
+  .public-home.keeper-home .keeper-room,
+  .public-home.keeper-home .godmode-editor,
+  .public-home.keeper-home .godmode-field-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

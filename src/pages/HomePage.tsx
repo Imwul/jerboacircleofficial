@@ -88,6 +88,7 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
         </div>
       </div>
       <div className="masthead-index">
+        <p className="gate-label" lang="en">Gate</p>
         <p lang="en">{siteText.mastheadIntroEn}</p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
         <EditorialPlate

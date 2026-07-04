@@ -39,9 +39,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-stone-50 text-center">
-          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 text-2xl">⚠️</div>
-          <h1 className="text-xl font-black text-stone-900 mb-2">앱에 오류가 발생했습니다</h1>
-          <p className="text-sm text-stone-500 mb-6">데이터가 너무 크거나 일시적인 오류일 수 있습니다.</p>
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 text-2xl">!</div>
+          <h1 className="text-xl font-black text-stone-900 mb-2">장부가 잠시 닫혔습니다</h1>
+          <p className="text-sm text-stone-500 mb-6">데이터가 너무 크거나 일시적으로 열 수 없는 상태입니다.</p>
           <button 
             onClick={() => {
               localStorage.clear();
@@ -76,6 +76,39 @@ const STORAGE_KEYS = {
   EVENTS: 'jerboa_events',
   THEMES: 'jerboa_themes',
 };
+
+type SyncTone = 'idle' | 'pending' | 'sealed' | 'local' | 'warning';
+
+function syncToneFor(status: string): SyncTone {
+  if (/실패|미연결|닫힘|닫혔|읽을 수|올바르지|잘못|가득/.test(status)) return 'warning';
+  if (/로컬|초안|보관 중/.test(status)) return 'local';
+  if (/봉인 중|여는 중|생성 중|연결 대기|기다리는 중/.test(status)) return 'pending';
+  if (/봉인됨|열람됨|생성됨|완료|적용/.test(status)) return 'sealed';
+  return 'idle';
+}
+
+function syncTitleFor(tone: SyncTone, status: string) {
+  if (tone === 'warning') return '장부가 잠시 닫혔습니다';
+  if (tone === 'local') return '로컬 초안 보관 중';
+  if (tone === 'pending' && status.includes('봉인 중')) return '공동 장부에 봉인 중';
+  if (tone === 'pending' && status.includes('여는 중')) return '공동 장부 여는 중';
+  if (tone === 'pending') return '공동 장부 연결 중';
+  if (tone === 'sealed' && status.includes('열람')) return '공동 장부 열람됨';
+  if (tone === 'sealed') return '공동 장부에 봉인됨';
+  return '공동 장부 대기';
+}
+
+function RegisterSyncStatus({ status, compact = false }: { status: string; compact?: boolean }) {
+  const tone = syncToneFor(status);
+
+  return (
+    <div className={`archive-sync-ledger${compact ? ' is-compact' : ''}`} data-sync-state={tone}>
+      <span lang="en">Colophon</span>
+      <strong lang="ko">{syncTitleFor(tone, status)}</strong>
+      <small lang="ko">{status}</small>
+    </div>
+  );
+}
 
 interface MembersSyncPayload {
   users: User[];
@@ -124,8 +157,10 @@ function App() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'profile' | 'admin'>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결 대기');
+  const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
   const hasServerHydrated = useRef(false);
+  const localNoticeArmed = useRef(false);
+  const skipNextLocalNotice = useRef(false);
   const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [clipboard, setClipboard] = useState<CalendarEvent | null>(null);
@@ -154,7 +189,7 @@ function App() {
       setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH:mm:ss')}`);
       return true;
     } catch (error) {
-      setServerSyncStatus('공동 장부가 잠시 닫힘 / 로컬 장부 보관 중');
+      setServerSyncStatus('공동 장부가 잠시 닫혔습니다 / 로컬 초안 보관 중');
       console.error('Server save failed:', error);
       return false;
     }
@@ -166,18 +201,20 @@ function App() {
       const result = await loadServerSync<MembersSyncPayload>('members');
 
       if (result.exists && result.saved?.data) {
+        skipNextLocalNotice.current = true;
         applyMembersSyncPayload(result.saved.data);
         setServerSyncStatus(`공동 장부 열람됨 / ${format(new Date(result.saved.savedAt), 'HH:mm:ss')}`);
       } else {
         setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
         await saveServerSync('members', createMembersSyncPayload());
-        setServerSyncStatus('공동 장부 생성됨');
+        setServerSyncStatus('공동 장부 생성됨 / 첫 판본 봉인됨');
       }
     } catch (error) {
-      setServerSyncStatus('공동 장부 미연결 / 로컬 장부 사용 중');
+      setServerSyncStatus('공동 장부가 잠시 닫혔습니다 / 로컬 초안 보관 중');
       console.error('Server load failed:', error);
     } finally {
       hasServerHydrated.current = true;
+      localNoticeArmed.current = true;
     }
   };
 
@@ -202,6 +239,11 @@ function App() {
       if (e instanceof Error && e.name === 'QuotaExceededError') {
         setNotice('로컬 장부가 가득 찼습니다. 사진 크기를 줄이거나 오래된 데이터를 정리해주세요.');
       }
+    }
+    if (!localNoticeArmed.current) return;
+    if (skipNextLocalNotice.current) {
+      skipNextLocalNotice.current = false;
+      return;
     }
     triggerSaveNotification();
   }, [users, events, themeNames, mainImage]);
@@ -234,7 +276,7 @@ function App() {
   }, [notice]);
 
   const triggerSaveNotification = () => {
-    setLastSaved(format(new Date(), 'HH mm ss'));
+    setLastSaved(format(new Date(), 'HH:mm:ss'));
   };
 
   const [syncCodeToDisplay, setSyncCodeToDisplay] = useState<string | null>(null);
@@ -474,7 +516,7 @@ function App() {
   const archiveSectionTitle = !currentUser
     ? 'Antecamera'
     : currentUser === 'admin'
-      ? activeTab === 'admin' ? 'Scriptorium' : 'Itinerary'
+      ? activeTab === 'admin' ? 'Keeper Desk' : 'Itinerary'
       : activeTab === 'habit' ? 'Marginalia' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
   const archiveSectionNote = !currentUser
     ? '이름을 선택하면 개인 장부와 프로그램 기록으로 들어갑니다.'
@@ -506,13 +548,15 @@ function App() {
                   <small lang="ko">오늘의 주석 {completedToday}개</small>
                 </button>
               )}
-              <button className={activeTab === 'profile' || activeTab === 'admin' ? 'is-active' : ''} onClick={() => currentUser !== 'admin' ? setActiveTab('profile') : setActiveTab('admin')}>
-                <span lang="en">Folio</span>
-                <small lang="ko">회원 장부 {users.length}명</small>
-              </button>
+              {currentUser !== 'admin' && (
+                <button className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')}>
+                  <span lang="en">Folio</span>
+                  <small lang="ko">개인 장부</small>
+                </button>
+              )}
               {currentUser === 'admin' && (
                 <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
-                  <span lang="en">Keeper</span>
+                  <span lang="en">Keeper Desk</span>
                   <small lang="ko">보관자 필사실</small>
                 </button>
               )}
@@ -523,20 +567,16 @@ function App() {
               <small lang="ko">이름을 선택하면 개인 장부가 열립니다</small>
             </div>
           )}
-          <div className="archive-sidebar-foot" aria-label="Common register sync status">
-            <span lang="en">Common register</span>
-            <span lang="ko">{serverSyncStatus}</span>
-          </div>
           <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en"><i aria-hidden="true">⚜</i> Forbidden room</span>
-            <small lang="ko">진입금지 / 고정 문구실</small>
+            <span lang="en"><i aria-hidden="true">⚜</i> Keeper Desk</span>
+            <small lang="ko">보관자 문구실</small>
           </a>
         </aside>
 
         <div className="archive-workbench">
           {lastSaved && (
             <div className="archive-save-notice">
-              장부에 기록됨 / {lastSaved}
+              로컬 초안 보관 중 / {lastSaved}
             </div>
           )}
           {notice && (
@@ -550,7 +590,7 @@ function App() {
               <p lang="en">Jerboa Circle / private room</p>
               <h1 lang="en">{archiveSectionTitle}</h1>
               <span lang="ko">{archiveSectionNote}</span>
-              <span className="archive-server-line" lang="ko">{serverSyncStatus}</span>
+              <RegisterSyncStatus status={serverSyncStatus} />
             </div>
             <div className="archive-topbar-actions">
               {currentUser === 'admin' && (

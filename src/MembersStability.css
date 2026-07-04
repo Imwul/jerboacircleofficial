@@ -1439,3 +1439,84 @@ html body .members-archive .member-login-intent > ol > li:last-child {
     border-right: 0 !important;
   }
 }
+
+/* Final register alignment: Keeper Desk is a small door, not a giant panel;
+   the entrance folio keeps one vertical rule from title cell to first action. */
+html body .members-archive .archive-sidebar {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
+}
+
+html body .members-archive .archive-sidebar-foot {
+  display: none !important;
+}
+
+html body .members-archive .archive-godmode-link {
+  align-self: start !important;
+  min-height: 5.4rem !important;
+  margin: 1rem !important;
+  padding: 0.75rem 0.95rem !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  font-size: clamp(1.15rem, 1.9vw, 1.65rem) !important;
+  line-height: 0.96 !important;
+}
+
+html body .members-archive .archive-godmode-link small[lang="ko"] {
+  font-size: 0.82rem !important;
+}
+
+html body .members-archive .member-login > .flex.flex-col.items-center,
+html body .members-archive .member-login > div:first-child,
+html body .members-archive .member-login > .w-full,
+html body .members-archive .member-login > div:nth-child(2),
+html body .members-archive .member-login-actions {
+  width: min(100%, 42rem) !important;
+  max-width: 42rem !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  height: clamp(10.5rem, 21vw, 16rem) !important;
+}
+
+html body .members-archive .member-login-intent {
+  width: min(100%, 42rem) !important;
+  max-width: 42rem !important;
+  grid-template-columns: minmax(12rem, 0.32fr) minmax(0, 0.68fr) !important;
+  grid-template-rows: minmax(5.1rem, auto) auto !important;
+  border: 2px solid var(--register-ink) !important;
+  border-top: 0 !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  min-height: 5.1rem !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+  font-size: clamp(1.05rem, 1.35vw, 1.42rem) !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  min-height: 5.1rem !important;
+  max-width: none !important;
+  border-bottom: 0 !important;
+  font-size: clamp(0.82rem, 0.88vw, 0.96rem) !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  grid-template-columns: minmax(12rem, 0.32fr) repeat(2, minmax(0, 0.34fr)) !important;
+  min-height: 3.2rem !important;
+  border-top: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  min-height: 3.2rem !important;
+  border-right: 2px solid var(--register-ink) !important;
+  font-size: clamp(0.82rem, 0.88vw, 0.94rem) !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}

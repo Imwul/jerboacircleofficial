@@ -241,17 +241,17 @@ export default function KeeperPage() {
   }
 
   function createNewRecord() {
-    const nextId = makeRecordId('New Programme');
+    const nextId = makeRecordId('Unwritten Folio');
     const nextDraft: ArchiveEventDraft = {
       edition: `Edition ${String(archiveEvents.length + 1).padStart(3, '0')}`,
-      title: 'New Programme',
+      title: '아직 필사되지 않은 장',
       subtitle: 'A passage not yet named',
       latinQuote: 'Ad quaerendum',
       marginalia: '아직 이름 붙지 않은 여정의 첫 기록입니다.',
-      date: '새 프로그램',
+      date: '아직 필사되지 않은 장',
       status: 'upcoming',
       posterImage: events[0].posterImage,
-      shortDescription: '새 프로그램의 짧은 설명을 입력하세요.',
+      shortDescription: '아직 필사되지 않은 장의 짧은 설명을 입력하세요.',
       longDescription: '책, 이미지, 사물, 장소가 어떻게 하나의 여정으로 엮이는지 이곳에 기록합니다.',
       passage: ['부름', '통과', '귀환'],
       materials: ['book', 'image', 'note'],
@@ -443,7 +443,7 @@ export default function KeeperPage() {
           </div>
           {mode === 'events' && (
             <button className="keeper-new-record" type="button" onClick={createNewRecord}>
-              새 프로그램 기록 추가
+              아직 필사되지 않은 장 추가
             </button>
           )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">

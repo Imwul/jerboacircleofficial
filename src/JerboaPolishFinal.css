@@ -1,0 +1,645 @@
+/* Last-mile polish layer. Keep imported after JerboaFinalRepair.css. */
+
+html body .public-home .masthead-latin {
+  display: none !important;
+}
+
+html body .members-archive .archive-sidebar {
+  grid-template-rows: auto auto auto 1fr auto !important;
+}
+
+html body .members-archive .archive-sidebar-foot {
+  display: none !important;
+}
+
+html body .members-archive .archive-topbar {
+  min-height: 9.5rem !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-topbar h1[lang="en"] {
+  display: block !important;
+  margin-top: 0.8rem !important;
+  max-width: 100% !important;
+  font-size: clamp(2.7rem, 4.6vw, 4.7rem) !important;
+  line-height: 0.88 !important;
+  overflow: visible !important;
+  text-wrap: balance !important;
+}
+
+html body .members-archive .archive-topbar p[lang="en"] {
+  position: relative !important;
+  z-index: 2 !important;
+  font-size: clamp(1.05rem, 1.65vw, 1.55rem) !important;
+}
+
+html body .members-archive .member-login {
+  display: flex !important;
+  min-height: auto !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 1.1rem !important;
+  padding: clamp(1.1rem, 3vw, 2.2rem) !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .member-login > .flex.flex-col.items-center,
+html body .members-archive .member-login > div:first-child {
+  display: grid !important;
+  width: min(100%, 42rem) !important;
+  max-width: 42rem !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  text-align: center !important;
+}
+
+html body .members-archive .member-login > .w-full,
+html body .members-archive .member-login > div:nth-child(2) {
+  width: min(100%, 42rem) !important;
+  max-width: 42rem !important;
+}
+
+html body .members-archive .member-login-manuscript {
+  display: block !important;
+  width: 100% !important;
+  height: clamp(10.5rem, 21vw, 16rem) !important;
+  margin: 0 !important;
+  border: 2px solid #050505 !important;
+  border-bottom: 0 !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-manuscript img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 42% !important;
+}
+
+html body .members-archive .member-login-intent {
+  position: relative !important;
+  display: grid !important;
+  width: 100% !important;
+  max-width: 42rem !important;
+  grid-template-columns: minmax(11rem, 0.32fr) minmax(0, 0.68fr) !important;
+  grid-template-rows: minmax(5.1rem, auto) auto !important;
+  margin: 0 !important;
+  border: 2px solid #050505 !important;
+  border-color: #050505 !important;
+  border-top: 0 !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-main .member-login .space-y-4 > .member-login-intent {
+  border-color: #050505 !important;
+}
+
+html body .members-archive .member-login-intent > span[lang="en"] {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 5.1rem !important;
+  align-items: center !important;
+  padding: 0.78rem 0.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid #050505 !important;
+  background: var(--register-paper) !important;
+  font-size: clamp(0.95rem, 1.1vw, 1.18rem) !important;
+  line-height: 0.96 !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 5.1rem !important;
+  max-width: none !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0.78rem 1rem !important;
+  border: 0 !important;
+  background: var(--register-paper) !important;
+  font-size: clamp(0.82rem, 0.88vw, 0.96rem) !important;
+  line-height: 1.52 !important;
+  word-break: keep-all !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > ol {
+  position: relative !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-columns: minmax(11rem, 0.32fr) repeat(2, minmax(0, 0.34fr)) !important;
+  min-height: 3.2rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-top: 2px solid #050505 !important;
+  border-color: #050505 !important;
+  background: var(--register-gold) !important;
+  list-style: none !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .member-login-intent > ol::before {
+  content: none !important;
+}
+
+html body .members-archive .member-login-intent > ol > li {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 3.2rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0.58rem 0.7rem !important;
+  border: 0 !important;
+  border-right: 2px solid #050505 !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+  font-size: clamp(0.82rem, 0.88vw, 0.94rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  word-break: keep-all !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:last-child {
+  border-right: 0 !important;
+}
+
+html body .members-archive .member-login-intent > ol > li:first-child {
+  justify-content: center !important;
+}
+
+html body .members-archive .member-login-actions {
+  width: min(100%, 42rem) !important;
+  max-width: 42rem !important;
+  margin: 0 !important;
+}
+
+html body .public-home .manifesto-block,
+html body .public-home .join-block {
+  --lower-band-height: clamp(18rem, 23vw, 25rem);
+  display: grid !important;
+  grid-template-columns:
+    minmax(17rem, 24rem)
+    minmax(22rem, 0.43fr)
+    minmax(28rem, 0.57fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  width: 100% !important;
+  height: var(--lower-band-height) !important;
+  max-height: var(--lower-band-height) !important;
+  min-height: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .manifesto-block {
+  background: var(--signal-green) !important;
+}
+
+html body .public-home .join-block {
+  background: var(--signal) !important;
+}
+
+html body .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body .public-home .manifesto-block [lang="ko"],
+html body .public-home .join-block [lang="ko"] {
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+html body .public-home .manifesto-block .section-kicker,
+html body .public-home .join-block .section-kicker {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  align-content: flex-start !important;
+  gap: 0.58rem !important;
+  margin: 0 !important;
+  padding: clamp(1.25rem, 2vw, 1.85rem) clamp(1rem, 1.8vw, 1.6rem) !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+}
+
+html body .public-home .manifesto-block .section-kicker {
+  background: var(--signal-pink) !important;
+}
+
+html body .public-home .join-block .section-kicker {
+  background: var(--signal-blue) !important;
+}
+
+html body .public-home .manifesto-block .section-kicker .kicker-divider,
+html body .public-home .join-block .section-kicker .kicker-divider {
+  display: none !important;
+}
+
+html body .public-home .manifesto-block .section-kicker .kicker-en,
+html body .public-home .join-block .section-kicker .kicker-en,
+html body .public-home .manifesto-block .section-kicker span[lang="en"],
+html body .public-home .join-block .section-kicker span[lang="en"] {
+  display: block !important;
+  flex: 0 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.95rem, 2.65vw, 3rem) !important;
+  line-height: 0.9 !important;
+  letter-spacing: 0 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  text-wrap: balance !important;
+}
+
+html body .public-home .manifesto-block .section-kicker .kicker-ko,
+html body .public-home .join-block .section-kicker .kicker-ko,
+html body .public-home .manifesto-block .section-kicker span[lang="ko"],
+html body .public-home .join-block .section-kicker span[lang="ko"] {
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  margin: 0 !important;
+  font-size: clamp(0.82rem, 0.88vw, 0.98rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.24 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto,
+html body .public-home .join-block .editorial-plate--join {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img,
+html body .public-home .join-block .editorial-plate--join img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+html body .public-home .manifesto-block .editorial-plate--manifesto img {
+  object-position: center 46% !important;
+}
+
+html body .public-home .join-block .editorial-plate--join img {
+  object-position: center 42% !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display,
+html body .public-home .join-block h2.ko-display {
+  grid-column: 3 / 4 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  padding: clamp(1.25rem, 2.7vw, 3rem) !important;
+  border: 0 !important;
+  background: inherit !important;
+  box-sizing: border-box !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  transform: none !important;
+}
+
+html body .public-home .manifesto-block > p.ko-display span[lang="ko"],
+html body .public-home .join-block h2.ko-display span[lang="ko"] {
+  display: block !important;
+  width: auto !important;
+  max-width: min(43rem, calc(100% / var(--ko-ritual-scale-x))) !important;
+  font-size: clamp(1.08rem, 1.28vw, 1.55rem) !important;
+  line-height: 1.62 !important;
+  letter-spacing: 0 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .public-home .join-block h2.ko-display {
+  padding-bottom: clamp(5.2rem, 6vw, 6.4rem) !important;
+}
+
+html body .public-home .join-block > .archive-cta {
+  grid-column: 3 / 4 !important;
+  grid-row: 1 !important;
+  align-self: end !important;
+  justify-self: start !important;
+  width: max-content !important;
+  max-width: calc(100% - clamp(2.5rem, 5.4vw, 6rem)) !important;
+  height: auto !important;
+  min-height: 3.25rem !important;
+  margin: 0 0 clamp(1.25rem, 2.4vw, 2.2rem) clamp(1.25rem, 2.7vw, 3rem) !important;
+  padding: 0.62rem 1rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-blue) !important;
+  color: var(--ink) !important;
+  z-index: 2 !important;
+  box-sizing: border-box !important;
+}
+
+html body .public-home.keeper-home .keeper-room {
+  grid-template-columns: minmax(18rem, 25rem) minmax(0, 1fr) !important;
+}
+
+html body .public-home.keeper-home .keeper-register {
+  gap: clamp(0.8rem, 1.25vw, 1.2rem) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home.keeper-home .keeper-register > .section-kicker {
+  display: block !important;
+  width: 100% !important;
+  min-height: auto !important;
+  padding: 0.52rem 0.7rem !important;
+  font-size: clamp(0.95rem, 1.15vw, 1.2rem) !important;
+  line-height: 1.05 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow: hidden !important;
+}
+
+html body .public-home.keeper-home .keeper-register h1 {
+  max-width: 100% !important;
+  font-size: clamp(2.75rem, 4.15vw, 4.45rem) !important;
+  line-height: 1.04 !important;
+  margin-bottom: 0.2rem !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  text-wrap: balance !important;
+}
+
+html body .public-home.keeper-home .keeper-register > p[lang="ko"] {
+  max-width: 21rem !important;
+  font-size: clamp(0.92rem, 1vw, 1.05rem) !important;
+  line-height: 1.52 !important;
+}
+
+html body .public-home.keeper-home .keeper-purpose-list {
+  width: min(100%, 28rem) !important;
+  border: 2px solid var(--ink) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home.keeper-home .keeper-purpose-list li {
+  display: block !important;
+  padding: 0.65rem 0.82rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  font-size: clamp(0.86rem, 0.9vw, 0.98rem) !important;
+  line-height: 1.45 !important;
+  word-break: keep-all !important;
+  transform: none !important;
+}
+
+html body .public-home.keeper-home .keeper-purpose-list li:last-child {
+  border-bottom: 0 !important;
+}
+
+html body .public-home .featured-copy .latin-line {
+  margin-bottom: 0.85rem !important;
+}
+
+html body .public-home .featured-copy > p[lang="ko"],
+html body .public-home .masthead-index > p[lang="ko"] {
+  position: relative !important;
+  z-index: 4 !important;
+}
+
+@media (max-width: 720px) {
+  html body .members-archive {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .archive-sidebar {
+    position: relative !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+    overflow: hidden !important;
+  }
+
+  html body .members-archive .archive-sidebar::before {
+    content: none !important;
+  }
+
+  html body .members-archive .archive-sigil {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    align-content: center !important;
+    justify-content: flex-start !important;
+    justify-items: start !important;
+    gap: 0.22rem 0.42rem !important;
+    min-height: 4.8rem !important;
+    padding: 0.8rem 1rem 0.72rem !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+    background: var(--register-paper) !important;
+    color: var(--register-ink) !important;
+    font-size: clamp(1.55rem, 8vw, 2rem) !important;
+    line-height: 0.82 !important;
+  }
+
+  html body .members-archive .archive-sigil span {
+    position: static !important;
+    display: inline !important;
+    color: var(--register-ink) !important;
+    font-size: clamp(1.22rem, 5.8vw, 1.55rem) !important;
+    line-height: 0.9 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    transform: none !important;
+  }
+
+  html body .members-archive .archive-sigil::after {
+    flex-basis: 100% !important;
+    width: 3.8rem !important;
+    height: 2px !important;
+    margin-top: 0.55rem !important;
+    background: var(--register-ink) !important;
+  }
+
+  html body .members-archive .archive-public-return,
+  html body .members-archive .archive-cabinet button,
+  html body .members-archive .archive-godmode-link {
+    width: calc(100% - 1.5rem) !important;
+    max-width: none !important;
+    margin: 0.45rem 0.75rem !important;
+    justify-items: start !important;
+    text-align: left !important;
+    border: 2px solid var(--register-ink) !important;
+  }
+
+  html body .members-archive .archive-public-return span[lang="en"],
+  html body .members-archive .archive-cabinet button span[lang="en"],
+  html body .members-archive .archive-godmode-link span[lang="en"] {
+    justify-content: flex-start !important;
+    max-width: 100% !important;
+    font-size: clamp(1rem, 5.4vw, 1.45rem) !important;
+    line-height: 1 !important;
+    white-space: normal !important;
+    text-align: left !important;
+  }
+
+  html body .members-archive .archive-public-return small[lang="ko"],
+  html body .members-archive .archive-cabinet button small[lang="ko"],
+  html body .members-archive .archive-godmode-link small[lang="ko"] {
+    justify-self: start !important;
+    max-width: 100% !important;
+    transform-origin: left center !important;
+    text-align: left !important;
+  }
+
+  html body .members-archive .archive-godmode-link::before {
+    content: none !important;
+  }
+
+  html body .members-archive .archive-godmode-link span[lang="en"],
+  html body .members-archive .archive-godmode-link small[lang="ko"] {
+    padding-left: 0 !important;
+  }
+
+  html body .public-home .masthead-mark {
+    min-height: 17rem !important;
+    padding: 1rem !important;
+  }
+
+  html body .public-home .masthead-logo {
+    width: min(78vw, 19rem) !important;
+    max-height: 16rem !important;
+    transform: translateX(0) rotate(-1.5deg) !important;
+  }
+
+  html body .public-home .masthead-ring {
+    width: min(98vw, 24rem) !important;
+    height: min(98vw, 24rem) !important;
+    transform: translateX(0) rotate(-11deg) !important;
+  }
+
+  html body .public-home.keeper-home .keeper-register h1 {
+    font-size: clamp(2.7rem, 16vw, 4.2rem) !important;
+  }
+}
+
+html body .public-home .manifesto-block::after {
+  content: none !important;
+}
+
+@media (max-width: 1120px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns:
+      minmax(15rem, 19rem)
+      minmax(18rem, 0.45fr)
+      minmax(23rem, 0.55fr) !important;
+    --lower-band-height: clamp(17rem, 24vw, 22rem);
+  }
+
+  html body .public-home .manifesto-block .section-kicker .kicker-en,
+  html body .public-home .join-block .section-kicker .kicker-en,
+  html body .public-home .manifesto-block .section-kicker span[lang="en"],
+  html body .public-home .join-block .section-kicker span[lang="en"] {
+    font-size: clamp(1.75rem, 2.8vw, 2.85rem) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  html body .public-home .manifesto-block,
+  html body .public-home .join-block {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .manifesto-block > p.ko-display,
+  html body .public-home .join-block .section-kicker,
+  html body .public-home .join-block .editorial-plate--join,
+  html body .public-home .join-block h2.ko-display,
+  html body .public-home .join-block > .archive-cta {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .manifesto-block .section-kicker,
+  html body .public-home .join-block .section-kicker {
+    min-height: 6rem !important;
+  }
+
+  html body .public-home .manifesto-block .editorial-plate--manifesto,
+  html body .public-home .join-block .editorial-plate--join {
+    height: clamp(14rem, 42vw, 22rem) !important;
+  }
+
+  html body .public-home .join-block h2.ko-display {
+    padding-bottom: clamp(1.25rem, 2.7vw, 3rem) !important;
+  }
+
+  html body .public-home .join-block > .archive-cta {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-content: center !important;
+  }
+}
