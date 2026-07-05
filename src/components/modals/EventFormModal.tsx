@@ -68,12 +68,14 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
   };
 
   const handleSave = () => {
+    if (!title.trim()) return;
+
     const startDate = parseISO(date);
     const endDate = addMinutes(startDate, duration);
     
     const newEvent: CalendarEvent = {
       id: event?.id || Math.random().toString(36).substr(2, 9),
-      title,
+      title: title.trim(),
       description,
       detailedDescription,
       theme,
@@ -96,13 +98,13 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="event-form-title">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-black tracking-tighter text-stone-900">
+          <h3 id="event-form-title" className="text-xl font-black tracking-tighter text-stone-900">
             <span lang="en">{event ? 'Revised passage' : 'New passage'}</span> / <span lang="ko">{event ? '프로그램 수정' : '프로그램 추가'}</span>
           </h3>
-          <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
+          <button aria-label="프로그램 편집 닫기" onClick={onClose} className="p-2 hover:bg-stone-100 rounded-full text-stone-400 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -284,7 +286,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
         <div className="flex gap-2 pt-4">
           <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all"><span lang="ko">닫기</span></button>
-          <button onClick={handleSave} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all"><span lang="ko">프로그램 저장</span></button>
+          <button onClick={handleSave} disabled={!title.trim()} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all disabled:opacity-40"><span lang="ko">프로그램 저장</span></button>
         </div>
       </div>
     </div>

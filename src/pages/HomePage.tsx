@@ -15,6 +15,26 @@ interface ArchiveSyncPayload {
   siteText?: Partial<SiteText>;
 }
 
+type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
+
+const archiveBookmarkStorageKey = 'jerboa-circle-archive-bookmarks';
+
+function readArchiveBookmarks() {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem(archiveBookmarkStorageKey);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeArchiveBookmarks(ids: string[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(archiveBookmarkStorageKey, JSON.stringify(ids));
+}
+
 function textLang(text: string) {
   return /[가-힣]/.test(text) ? 'ko' : 'en';
 }
@@ -28,7 +48,7 @@ function EditorialPlate({
 }) {
   return (
     <figure className={`editorial-plate ${className}`} aria-hidden="true">
-      <img src={image} alt="" loading="lazy" />
+      <img src={image} alt="" loading="lazy" decoding="async" />
     </figure>
   );
 }
@@ -68,7 +88,7 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
-        <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" />
+        <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" decoding="async" width={591} height={591} />
         <svg className="masthead-ring" viewBox="0 0 600 600" aria-hidden="true">
           <defs>
             <path
@@ -185,7 +205,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
-        <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} />
+        <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
@@ -214,12 +234,50 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
   );
 }
 
-function PosterTile({ event }: { event: ArchiveEvent }) {
+function matchesArchiveQuery(event: ArchiveEvent, query: string) {
+  if (!query.trim()) return true;
+
+  const searchable = [
+    event.edition,
+    event.title,
+    event.subtitle,
+    event.latinQuote,
+    event.marginalia,
+    event.date,
+    event.shortDescription,
+    event.longDescription,
+    event.location,
+    ...event.passage,
+    ...event.materials,
+    ...event.themes,
+  ].join(' ').toLowerCase();
+
+  return searchable.includes(query.trim().toLowerCase());
+}
+
+function PosterTile({
+  event,
+  isBookmarked,
+  onToggleBookmark,
+}: {
+  event: ArchiveEvent;
+  isBookmarked: boolean;
+  onToggleBookmark: (id: string) => void;
+}) {
   return (
     <article className="poster-tile section-reveal">
+      <button
+        type="button"
+        className="archive-bookmark"
+        aria-pressed={isBookmarked}
+        aria-label={`${event.title} ${isBookmarked ? '북마크 해제' : '북마크'}`}
+        onClick={() => onToggleBookmark(event.id)}
+      >
+        <span aria-hidden="true">{isBookmarked ? 'Filed' : 'File'}</span>
+      </button>
       <a href={event.ctaHref} aria-label={`Open archive record for ${event.title}`}>
         <div className="poster-frame">
-          <img src={event.posterImage} alt={`${event.title} poster`} />
+          <img src={event.posterImage} alt={`${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
         </div>
         <div className="poster-caption">
           <span>{event.edition}</span>
@@ -235,6 +293,28 @@ function PosterTile({ event }: { event: ArchiveEvent }) {
 }
 
 function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEvent[]; siteText: SiteText }) {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>('all');
+  const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
+  const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
+  const visibleEvents = archiveEvents.filter((event) => {
+    const statusMatches = statusFilter === 'all' || event.status === statusFilter;
+    return statusMatches && matchesArchiveQuery(event, query);
+  });
+  const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
+  const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
+  const orderedVisibleEvents = [...bookmarkedEvents, ...unbookmarkedEvents];
+
+  function toggleBookmark(id: string) {
+    setBookmarkedIds((current) => {
+      const next = current.includes(id)
+        ? current.filter((bookmarkId) => bookmarkId !== id)
+        : [...current, id];
+      writeArchiveBookmarks(next);
+      return next;
+    });
+  }
+
   return (
     <section className="poster-archive" id="archive">
       <div className="archive-section-title">
@@ -245,8 +325,37 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
           image={editorialPlates.archive}
         />
       </div>
+      <div className="archive-tools" aria-label="Archive search and filters">
+        <label className="archive-search">
+          <span lang="en">Find</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="제목, 주제, 자료 검색"
+            aria-label="아카이브 검색"
+          />
+        </label>
+        <div className="archive-filter-set" aria-label="Archive status filter">
+          {statusFilters.map((filter) => (
+            <button
+              type="button"
+              key={filter}
+              className={statusFilter === filter ? 'is-active' : ''}
+              aria-pressed={statusFilter === filter}
+              onClick={() => setStatusFilter(filter)}
+            >
+              {filter === 'all' ? 'All' : statusLabel(filter, siteText)}
+            </button>
+          ))}
+        </div>
+        <p className="archive-results-count" lang="ko">
+          {visibleEvents.length}개의 기록
+          {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
+        </p>
+      </div>
       <div className="archive-ledger" aria-label="Programme index">
-        {archiveEvents.map((event) => (
+        {orderedVisibleEvents.map((event) => (
           <a href={event.ctaHref} key={event.id}>
             <span>{event.edition}</span>
             <strong>{event.title}</strong>
@@ -255,11 +364,22 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
           </a>
         ))}
       </div>
-      <div className="poster-grid">
-        {archiveEvents.map((event) => (
-          <PosterTile event={event} key={event.id} />
-        ))}
-      </div>
+      {orderedVisibleEvents.length > 0 ? (
+        <div className="poster-grid">
+          {orderedVisibleEvents.map((event) => (
+            <PosterTile
+              event={event}
+              isBookmarked={bookmarkedIds.includes(event.id)}
+              key={event.id}
+              onToggleBookmark={toggleBookmark}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="archive-empty-state" role="status" lang="ko">
+          맞는 기록이 없습니다. 검색어를 줄이거나 상태 필터를 바꿔보세요.
+        </div>
+      )}
     </section>
   );
 }
@@ -342,6 +462,7 @@ export default function HomePage() {
 
   return (
     <div className="public-home">
+      <a className="skip-to-archive" href="#archive">기록 목록으로 바로가기</a>
       <SiteHeader siteText={siteText} />
       <main>
         <Masthead featuredEvent={currentEvent} siteText={siteText} />

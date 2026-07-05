@@ -50,7 +50,9 @@ export default async function handler(request: any, response: any) {
     });
   }
 
-  if (scope === 'archive' && request.method !== 'GET' && !assertSyncKey(request)) {
+  const needsSyncKey = scope === 'members' || (scope === 'archive' && request.method !== 'GET');
+
+  if (needsSyncKey && !assertSyncKey(request)) {
     return sendJson(response, 401, {
       ok: false,
       error: 'sync_key_required',

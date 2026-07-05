@@ -43,6 +43,26 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
     onChange(calculateValue(e.clientX));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (readonly) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      onChange(Math.min(5, value + 0.5));
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      onChange(Math.max(0, value - 0.5));
+    }
+    if (e.key === 'Home') {
+      e.preventDefault();
+      onChange(0);
+    }
+    if (e.key === 'End') {
+      e.preventDefault();
+      onChange(5);
+    }
+  };
+
   const handleMouseUp = () => {
     setIsDragging(false);
   };
@@ -58,6 +78,13 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
     <div className="flex flex-col items-center gap-3">
       <div 
         ref={containerRef}
+        role="slider"
+        tabIndex={readonly ? -1 : 0}
+        aria-label="만족도 평가"
+        aria-valuemin={0}
+        aria-valuemax={5}
+        aria-valuenow={value}
+        aria-valuetext={`${value.toFixed(1)} / 5.0`}
         className={`relative flex items-center justify-center gap-1 cursor-pointer select-none touch-none ${readonly ? 'pointer-events-none' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setHoverValue(null)}
@@ -70,6 +97,7 @@ export const StarRating: React.FC<StarRatingProps> = ({ value, onChange, readonl
         }}
         onTouchMove={handleTouchMove}
         onTouchEnd={() => setHoverValue(null)}
+        onKeyDown={handleKeyDown}
         style={{ width: '220px', height: '48px' }}
       >
         {[...Array(5)].map((_, i) => {

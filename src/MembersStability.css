@@ -1292,6 +1292,31 @@ html body .members-archive .member-login-intent > ol > li:last-child {
   border-right: 0 !important;
 }
 
+/* Functional V2: calendar dates are real buttons now, while preserving the
+   ledger grid geometry and touch target rhythm. */
+html body .members-archive .archive-calendar-grid > .archive-calendar-day {
+  display: block !important;
+  min-width: 0 !important;
+  min-height: 70px !important;
+  border: 1px solid var(--register-ink, #050505) !important;
+  border-radius: 0 !important;
+  background: var(--register-paper, #f7efdd) !important;
+  color: var(--register-ink, #050505) !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day:is(:hover, :focus-visible, .is-selected) {
+  background: var(--register-gold, #d4a23e) !important;
+  outline: 3px solid var(--register-ink, #050505) !important;
+  outline-offset: -3px !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day[aria-pressed="true"] .calendar-date-mark {
+  background: var(--register-ink, #050505) !important;
+  color: var(--register-paper, #f7efdd) !important;
+}
+
 html body .members-archive .member-login-actions {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(8rem, 1fr)) !important;

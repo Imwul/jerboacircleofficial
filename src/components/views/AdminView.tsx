@@ -16,6 +16,8 @@ interface AdminViewProps {
   onSaveServerData: () => Promise<boolean>;
   onLoadServerData: () => Promise<void>;
   serverSyncStatus: string;
+  syncKey: string;
+  onSyncKeyChange: (value: string) => void;
   onLogout: () => void;
   mainImage: string | null;
   onUpdateMainImage: (image: string | null) => void;
@@ -32,6 +34,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onSaveServerData,
   onLoadServerData,
   serverSyncStatus,
+  syncKey,
+  onSyncKeyChange,
   onLogout,
   mainImage,
   onUpdateMainImage,
@@ -93,7 +97,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       <div className="fixed inset-0 bg-white z-[150] flex flex-col animate-in slide-in-from-right duration-300">
         <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <button onClick={() => setViewingHabitUser(null)} className="p-2 hover:bg-stone-50 rounded-full text-stone-400">
+            <button aria-label="회원 목록으로 돌아가기" onClick={() => setViewingHabitUser(null)} className="p-2 hover:bg-stone-50 rounded-full text-stone-400">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
             <h2 className="text-xl font-black text-stone-800">{latestUser.name} 수련 기록</h2>
@@ -185,13 +189,21 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     </div>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setViewingHabitUser(user)} className="p-2.5 hover:bg-stone-50 rounded-2xl text-stone-400 transition-colors" title="습관 관리">
+                    <button aria-label={`${user.name} 수련 기록 보기`} onClick={() => setViewingHabitUser(user)} className="p-2.5 hover:bg-stone-50 rounded-2xl text-stone-400 transition-colors" title="습관 관리">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
-                    <button onClick={() => setEditingUser(user)} className="p-2.5 hover:bg-stone-50 rounded-2xl text-stone-400 transition-colors">
+                    <button aria-label={`${user.name} 회원 기록 수정`} onClick={() => setEditingUser(user)} className="p-2.5 hover:bg-stone-50 rounded-2xl text-stone-400 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </button>
-                    <button onClick={() => onDeleteUser(user.id)} className="p-2.5 hover:bg-red-50 rounded-2xl text-red-300 transition-colors">
+                    <button
+                      aria-label={`${user.name} 회원 기록 삭제`}
+                      onClick={() => {
+                        if (confirm(`${user.name} 회원 기록을 삭제할까요? 신청 내역과 개인 기록도 함께 사라집니다.`)) {
+                          onDeleteUser(user.id);
+                        }
+                      }}
+                      className="p-2.5 hover:bg-red-50 rounded-2xl text-red-300 transition-colors"
+                    >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
@@ -210,6 +222,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       <>
                         <img src={mainImage} alt="Main" className="w-full h-full object-cover" />
                         <button 
+                          aria-label="장부 표지 이미지 삭제"
                           onClick={() => onUpdateMainImage(null)}
                           className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         >
@@ -241,6 +254,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">공동 장부 동기화</h3>
               <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm space-y-3">
+                <label className="block space-y-2">
+                  <span className="text-[10px] font-bold text-stone-400 tracking-widest">공동 장부 열쇠</span>
+                  <input
+                    type="password"
+                    value={syncKey}
+                    onChange={(event) => onSyncKeyChange(event.target.value)}
+                    placeholder="보관자 열쇠"
+                    className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-stone-200"
+                  />
+                </label>
                 <div>
                   <div className="font-bold text-stone-800">공유 장부</div>
                   <div className="text-[10px] text-stone-400 font-medium mt-1">{serverSyncStatus}</div>
@@ -312,9 +335,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
       </div>
 
       {editingUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="member-editor-title">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">회원 기록 수정</h3>
+            <h3 id="member-editor-title" className="text-lg font-black text-stone-900">회원 기록 수정</h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-stone-400 tracking-widest">이름</label>
@@ -366,9 +389,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
         </div>
       )}
       {bulkEditDateModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-date-title">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">마감일 표시</h3>
+            <h3 id="bulk-date-title" className="text-lg font-black text-stone-900">마감일 표시</h3>
             <p className="text-xs text-stone-500">모든 회원 기록에 같은 마감일을 적용합니다</p>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-stone-400 tracking-widest">마감일</label>

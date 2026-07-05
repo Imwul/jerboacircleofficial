@@ -26,6 +26,10 @@ function detailRootHref() {
   return window.location.pathname.includes('/archive/') ? '../../' : './';
 }
 
+function detailTextLang(text: string) {
+  return /[가-힣]/.test(text) ? 'ko' : 'en';
+}
+
 interface DetailFormState {
   edition: string;
   title: string;
@@ -169,7 +173,7 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
           onChange={(event) => setCode(event.target.value)}
           placeholder="Keeper seal key"
         />
-        <button type="button" onClick={unlockEditor}>Seal 열기</button>
+        <button type="button" onClick={unlockEditor}><span className="keeper-button-label">Seal 열기</span></button>
       </div>
       <p className="detail-keeper-status" data-sync-state={statusTone} lang="ko">{status}</p>
 
@@ -223,19 +227,24 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
               <input accept="image/*" onChange={readPosterFile} type="file" />
             </label>
           </div>
-          <label>
-            <span>여정 / 자료 / 주제</span>
-            <textarea rows={4} value={`${form.passageText}\n${form.materialsText}\n${form.themesText}`} onChange={(event) => {
-              const [passageText = '', materialsText = '', themesText = ''] = event.target.value.split('\n');
-              updateField('passageText', passageText);
-              updateField('materialsText', materialsText);
-              updateField('themesText', themesText);
-            }} />
-          </label>
+          <div className="detail-keeper-taxonomy">
+            <label>
+              <span>여정</span>
+              <textarea rows={4} value={form.passageText} onChange={(event) => updateField('passageText', event.target.value)} />
+            </label>
+            <label>
+              <span>자료</span>
+              <textarea rows={4} value={form.materialsText} onChange={(event) => updateField('materialsText', event.target.value)} />
+            </label>
+            <label>
+              <span>주제</span>
+              <textarea rows={4} value={form.themesText} onChange={(event) => updateField('themesText', event.target.value)} />
+            </label>
+          </div>
           <div className="detail-keeper-actions">
-            <button type="submit">로컬 초안 봉인</button>
-            <button type="button" onClick={publishToServer}>공동 장부에 봉인</button>
-            <a href={`${detailRootHref()}godmode/`}>Keeper Desk</a>
+            <button type="submit"><span className="keeper-button-label">로컬 초안 봉인</span></button>
+            <button type="button" onClick={publishToServer}><span className="keeper-button-label">공동 장부에 봉인</span></button>
+            <a href={`${detailRootHref()}godmode/`}><span className="keeper-button-label">Keeper Desk</span></a>
           </div>
         </form>
       )}
@@ -259,7 +268,7 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
       </header>
       <main className="detail-record section-reveal">
         <aside className="detail-poster">
-          <img src={event.posterImage} alt={`${event.title} poster`} />
+          <img src={event.posterImage} alt={`${event.title} poster`} decoding="async" width={1200} height={1600} />
         </aside>
         <article className="detail-copy">
           <p className="section-kicker">
@@ -272,7 +281,7 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           <p className="latin-line">{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
           <figure className="detail-manuscript-plate" aria-hidden="true">
-            <img src={editorialPlates.detail} alt="" />
+            <img src={editorialPlates.detail} alt="" loading="lazy" decoding="async" />
           </figure>
           <p className="detail-long" lang="ko">{event.longDescription}</p>
           <div className="constellation-grid" aria-label="Archive record path and materials">
@@ -295,26 +304,25 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           </div>
           <dl className="event-meta detail-meta">
             <div>
-              <dt>{siteText.metaEdition}</dt>
-              <dd>{event.edition}</dd>
+              <dt lang={detailTextLang(siteText.metaEdition)}>{siteText.metaEdition}</dt>
+              <dd lang={detailTextLang(event.edition)}>{event.edition}</dd>
             </div>
             <div>
-              <dt>{siteText.metaDate}</dt>
-              <dd>{event.date}</dd>
+              <dt lang={detailTextLang(siteText.metaDate)}>{siteText.metaDate}</dt>
+              <dd lang={detailTextLang(event.date)}>{event.date}</dd>
             </div>
             <div>
-              <dt>{siteText.metaFormat}</dt>
-              <dd>{event.location}</dd>
+              <dt lang={detailTextLang(siteText.metaFormat)}>{siteText.metaFormat}</dt>
+              <dd lang={detailTextLang(event.location)}>{event.location}</dd>
             </div>
             <div>
-              <dt>{siteText.detailThemeLabel}</dt>
-              <dd>{event.themes.join(' / ')}</dd>
+              <dt lang={detailTextLang(siteText.detailThemeLabel)}>{siteText.detailThemeLabel}</dt>
+              <dd lang={detailTextLang(event.themes.join(' / '))}>{event.themes.join(' / ')}</dd>
             </div>
           </dl>
           <a className="archive-cta" href={detailRootHref()}>
             {siteText.detailBackLabel}
           </a>
-          <DetailKeeperPanel event={event} onSaved={onSaved} />
         </article>
       </main>
     </div>

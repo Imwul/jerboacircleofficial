@@ -158,6 +158,11 @@ function App() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
+  const [memberSyncKey, setMemberSyncKey] = useState(() => (
+    localStorage.getItem('jerboa_members_sync_key')
+    || localStorage.getItem('jerboa_keeper_sync_key')
+    || ''
+  ));
   const hasServerHydrated = useRef(false);
   const localNoticeArmed = useRef(false);
   const skipNextLocalNotice = useRef(false);
@@ -182,10 +187,20 @@ function App() {
     setMainImage(payload.mainImage || null);
   };
 
+  const updateMemberSyncKey = (value: string) => {
+    setMemberSyncKey(value);
+    localStorage.setItem('jerboa_members_sync_key', value);
+  };
+
   const saveMembersToServer = async (source = '자동 저장') => {
+    if (!memberSyncKey.trim()) {
+      setServerSyncStatus('공동 장부 열쇠 없음 / 로컬 장부 보관 중');
+      return false;
+    }
+
     try {
       setServerSyncStatus(`${source} / 공동 장부에 봉인 중`);
-      const result = await saveServerSync('members', createMembersSyncPayload());
+      const result = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
       setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH:mm:ss')}`);
       return true;
     } catch (error) {
@@ -196,9 +211,16 @@ function App() {
   };
 
   const loadMembersFromServer = async () => {
+    if (!memberSyncKey.trim()) {
+      setServerSyncStatus('공동 장부 열쇠 없음 / 로컬 장부로 시작');
+      hasServerHydrated.current = true;
+      localNoticeArmed.current = true;
+      return;
+    }
+
     try {
       setServerSyncStatus('공동 장부 여는 중');
-      const result = await loadServerSync<MembersSyncPayload>('members');
+      const result = await loadServerSync<MembersSyncPayload>('members', memberSyncKey);
 
       if (result.exists && result.saved?.data) {
         skipNextLocalNotice.current = true;
@@ -206,7 +228,7 @@ function App() {
         setServerSyncStatus(`공동 장부 열람됨 / ${format(new Date(result.saved.savedAt), 'HH:mm:ss')}`);
       } else {
         setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
-        await saveServerSync('members', createMembersSyncPayload());
+        await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
         setServerSyncStatus('공동 장부 생성됨 / 첫 판본 봉인됨');
       }
     } catch (error) {
@@ -221,6 +243,10 @@ function App() {
   useEffect(() => {
     void loadMembersFromServer();
   }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentUser, activeTab]);
 
   // 로컬 저장은 즉시, 서버 저장은 여러 사용자를 위해 짧게 모아 자동 반영합니다.
   useEffect(() => {
@@ -246,7 +272,7 @@ function App() {
       return;
     }
     triggerSaveNotification();
-  }, [users, events, themeNames, mainImage]);
+  }, [users, events, themeNames, mainImage, memberSyncKey]);
 
   useEffect(() => {
     if (!hasServerHydrated.current) return;
@@ -314,7 +340,7 @@ function App() {
       if (data.users && data.events && data.themeNames) {
         if (confirm("비공개 장부 데이터를 불러오시겠습니까?\n(기존 기록이 덮어씌워집니다)")) {
           applyMembersSyncPayload(data);
-          void saveServerSync('members', data).then(() => {
+          void saveServerSync('members', data, memberSyncKey).then(() => {
             setServerSyncStatus('가져오기 완료 / 공동 장부에 봉인됨');
           }).catch((error) => {
             console.error('Import server save failed:', error);
@@ -362,7 +388,7 @@ function App() {
 
       if (confirm('백업 파일의 장부를 불러오시겠습니까? 기존 데이터가 덮어씌워집니다.')) {
         applyMembersSyncPayload(data);
-        await saveServerSync('members', data);
+        await saveServerSync('members', data, memberSyncKey);
         setServerSyncStatus('백업 파일 적용 / 공동 장부에 봉인됨');
         return true;
       }
@@ -661,6 +687,8 @@ function App() {
                   onSaveServerData={() => saveMembersToServer('수동 공동 장부 봉인')}
                   onLoadServerData={loadMembersFromServer}
                   serverSyncStatus={serverSyncStatus}
+                  syncKey={memberSyncKey}
+                  onSyncKeyChange={updateMemberSyncKey}
                   onLogout={handleLogout} 
                   mainImage={mainImage}
                   onUpdateMainImage={setMainImage}
@@ -686,16 +714,16 @@ function App() {
           </main>
           
           {currentUser && currentUser !== 'admin' && (
-            <nav className="archive-mobile-tabs">
-              <button onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
+            <nav className="archive-mobile-tabs" aria-label="Mobile private room navigation">
+              <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 <span>여정함</span>
               </button>
-              <button onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
+              <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <span>주석</span>
               </button>
-              <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
+              <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 <span>표지</span>
               </button>
@@ -710,10 +738,10 @@ function App() {
             themeNames={themeNames}
           />
           {syncCodeToDisplay && (
-            <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-labelledby="sync-code-title">
               <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
                 <div className="p-6 space-y-4">
-                  <h2 className="text-xl font-black text-stone-900">동기화 코드</h2>
+                  <h2 id="sync-code-title" className="text-xl font-black text-stone-900">동기화 코드</h2>
                   <p className="text-sm text-stone-500">
                     아래 코드가 클립보드에 복사되었습니다. 만약 복사되지 않았다면 직접 복사해주세요.
                   </p>
@@ -724,6 +752,7 @@ function App() {
                     onClick={(e) => (e.target as HTMLTextAreaElement).select()}
                   />
                   <button 
+                    aria-label="동기화 코드 닫기"
                     onClick={() => setSyncCodeToDisplay(null)}
                     className="w-full py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors"
                   >

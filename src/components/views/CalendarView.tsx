@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, parseISO, isSameMonth, startOfDay, startOfWeek, endOfWeek } from 'date-fns';
+import React, { useEffect, useRef, useState } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, parseISO, isSameMonth, startOfDay, startOfWeek, endOfWeek, isAfter, isValid } from 'date-fns';
 import { CalendarEvent, User, THEME_CONFIG, ThemeColor } from '../../types';
 
 interface CalendarViewProps {
@@ -20,12 +20,72 @@ interface CalendarViewProps {
   onLogout: () => void;
 }
 
+function parseEventDate(value?: string) {
+  if (!value) return null;
+  const parsed = parseISO(value);
+  return isValid(parsed) ? parsed : null;
+}
+
+function defaultCalendarDate(events: CalendarEvent[]) {
+  const today = startOfDay(new Date());
+  const nextEvent = [...events]
+    .map((event) => parseEventDate(event.date))
+    .filter((date): date is Date => Boolean(date))
+    .filter((date) => isSameDay(date, today) || isAfter(date, today))
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  return nextEvent || today;
+}
+
+function escapeCalendarText(value: string) {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/,/g, '\\,')
+    .replace(/;/g, '\\;')
+    .replace(/\n/g, '\\n');
+}
+
+function formatCalendarDate(value: string) {
+  const parsed = parseEventDate(value);
+  return parsed?.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z') || '';
+}
+
+function downloadEventCalendar(event: CalendarEvent) {
+  const startsAt = formatCalendarDate(event.date);
+  const endsAt = formatCalendarDate(event.endDate);
+  if (!startsAt || !endsAt) return;
+
+  const calendarBody = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Jerboa Circle//Private Register//KO',
+    'BEGIN:VEVENT',
+    `UID:${event.id}@jerboa-circle`,
+    `DTSTAMP:${formatCalendarDate(new Date().toISOString())}`,
+    `DTSTART:${startsAt}`,
+    `DTEND:${endsAt}`,
+    `SUMMARY:${escapeCalendarText(event.title)}`,
+    `DESCRIPTION:${escapeCalendarText([event.description, event.detailedDescription].filter(Boolean).join('\n\n'))}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const url = URL.createObjectURL(new Blob([calendarBody], { type: 'text/calendar;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${event.title.replace(/[^a-z0-9가-힣]+/gi, '-').replace(/^-+|-+$/g, '') || 'jerboa-event'}.ics`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export const CalendarView: React.FC<CalendarViewProps> = ({ 
   events, user, users, isAdmin, onJoinEvent, onCancelEvent, onAddEvent, onEditEvent, onDeleteEvent, onCopyEvent, onPasteEvent, onClearClipboard, copiedEventTitle, onLogout 
 }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const initialDate = defaultCalendarDate(events);
+  const [currentMonth, setCurrentMonth] = useState(initialDate);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, 'summary' | 'detail'>>({});
+  const hasAlignedInitialDate = useRef(false);
 
   const handleEventClick = (eventId: string) => {
     setExpandedEvents(prev => {
@@ -46,10 +106,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   });
 
   const getEventsForDate = (date: Date) => {
-    return events.filter(e => isSameDay(parseISO(e.date), date));
+    return events.filter((event) => {
+      const eventDate = parseEventDate(event.date);
+      return eventDate ? isSameDay(eventDate, date) : isSameDay(date, startOfDay(new Date()));
+    });
   };
 
   const selectedEvents = getEventsForDate(selectedDate);
+  const nextAvailableDate = [...events]
+    .map((event) => parseEventDate(event.date))
+    .filter((date): date is Date => Boolean(date))
+    .filter((date) => !isSameDay(date, selectedDate))
+    .sort((a, b) => {
+      const today = startOfDay(new Date()).getTime();
+      const aFuture = a.getTime() >= today;
+      const bFuture = b.getTime() >= today;
+      if (aFuture !== bFuture) return aFuture ? -1 : 1;
+      return a.getTime() - b.getTime();
+    })[0];
+
+  useEffect(() => {
+    if (hasAlignedInitialDate.current || events.length === 0) return;
+
+    const nextDate = defaultCalendarDate(events);
+    setCurrentMonth(nextDate);
+    setSelectedDate(nextDate);
+    hasAlignedInitialDate.current = true;
+  }, [events]);
 
   const isEnrolled = (eventId: string) => {
     if (user === 'admin' || !user) return false;
@@ -60,13 +143,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     <div className="flex flex-col h-full bg-stone-50">
       <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
+          <button aria-label="이전 달" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h2 className="text-xl font-black text-stone-800">
             {format(currentMonth, 'yyyy MM')} 장부
           </h2>
-          <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
+          <button aria-label="다음 달" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
@@ -82,10 +165,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           const isCurrentMonth = isSameMonth(day, currentMonth);
           
           return (
-            <div 
+            <button
+              type="button"
               key={day.toString()} 
               onClick={() => setSelectedDate(day)}
-              className={`bg-white min-h-[70px] p-1.5 cursor-pointer transition-colors relative ${!isCurrentMonth ? 'opacity-30' : ''}`}
+              aria-label={`${format(day, 'yyyy-MM-dd')} 프로그램 ${dateEvents.length}개`}
+              aria-pressed={isSameDay(day, selectedDate)}
+              className={`archive-calendar-day bg-white min-h-[70px] p-1.5 cursor-pointer transition-colors relative text-left ${!isCurrentMonth ? 'opacity-30' : ''} ${isSameDay(day, selectedDate) ? 'is-selected' : ''}`}
             >
               <div className="flex flex-col h-full justify-between">
                 <div className="flex justify-between items-start">
@@ -102,7 +188,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </div>
                 )}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -115,14 +201,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           {isAdmin && (
             <div className="flex gap-2">
               {copiedEventTitle && (
-                <button 
+                <button
                   onClick={() => onPasteEvent?.(selectedDate)}
                   className="text-[10px] bg-amber-50 text-amber-600 px-3 py-1 rounded-full font-bold border border-amber-100 animate-pulse"
                 >
                   <span>복사한 프로그램 배치 / {copiedEventTitle}</span>
                 </button>
               )}
-              <button 
+              <button
                 onClick={() => onAddEvent?.(selectedDate)}
                 className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg active:scale-95 transition-transform"
               >
@@ -136,17 +222,41 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <div className="py-12 text-center space-y-2">
             <div className="archive-empty-mark" aria-hidden="true">⚜</div>
             <p className="text-xs font-bold text-stone-300 tracking-widest">이 날짜에 등록된 프로그램이 없습니다</p>
+            {nextAvailableDate && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedDate(nextAvailableDate);
+                  setCurrentMonth(nextAvailableDate);
+                }}
+                className="mt-3 px-4 py-2 bg-stone-900 text-white text-xs font-bold rounded-xl"
+              >
+                <span className="archive-ko-label">{format(nextAvailableDate, 'MM dd')} 프로그램 보기</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
             {selectedEvents.map(event => {
               const enrolledCount = users.filter(u => u.enrolledEventIds.includes(event.id)).length;
               const enrolled = isEnrolled(event.id);
+              const eventStart = parseEventDate(event.date);
+              const eventEnd = parseEventDate(event.endDate);
               
               return (
-                <div 
+                <article
                   key={event.id}
                   onClick={() => handleEventClick(event.id)}
+                  onKeyDown={(keyboardEvent) => {
+                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+                      keyboardEvent.preventDefault();
+                      handleEventClick(event.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={Boolean(expandedEvents[event.id])}
+                  aria-label={`${event.title} 상세 ${expandedEvents[event.id] ? '닫기' : '열기'}`}
                   className={`p-5 rounded-3xl border-2 ${THEME_CONFIG[event.theme].border} ${THEME_CONFIG[event.theme].bg} text-white shadow-2xl shadow-stone-200 relative overflow-hidden group transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer`}
                 >
                   <div className="relative z-10 space-y-4">
@@ -156,7 +266,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         <h4 className="text-xl font-black leading-none">{event.title}</h4>
                       </div>
                       <div className="text-[11px] font-black bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                        {format(parseISO(event.date), 'HH mm')} / {format(parseISO(event.endDate), 'HH mm')}
+                        {eventStart && eventEnd ? `${format(eventStart, 'HH mm')} / ${format(eventEnd, 'HH mm')}` : '시간 미정'}
                       </div>
                     </div>
                     
@@ -200,27 +310,48 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
                       {isAdmin ? (
                         <div className="flex gap-2">
-                          <button onClick={(e) => { e.stopPropagation(); onCopyEvent?.(event); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+                          <button aria-label={`${event.title} 캘린더 파일 받기`} onClick={(e) => { e.stopPropagation(); downloadEventCalendar(event); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3M5 11h14M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </button>
+                          <button aria-label={`${event.title} 복사`} onClick={(e) => { e.stopPropagation(); onCopyEvent?.(event); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); onEditEvent?.(event); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+                          <button aria-label={`${event.title} 수정`} onClick={(e) => { e.stopPropagation(); onEditEvent?.(event); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); onDeleteEvent?.(event); }} className="p-2 bg-white/10 hover:bg-red-500/40 rounded-xl transition-colors">
+                          <button
+                            aria-label={`${event.title} 삭제`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`${event.title} 프로그램을 삭제할까요? 참가 신청 기록에서도 제거됩니다.`)) {
+                                onDeleteEvent?.(event);
+                              }
+                            }}
+                            className="p-2 bg-white/10 hover:bg-red-500/40 rounded-xl transition-colors"
+                          >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                           </button>
                         </div>
                       ) : (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); enrolled ? onCancelEvent(event) : onJoinEvent(event); }}
-                          className={`px-6 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 ${enrolled ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}
-                        >
-                          <span>{enrolled ? '참여 취소' : '참여하기'}</span>
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            aria-label={`${event.title} 캘린더 파일 받기`}
+                            onClick={(e) => { e.stopPropagation(); downloadEventCalendar(event); }}
+                            className="px-3 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 bg-white/20"
+                          >
+                            <span>캘린더</span>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); enrolled ? onCancelEvent(event) : onJoinEvent(event); }}
+                            className={`px-6 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 ${enrolled ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'}`}
+                          >
+                            <span>{enrolled ? '참여 취소' : '참여하기'}</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>

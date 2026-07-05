@@ -577,6 +577,426 @@ html body .public-home .masthead-index > p[lang="ko"] {
   }
 }
 
+/* Korean readability pass: Korean guides the visitor, so it must not be compressed
+   like decorative Latin display type. */
+html body .public-home [lang="ko"],
+html body .public-home .ko-display,
+html body .public-home .ko-display span[lang="ko"],
+html body .public-home .korean-annotation,
+html body .public-home .marginal-note,
+html body .public-home .event-description,
+html body .public-home .detail-long,
+html body .public-home .archive-cta,
+html body .public-home .detail-keeper-panel small[lang="ko"],
+html body .public-home .detail-keeper-panel span:not([lang="en"]),
+html body .public-home .detail-keeper-panel label,
+html body .public-home .detail-keeper-panel input,
+html body .public-home .detail-keeper-panel textarea,
+html body .public-home .detail-keeper-panel select,
+html body .public-home .detail-keeper-panel button,
+html body .members-archive [lang="ko"],
+html body .members-archive .archive-ko-label {
+  max-width: 100% !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  text-align: inherit;
+  text-wrap: pretty;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  transform: none !important;
+}
+
+html body .public-home :is(
+  .korean-annotation,
+  .marginal-note,
+  .event-description,
+  .detail-long,
+  .manifesto-block .ko-display span[lang="ko"],
+  .join-block .ko-display span[lang="ko"],
+  .text-index li span[lang="ko"],
+  .event-meta dt,
+  .event-meta dd
+) {
+  width: auto !important;
+  line-height: 1.62 !important;
+}
+
+html body .public-home .manifesto-block .ko-display,
+html body .public-home .join-block .ko-display {
+  align-items: center !important;
+}
+
+html body .public-home .manifesto-block .ko-display span[lang="ko"],
+html body .public-home .join-block .ko-display span[lang="ko"] {
+  display: block !important;
+  max-width: min(46rem, 100%) !important;
+  font-size: clamp(1.02rem, 1.16vw, 1.34rem) !important;
+}
+
+html body .public-home .detail-meta,
+html body .public-home .constellation-grid {
+  align-items: stretch !important;
+}
+
+html body .public-home .text-index li,
+html body .public-home .event-meta div {
+  min-height: 2.35rem !important;
+}
+
+html body .public-home .detail-keeper-panel[open] {
+  width: min(100%, 62rem) !important;
+  margin-left: auto !important;
+}
+
+html body .public-home .detail-keeper-form {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(15rem, 1fr)) !important;
+  gap: 0 !important;
+  border-top: 2px solid var(--ink) !important;
+  border-left: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .detail-keeper-form > label,
+html body .public-home .detail-keeper-form .detail-keeper-grid,
+html body .public-home .detail-keeper-form .keeper-poster-upload,
+html body .public-home .detail-keeper-form .detail-keeper-taxonomy,
+html body .public-home .detail-keeper-form .detail-keeper-actions {
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-form > label,
+html body .public-home .detail-keeper-taxonomy > label {
+  min-height: 7rem !important;
+  padding: 0.82rem !important;
+}
+
+html body .public-home .detail-keeper-form > label:has(textarea),
+html body .public-home .detail-keeper-taxonomy > label {
+  min-height: 10rem !important;
+}
+
+html body .public-home .detail-keeper-grid,
+html body .public-home .detail-keeper-taxonomy {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+}
+
+html body .public-home .detail-keeper-taxonomy > label {
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-taxonomy > label:last-child {
+  border-right: 0 !important;
+}
+
+html body .public-home .keeper-poster-upload,
+html body .public-home .detail-keeper-actions {
+  grid-column: 1 / -1 !important;
+}
+
+html body .public-home .detail-keeper-panel input,
+html body .public-home .detail-keeper-panel textarea,
+html body .public-home .detail-keeper-panel select {
+  min-height: 3rem !important;
+  padding: 0.65rem 0.72rem !important;
+  font-size: 0.95rem !important;
+  line-height: 1.48 !important;
+}
+
+html body .public-home .detail-keeper-panel textarea {
+  min-height: 6.5rem !important;
+  resize: vertical !important;
+}
+
+@media (max-width: 900px) {
+  html body .public-home .detail-keeper-form,
+  html body .public-home .detail-keeper-grid,
+  html body .public-home .detail-keeper-taxonomy {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .detail-keeper-taxonomy > label {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .detail-keeper-taxonomy > label:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* Korean ritual squeeze restoration: Korean guide text is intentionally
+   narrowed across the archive, but form controls themselves keep normal boxes. */
+html body .public-home :where(p, span, small, strong, em, li, dt, dd, h1, h2, h3, a)[lang="ko"],
+html body .public-home .ko-display span[lang="ko"],
+html body .public-home .archive-cta,
+html body .public-home .detail-keeper-panel label > span,
+html body .public-home .detail-keeper-panel button,
+html body .members-archive :where(p, span, small, strong, em, li, h1, h2, h3)[lang="ko"],
+html body .members-archive .archive-ko-label {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home :where(p, li, dd)[lang="ko"],
+html body .public-home .ko-display span[lang="ko"],
+html body .public-home .detail-long[lang="ko"],
+html body .public-home .event-description[lang="ko"],
+html body .public-home .marginal-note[lang="ko"],
+html body .public-home .korean-annotation[lang="ko"],
+html body .members-archive :where(p, li)[lang="ko"] {
+  line-height: 1.55 !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+html body .public-home .manifesto-block .ko-display span[lang="ko"],
+html body .public-home .join-block .ko-display span[lang="ko"] {
+  max-width: min(50rem, calc(100% / var(--ko-ritual-scale-x))) !important;
+  font-size: clamp(1.06rem, 1.24vw, 1.48rem) !important;
+}
+
+html body .public-home .detail-keeper-panel :is(input, textarea, select),
+html body .members-archive :is(input, textarea, select) {
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+html body .public-home .detail-keeper-lock {
+  display: grid !important;
+  grid-template-columns: minmax(13rem, 0.32fr) minmax(12rem, 0.36fr) minmax(11rem, 0.32fr) !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-lock > span[lang="en"],
+html body .public-home .detail-keeper-lock > input,
+html body .public-home .detail-keeper-lock > button {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 4.65rem !important;
+  height: auto !important;
+  align-items: center !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body .public-home .detail-keeper-lock > span[lang="en"] {
+  padding: 0.8rem 0.95rem !important;
+  background: var(--signal-cream) !important;
+  font-size: clamp(1.35rem, 2vw, 2rem) !important;
+  line-height: 0.95 !important;
+}
+
+html body .public-home .detail-keeper-lock > input {
+  padding: 0.8rem 1rem !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .detail-keeper-lock > button {
+  justify-content: center !important;
+  padding: 0.8rem 1rem !important;
+  border-right: 0 !important;
+  background: var(--signal-gold) !important;
+}
+
+html body .public-home .detail-keeper-status {
+  padding: 0.72rem 0.95rem !important;
+}
+
+/* Keeper layer grid repair: every editor row closes its rules and Korean keeps
+   the archive's narrowed rhythm inside the form. */
+html body .public-home .detail-keeper-panel[open] {
+  width: min(100%, 64rem) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-panel[open] summary {
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-lock {
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-lock > span[lang="en"],
+html body .public-home .detail-keeper-lock > input,
+html body .public-home .detail-keeper-lock > button {
+  min-height: 4.35rem !important;
+}
+
+html body .public-home .detail-keeper-status {
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-form {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 0 !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .detail-keeper-form > label,
+html body .public-home .detail-keeper-grid > label,
+html body .public-home .detail-keeper-taxonomy > label {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-content: start !important;
+  gap: 0.62rem !important;
+  min-width: 0 !important;
+  min-height: 8.8rem !important;
+  padding: 0.9rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .detail-keeper-form > label:nth-of-type(2n),
+html body .public-home .detail-keeper-grid > label:last-child,
+html body .public-home .detail-keeper-taxonomy > label:last-child {
+  border-right: 0 !important;
+}
+
+html body .public-home .detail-keeper-form > label:has(textarea) {
+  min-height: 12rem !important;
+}
+
+html body .public-home .detail-keeper-form > label:has(input[value^="data:image"]),
+html body .public-home .detail-keeper-form > label:nth-of-type(5) {
+  grid-column: 1 / -1 !important;
+  min-height: 7.5rem !important;
+  border-right: 0 !important;
+}
+
+html body .public-home .detail-keeper-grid,
+html body .public-home .detail-keeper-taxonomy {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 0 !important;
+}
+
+html body .public-home .keeper-poster-upload {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: minmax(12rem, 0.24fr) minmax(0, 0.76fr) !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .keeper-poster-upload figure {
+  min-height: 20rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .keeper-poster-upload label {
+  min-height: 20rem !important;
+  border: 0 !important;
+}
+
+html body .public-home .detail-keeper-actions {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 0 !important;
+}
+
+html body .public-home .detail-keeper-actions > * {
+  min-height: 4.2rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-actions > *:last-child {
+  border-right: 0 !important;
+}
+
+html body .public-home .detail-keeper-panel label > span,
+html body .public-home .detail-keeper-panel label > small,
+html body .public-home .keeper-poster-upload label > span,
+html body .public-home .keeper-poster-upload label > small {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .detail-keeper-panel :is(input, textarea, select) {
+  min-height: 3.25rem !important;
+  padding: 0.72rem 0.85rem !important;
+  font-family: var(--font-ko) !important;
+  font-stretch: condensed;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  letter-spacing: -0.09em !important;
+  word-spacing: 0.08em !important;
+  transform: none !important;
+}
+
+html body .public-home .detail-keeper-panel textarea {
+  min-height: 7.6rem !important;
+}
+
+html body .public-home .detail-keeper-panel input[value^="data:image"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.035em !important;
+}
+
+@media (max-width: 900px) {
+  html body .public-home .detail-keeper-lock,
+  html body .public-home .detail-keeper-form,
+  html body .public-home .detail-keeper-grid,
+  html body .public-home .detail-keeper-taxonomy,
+  html body .public-home .keeper-poster-upload,
+  html body .public-home .detail-keeper-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .detail-keeper-form > label,
+  html body .public-home .detail-keeper-grid > label,
+  html body .public-home .detail-keeper-taxonomy > label,
+  html body .public-home .keeper-poster-upload figure,
+  html body .public-home .detail-keeper-lock > span[lang="en"],
+  html body .public-home .detail-keeper-lock > input,
+  html body .public-home .detail-keeper-lock > button,
+  html body .public-home .detail-keeper-actions > * {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .detail-keeper-actions > *:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
 html body .public-home .manifesto-block::after {
   content: none !important;
 }
@@ -641,5 +1061,441 @@ html body .public-home .manifesto-block::after {
     max-width: none !important;
     margin: 0 !important;
     justify-content: center !important;
+  }
+}
+
+/* Final Korean label lock: section subtitles such as "저보아 서클 소개" and
+   "문의와 초대" must share the same narrowed ritual rhythm everywhere. */
+html body .public-home .section-kicker .kicker-ko,
+html body .public-home .section-kicker span[lang="ko"],
+html body .public-home .archive-section-title .section-kicker .kicker-ko,
+html body .public-home .manifesto-block .section-kicker .kicker-ko,
+html body .public-home .join-block .section-kicker .kicker-ko,
+html body .public-home .featured-copy .section-kicker .kicker-ko,
+html body .public-home .masthead-index .orientation-kicker span[lang="ko"] {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-family: var(--font-ko) !important;
+  font-weight: 950 !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .section-kicker {
+  align-items: flex-start !important;
+}
+
+/* Final lock-row alignment: the lock area is a three-cell table plus one
+   status row. No floating button plate, no partial separator line. */
+html body .public-home .detail-keeper-panel .detail-keeper-lock {
+  display: grid !important;
+  grid-template-columns: minmax(13rem, 0.32fr) minmax(12rem, 0.36fr) minmax(11rem, 0.32fr) !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+  border: 0 !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-panel .detail-keeper-lock > span[lang="en"],
+html body .public-home .detail-keeper-panel .detail-keeper-lock > input,
+html body .public-home .detail-keeper-panel .detail-keeper-lock > button {
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 4.35rem !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0.78rem 1rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+}
+
+html body .public-home .detail-keeper-panel .detail-keeper-lock > button {
+  justify-content: center !important;
+  border-right: 0 !important;
+  background: var(--signal-gold) !important;
+}
+
+html body .public-home .detail-keeper-panel .detail-keeper-status {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0.8rem 1rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .detail-keeper-panel[open] {
+  display: block !important;
+  padding: 0 !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  overflow: hidden !important;
+}
+
+html body .public-home .detail-keeper-panel[open] summary {
+  margin: 0 !important;
+}
+
+html body .public-home .detail-keeper-panel[open] .detail-keeper-lock,
+html body .public-home .detail-keeper-panel[open] .detail-keeper-status,
+html body .public-home .detail-keeper-panel[open] .detail-keeper-form {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body .public-home .detail-keeper-panel[open] .detail-keeper-lock > * {
+  border-bottom: 0 !important;
+}
+
+html body .public-home .detail-keeper-panel[open] .detail-keeper-lock {
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-panel[open] .detail-keeper-status {
+  border-bottom: 2px solid var(--ink) !important;
+}
+
+html body .public-home .detail-keeper-panel[open] .detail-keeper-form {
+  border-top: 0 !important;
+}
+
+/* Button boxes stay full-width; only their inner inscription is narrowed. */
+html body .public-home .detail-keeper-panel button,
+html body .public-home .detail-keeper-actions a {
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  transform: none !important;
+}
+
+html body .public-home .detail-keeper-panel .keeper-button-label {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-weight: 950 !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: center !important;
+}
+
+html body .public-home .detail-keeper-panel :is(input, textarea, select) {
+  font-weight: 500 !important;
+  letter-spacing: -0.075em !important;
+  word-spacing: 0.07em !important;
+}
+
+/* Functional V2: Keeper Desk must remain fully reachable on touch screens. */
+@media (max-width: 980px) {
+  html body .public-home.keeper-home {
+    overflow-x: hidden !important;
+  }
+
+  html body .public-home.keeper-home .keeper-room,
+  html body .public-home.keeper-home .keeper-editor,
+  html body .public-home.keeper-home .godmode-editor,
+  html body .public-home.keeper-home .keeper-field-grid,
+  html body .public-home.keeper-home .godmode-field-grid,
+  html body .public-home.keeper-home .keeper-sync-actions,
+  html body .public-home.keeper-home .keeper-actions {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home.keeper-home .keeper-register,
+  html body .public-home.keeper-home .keeper-editor,
+  html body .public-home.keeper-home .godmode-editor,
+  html body .public-home.keeper-home .keeper-form,
+  html body .public-home.keeper-home .godmode-form,
+  html body .public-home.keeper-home .keeper-preview,
+  html body .public-home.keeper-home .godmode-preview {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+
+  html body .public-home.keeper-home .keeper-register,
+  html body .public-home.keeper-home .keeper-preview,
+  html body .public-home.keeper-home .godmode-preview {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home.keeper-home .keeper-field,
+  html body .public-home.keeper-home .godmode-field {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .public-home.keeper-home :is(input, textarea, select, button, a, label) {
+    max-width: 100% !important;
+  }
+}
+
+/* Functional V2: public archive discovery without changing the poster-wall art. */
+html body .public-home .archive-tools {
+  display: grid !important;
+  grid-template-columns: minmax(16rem, 0.42fr) minmax(16rem, 0.43fr) minmax(10rem, 0.15fr) !important;
+  align-items: stretch !important;
+  margin: 0 !important;
+  border: 2px solid var(--ink) !important;
+  border-top: 0 !important;
+  background: var(--signal-cream) !important;
+}
+
+html body .public-home .archive-search,
+html body .public-home .archive-filter-set,
+html body .public-home .archive-results-count {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 4.8rem !important;
+  align-items: center !important;
+  margin: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+}
+
+html body .public-home .archive-search {
+  gap: 0.9rem !important;
+  padding: 0.75rem 0.9rem !important;
+}
+
+html body .public-home .archive-search span[lang="en"] {
+  flex: 0 0 auto !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.8rem, 2.3vw, 2.6rem) !important;
+  line-height: 0.9 !important;
+}
+
+html body .public-home .archive-search input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 3rem !important;
+  padding: 0.65rem 0.8rem !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 1rem !important;
+  letter-spacing: 0 !important;
+  transform: none !important;
+}
+
+html body .public-home .archive-filter-set {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html body .public-home .archive-filter-set button,
+html body .public-home .archive-bookmark {
+  border: 0 !important;
+  border-right: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: var(--signal-green) !important;
+  color: var(--ink) !important;
+  cursor: pointer !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(0.9rem, 1vw, 1.1rem) !important;
+  line-height: 1 !important;
+}
+
+html body .public-home .archive-filter-set button:last-child {
+  border-right: 0 !important;
+}
+
+html body .public-home .archive-filter-set button:is(:hover, :focus-visible, .is-active),
+html body .public-home .archive-bookmark:is(:hover, :focus-visible),
+html body .public-home .archive-bookmark[aria-pressed="true"] {
+  background: var(--signal-gold) !important;
+  outline: 3px solid var(--ink) !important;
+  outline-offset: -3px !important;
+}
+
+html body .public-home .archive-results-count {
+  justify-content: center !important;
+  padding: 0.72rem 0.9rem !important;
+  border-right: 0 !important;
+  background: var(--signal-pink) !important;
+  font-size: clamp(0.9rem, 1vw, 1.05rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+html body .public-home .poster-tile {
+  isolation: isolate !important;
+}
+
+html body .public-home .archive-bookmark {
+  position: absolute !important;
+  z-index: 3 !important;
+  top: 0 !important;
+  right: 0 !important;
+  min-width: 5.4rem !important;
+  min-height: 2.65rem !important;
+  border-left: 2px solid var(--ink) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  border-right: 0 !important;
+}
+
+html body .public-home .archive-empty-state {
+  min-height: 11rem !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 1.5rem !important;
+  border: 2px solid var(--ink) !important;
+  border-top: 0 !important;
+  background: var(--signal-cream) !important;
+  font-size: clamp(1rem, 1.1vw, 1.2rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.45 !important;
+  text-align: center !important;
+}
+
+@media (max-width: 980px) {
+  html body .public-home .archive-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .archive-search,
+  html body .public-home .archive-filter-set,
+  html body .public-home .archive-results-count {
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .archive-results-count {
+    border-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  html body .public-home .archive-filter-set {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .public-home .archive-filter-set button {
+    min-height: 3.8rem !important;
+    border-bottom: 2px solid var(--ink) !important;
+  }
+
+  html body .public-home .archive-filter-set button:nth-child(2n) {
+    border-right: 0 !important;
+  }
+
+  html body .public-home .archive-filter-set button:nth-last-child(-n + 2) {
+    border-bottom: 0 !important;
+  }
+}
+
+html body .public-home .skip-to-archive {
+  position: fixed !important;
+  z-index: 500 !important;
+  top: 0.75rem !important;
+  left: 0.75rem !important;
+  padding: 0.65rem 0.85rem !important;
+  border: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+  font-weight: 950 !important;
+  text-decoration: none !important;
+  transform: translateY(-160%) !important;
+  transition: transform 180ms ease !important;
+}
+
+html body .public-home .skip-to-archive:focus-visible {
+  transform: translateY(0) !important;
+}
+
+@media (max-width: 720px) {
+  html body .public-home .archive-header {
+    position: sticky !important;
+    top: 0 !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .public-home .archive-wordmark {
+    min-height: 4.35rem !important;
+    padding: 0.7rem 1rem !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--ink) !important;
+    font-size: clamp(1.65rem, 8vw, 2.7rem) !important;
+  }
+
+  html body .public-home .archive-wordmark small {
+    margin-top: 0.32rem !important;
+  }
+
+  html body .public-home .archive-nav {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+  }
+
+  html body .public-home .archive-nav a {
+    display: grid !important;
+    min-height: 3.45rem !important;
+    align-content: center !important;
+    justify-items: start !important;
+    padding: 0.48rem 0.7rem !important;
+    border-left: 0 !important;
+    border-right: 2px solid var(--ink) !important;
+    border-bottom: 2px solid var(--ink) !important;
+    font-size: 0.9rem !important;
+    line-height: 1.08 !important;
+    text-align: left !important;
+    transform: none !important;
+    white-space: normal !important;
+  }
+
+  html body .public-home .archive-nav a:nth-child(2n) {
+    border-right: 0 !important;
+  }
+
+  html body .public-home .archive-nav a:last-child {
+    grid-column: 1 / -1 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  html body .public-home .archive-nav .nav-en {
+    font-size: 1rem !important;
+  }
+
+  html body .public-home .archive-nav small[lang="ko"] {
+    display: block !important;
+    margin-top: 0.15rem !important;
+    font-size: 0.76rem !important;
+    line-height: 1.2 !important;
+    transform: none !important;
   }
 }

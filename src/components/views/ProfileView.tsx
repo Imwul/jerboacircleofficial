@@ -97,7 +97,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
             <span className="text-sm font-bold text-stone-700">로그아웃</span>
             <svg className="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           </button>
-          <button onClick={onDeleteAccount} className="w-full p-4 flex items-center justify-between hover:bg-red-50 transition-colors group">
+          <button
+            onClick={() => {
+              if (confirm(`${user.name} 계정을 삭제할까요? 개인 장부와 신청 내역이 함께 사라집니다.`)) {
+                onDeleteAccount();
+              }
+            }}
+            className="w-full p-4 flex items-center justify-between hover:bg-red-50 transition-colors group"
+          >
             <span className="text-sm font-bold text-red-500">계정 삭제</span>
             <svg className="w-4 h-4 text-red-200 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
@@ -105,11 +112,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
       </div>
 
       {isEditingAvatar && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in slide-in-from-bottom-full duration-300">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-black text-stone-900">회원 표식 수정</h3>
-              <button onClick={() => setIsEditingAvatar(false)} className="p-2 hover:bg-stone-100 rounded-full text-stone-400">
+              <h3 id="avatar-editor-title" className="text-lg font-black text-stone-900">회원 표식 수정</h3>
+              <button aria-label="회원 표식 수정 닫기" onClick={() => setIsEditingAvatar(false)} className="p-2 hover:bg-stone-100 rounded-full text-stone-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
