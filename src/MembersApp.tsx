@@ -10,8 +10,9 @@ import { HabitTrackingView } from './components/views/HabitTrackingView';
 import { EventFormModal, type EventRecurrence } from './components/modals/EventFormModal';
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
-import { loadServerSync, saveServerSync } from './utils/serverSync';
+import { loadServerSync, saveServerSync, ServerSyncError } from './utils/serverSync';
 import { usePageMetadata } from './utils/pageMetadata';
+import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from './utils/syncRecovery';
 import './MembersArchive.css';
 import './MembersStability.css';
 
@@ -81,7 +82,7 @@ const STORAGE_KEYS = {
 type SyncTone = 'idle' | 'pending' | 'sealed' | 'local' | 'warning';
 
 function syncToneFor(status: string): SyncTone {
-  if (/실패|미연결|닫힘|닫혔|읽을 수|올바르지|잘못|가득/.test(status)) return 'warning';
+  if (/실패|미연결|닫힘|닫혔|읽을 수|올바르지|잘못|가득|먼저|충돌|보류/.test(status)) return 'warning';
   if (/로컬|초안|보관 중/.test(status)) return 'local';
   if (/봉인 중|여는 중|생성 중|연결 대기|기다리는 중/.test(status)) return 'pending';
   if (/봉인됨|열람됨|생성됨|완료|적용/.test(status)) return 'sealed';
@@ -158,6 +159,8 @@ function App() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
+  const [hasServerConflict, setHasServerConflict] = useState(false);
+  const [hasMemberRecovery, setHasMemberRecovery] = useState(() => Boolean(readSyncRecovery<MembersSyncPayload>('members')));
   const [memberSyncKey, setMemberSyncKey] = useState(() => (
     localStorage.getItem('jerboa_members_sync_key')
     || localStorage.getItem('jerboa_keeper_sync_key')
@@ -167,6 +170,7 @@ function App() {
   const localNoticeArmed = useRef(false);
   const skipNextLocalNotice = useRef(false);
   const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const serverSavedAt = useRef<string | null>(null);
   
   const [clipboard, setClipboard] = useState<CalendarEvent | null>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -179,6 +183,15 @@ function App() {
     themeNames,
     mainImage,
   });
+
+  const captureMembersRecovery = (reason: string, remoteSavedAt?: string | null) => {
+    writeSyncRecovery('members', createMembersSyncPayload(), {
+      baseSavedAt: serverSavedAt.current,
+      remoteSavedAt,
+      reason,
+    });
+    setHasMemberRecovery(true);
+  };
 
   const applyMembersSyncPayload = (payload: Partial<MembersSyncPayload>) => {
     if (payload.users) setUsers(payload.users);
@@ -200,10 +213,20 @@ function App() {
 
     try {
       setServerSyncStatus(`${source} / 공동 장부에 봉인 중`);
-      const result = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
+      const result = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey, {
+        baseSavedAt: serverSavedAt.current,
+      });
+      serverSavedAt.current = result.savedAt || serverSavedAt.current;
       setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH:mm:ss')}`);
       return true;
     } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        captureMembersRecovery('member_sync_conflict', error.savedAt);
+        serverSavedAt.current = error.savedAt || serverSavedAt.current;
+        setHasServerConflict(true);
+        setServerSyncStatus('공동 장부가 먼저 바뀌었습니다 / 열람 후 다시 봉인');
+        return false;
+      }
       setServerSyncStatus('공동 장부가 잠시 닫혔습니다 / 로컬 초안 보관 중');
       if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
         console.error('Server save failed:', error);
@@ -223,14 +246,17 @@ function App() {
     try {
       setServerSyncStatus('공동 장부 여는 중');
       const result = await loadServerSync<MembersSyncPayload>('members', memberSyncKey);
+      setHasServerConflict(false);
 
       if (result.exists && result.saved?.data) {
         skipNextLocalNotice.current = true;
         applyMembersSyncPayload(result.saved.data);
+        serverSavedAt.current = result.saved.savedAt;
         setServerSyncStatus(`공동 장부 열람됨 / ${format(new Date(result.saved.savedAt), 'HH:mm:ss')}`);
       } else {
         setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
-        await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
+        const created = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
+        serverSavedAt.current = created.savedAt || null;
         setServerSyncStatus('공동 장부 생성됨 / 첫 판본 봉인됨');
       }
     } catch (error) {
@@ -280,6 +306,7 @@ function App() {
 
   useEffect(() => {
     if (!hasServerHydrated.current) return;
+    if (hasServerConflict) return;
     if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
 
     serverSaveTimer.current = setTimeout(() => {
@@ -289,7 +316,7 @@ function App() {
     return () => {
       if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
     };
-  }, [users, events, themeNames, mainImage]);
+  }, [users, events, themeNames, mainImage, hasServerConflict]);
 
   useEffect(() => {
     if (lastSaved) {
@@ -344,9 +371,18 @@ function App() {
       if (data.users && data.events && data.themeNames) {
         if (confirm("비공개 장부 데이터를 불러오시겠습니까?\n(기존 기록이 덮어씌워집니다)")) {
           applyMembersSyncPayload(data);
-          void saveServerSync('members', data, memberSyncKey).then(() => {
+          void saveServerSync('members', data, memberSyncKey, {
+            baseSavedAt: serverSavedAt.current,
+          }).then((result) => {
+            serverSavedAt.current = result.savedAt || serverSavedAt.current;
             setServerSyncStatus('가져오기 완료 / 공동 장부에 봉인됨');
           }).catch((error) => {
+            if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+              captureMembersRecovery('member_import_conflict', error.savedAt);
+              serverSavedAt.current = error.savedAt || serverSavedAt.current;
+              setServerSyncStatus('가져오기 보류 / 공동 장부 열람 후 다시 봉인');
+              return;
+            }
             console.error('Import server save failed:', error);
             setServerSyncStatus('가져오기 완료 / 공동 장부 봉인 실패');
           });
@@ -392,11 +428,20 @@ function App() {
 
       if (confirm('백업 파일의 장부를 불러오시겠습니까? 기존 데이터가 덮어씌워집니다.')) {
         applyMembersSyncPayload(data);
-        await saveServerSync('members', data, memberSyncKey);
+        const result = await saveServerSync('members', data, memberSyncKey, {
+          baseSavedAt: serverSavedAt.current,
+        });
+        serverSavedAt.current = result.savedAt || serverSavedAt.current;
         setServerSyncStatus('백업 파일 적용 / 공동 장부에 봉인됨');
         return true;
       }
     } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        captureMembersRecovery('member_file_import_conflict', error.savedAt);
+        serverSavedAt.current = error.savedAt || serverSavedAt.current;
+        setServerSyncStatus('백업 적용 보류 / 공동 장부 열람 후 다시 봉인');
+        return false;
+      }
       console.error('File import failed:', error);
       setNotice('백업 파일을 읽을 수 없습니다.');
     }
@@ -622,6 +667,15 @@ function App() {
           {notice && (
             <div className="archive-notice" role="status" lang="ko">
               {notice}
+            </div>
+          )}
+          {hasServerConflict && (
+            <div className="archive-notice archive-notice--sync-conflict" role="alert" lang="ko">
+              <span>공동 장부가 다른 곳에서 먼저 바뀌어 자동 저장을 잠시 멈췄습니다.</span>
+              {hasMemberRecovery && (
+                <button type="button" onClick={() => downloadLatestSyncRecovery('members')}>로컬 복구 파일 받기</button>
+              )}
+              <button type="button" onClick={loadMembersFromServer}>공동 장부 다시 열기</button>
             </div>
           )}
           

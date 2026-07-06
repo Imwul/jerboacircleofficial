@@ -1,17 +1,30 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
-import { events, type ArchiveEvent, type EventStatus } from '../data/events';
+import {
+  archiveCollections,
+  archiveSeasons,
+  defaultArchiveCollectionId,
+  defaultArchiveSeasonId,
+  events,
+  type ArchiveContentKind,
+  type ArchiveEvent,
+  type ArchiveVisibility,
+  type ArchiveWorkflowStatus,
+  type EventStatus,
+} from '../data/events';
 import { defaultSiteText, type SiteText } from '../data/siteText';
 import {
   applyArchiveDrafts,
   clearAllArchiveDrafts,
   clearArchiveDraft,
   readArchiveDrafts,
+  readArchiveDraftRevisions,
+  restoreArchiveDraftRevision,
   writeArchiveDraft,
   writeArchiveDrafts,
   type ArchiveEventDraft,
   type ArchiveDraftMap,
 } from '../utils/archiveDrafts';
-import { loadServerSync, saveServerSync } from '../utils/serverSync';
+import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import {
   clearSiteTextDraft,
   getSiteText,
@@ -20,10 +33,16 @@ import {
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
+import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import './HomePage.css';
 import './EditorialStability.css';
 
 interface KeeperFormState {
+  kind: ArchiveContentKind;
+  visibility: ArchiveVisibility;
+  workflowStatus: ArchiveWorkflowStatus;
+  seasonId: string;
+  collectionIdsText: string;
   edition: string;
   title: string;
   subtitle: string;
@@ -115,6 +134,11 @@ const siteTextFields: Array<{
 
 function toFormState(event: ArchiveEvent): KeeperFormState {
   return {
+    kind: event.kind,
+    visibility: event.visibility,
+    workflowStatus: event.workflowStatus,
+    seasonId: event.seasonId,
+    collectionIdsText: event.collectionIds.join(' / '),
     edition: event.edition,
     title: event.title,
     subtitle: event.subtitle,
@@ -135,6 +159,11 @@ function toFormState(event: ArchiveEvent): KeeperFormState {
 
 function toDraft(form: KeeperFormState): ArchiveEventDraft {
   return {
+    kind: form.kind,
+    visibility: form.visibility,
+    workflowStatus: form.workflowStatus,
+    seasonId: form.seasonId,
+    collectionIds: splitDraftList(form.collectionIdsText),
     edition: form.edition,
     title: form.title,
     subtitle: form.subtitle,
@@ -198,6 +227,8 @@ function validateKeeperForm(form: KeeperFormState) {
 
   const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
   if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (!archiveSeasons.some((season) => season.id === form.seasonId)) return '시즌을 선택하세요';
+  if (splitDraftList(form.collectionIdsText).length === 0) return '컬렉션을 하나 이상 입력하세요';
   if (splitDraftList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
   if (splitDraftList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
   if (splitDraftList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
@@ -239,8 +270,12 @@ export default function KeeperPage() {
   const draftCount = useMemo(() => Object.keys(readArchiveDrafts()).length, [version]);
   const [serverKey, setServerKey] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
   const [syncStatus, setSyncStatus] = useState('공동 장부 대기');
+  const [archiveSavedAt, setArchiveSavedAt] = useState<string | null>(null);
+  const [hasArchiveConflict, setHasArchiveConflict] = useState(false);
+  const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
+  const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
 
   usePageMetadata({
     title: mode === 'text' ? 'Text Register | Jerboa Circle Keeper' : 'Register of Passages | Jerboa Circle Keeper',
@@ -268,7 +303,7 @@ export default function KeeperPage() {
       setSyncStatus(`입력 확인 / ${validation}`);
       return;
     }
-    writeArchiveDraft(selectedEvent.id, toDraft(form));
+    writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
     setVersion((current) => current + 1);
     setSyncStatus(`로컬 초안 봉인됨 / ${timeLabel()}`);
   }
@@ -307,6 +342,11 @@ export default function KeeperPage() {
   function createNewRecord() {
     const nextId = makeRecordId('Unwritten Folio');
     const nextDraft: ArchiveEventDraft = {
+      kind: 'workshop',
+      visibility: 'private',
+      workflowStatus: 'draft',
+      seasonId: defaultArchiveSeasonId,
+      collectionIds: [defaultArchiveCollectionId],
       edition: `Edition ${String(archiveEvents.length + 1).padStart(3, '0')}`,
       title: '아직 필사되지 않은 장',
       subtitle: 'A passage not yet named',
@@ -327,7 +367,7 @@ export default function KeeperPage() {
       isCustom: true,
     };
 
-    writeArchiveDraft(nextId, nextDraft);
+    writeArchiveDraft(nextId, nextDraft, { label: 'new draft' });
     const nextEvents = applyArchiveDrafts(events);
     const nextEvent = nextEvents.find((event) => event.id === nextId) ?? nextEvents[0];
     setSelectedId(nextEvent.id);
@@ -339,6 +379,26 @@ export default function KeeperPage() {
   function updateServerKey(value: string) {
     setServerKey(value);
     localStorage.setItem('jerboa_keeper_sync_key', value);
+  }
+
+  function createArchiveSyncPayload() {
+    const drafts = {
+      ...readArchiveDrafts(),
+      ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
+    };
+    return {
+      drafts,
+      siteText: siteTextForm,
+    };
+  }
+
+  function captureArchiveRecovery(reason: string, remoteSavedAt?: string | null) {
+    writeSyncRecovery('archive', createArchiveSyncPayload(), {
+      baseSavedAt: archiveSavedAt,
+      remoteSavedAt,
+      reason,
+    });
+    setHasArchiveRecovery(true);
   }
 
   async function saveArchiveToServer() {
@@ -354,24 +414,28 @@ export default function KeeperPage() {
         return;
       }
       if (isDirty) {
-        writeArchiveDraft(selectedEvent.id, toDraft(form));
+        writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
       }
       setSyncStatus('공동 장부에 봉인 중');
       if (mode === 'text' || isTextDirty) {
         writeSiteTextDraft(siteTextForm);
       }
 
-      const drafts = {
-        ...readArchiveDrafts(),
-        ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
-      };
-      const result = await saveServerSync<ArchiveSyncPayload>('archive', {
-        drafts,
-        siteText: siteTextForm,
-      }, serverKey);
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', createArchiveSyncPayload(), serverKey, {
+        baseSavedAt: archiveSavedAt,
+      });
+      setArchiveSavedAt(result.savedAt || archiveSavedAt);
+      setHasArchiveConflict(false);
       setVersion((current) => current + 1);
       setSyncStatus(`공동 장부에 봉인됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
     } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        captureArchiveRecovery('archive_sync_conflict', error.savedAt);
+        setArchiveSavedAt(error.savedAt || archiveSavedAt);
+        setHasArchiveConflict(true);
+        setSyncStatus('공동 장부가 먼저 바뀌었습니다 / 열람 후 다시 봉인');
+        return;
+      }
       console.error('Archive server save failed:', error);
       setSyncStatus('공동 장부 봉인 실패 / 열쇠 또는 연결 확인');
     }
@@ -381,6 +445,7 @@ export default function KeeperPage() {
     try {
       setSyncStatus('공동 장부 여는 중');
       const result = await loadServerSync<ArchiveSyncPayload>('archive', serverKey);
+      setHasArchiveConflict(false);
       if (result.exists && result.saved?.data) {
         if (result.saved.data.drafts) {
           writeArchiveDrafts(result.saved.data.drafts);
@@ -393,9 +458,11 @@ export default function KeeperPage() {
         const nextEvents = applyArchiveDrafts(events);
         const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
         setForm(toFormState(nextSelected));
+        setArchiveSavedAt(result.saved.savedAt);
         setVersion((current) => current + 1);
         setSyncStatus(`공동 장부 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
       } else {
+        setArchiveSavedAt(null);
         setSyncStatus('공동 장부에 보존된 초안 없음');
       }
     } catch (error) {
@@ -448,6 +515,18 @@ export default function KeeperPage() {
     setForm(toFormState(baseEvent));
     setVersion((current) => current + 1);
     setSyncStatus('모든 로컬 초안 삭제됨');
+  }
+
+  function restoreRevision(revisionId: string) {
+    if (!restoreArchiveDraftRevision(selectedEvent.id, revisionId)) {
+      setSyncStatus('되돌릴 초안 이력을 찾을 수 없음');
+      return;
+    }
+
+    const nextEvent = applyArchiveDrafts(events).find((event) => event.id === selectedEvent.id) ?? selectedEvent;
+    setForm(toFormState(nextEvent));
+    setVersion((current) => current + 1);
+    setSyncStatus('선택한 초안 이력으로 되돌림 / 확인 후 공동 장부에 봉인하세요');
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -550,6 +629,14 @@ export default function KeeperPage() {
               </label>
               <button type="button" onClick={clearEveryDraft}>초안 삭제</button>
             </div>
+            {hasArchiveConflict && (
+              <p className="keeper-sync-conflict" role="alert" lang="ko">
+                공동 장부가 다른 곳에서 먼저 바뀌었습니다. 열람 후 다시 봉인하세요.
+                {hasArchiveRecovery && (
+                  <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}>로컬 복구 파일 받기</button>
+                )}
+              </p>
+            )}
             <small>{syncStatus}</small>
           </div>
           {mode === 'events' ? (
@@ -563,7 +650,7 @@ export default function KeeperPage() {
                 >
                   <span>{event.edition}</span>
                   <strong>{event.title}</strong>
-                  <small>{event.date}</small>
+                  <small>{event.workflowStatus} / {event.visibility}</small>
                 </button>
               ))}
             </div>
@@ -679,6 +766,63 @@ export default function KeeperPage() {
               </label>
             </div>
 
+            <div className="keeper-field-grid">
+              <label className="keeper-field">
+                <span>종류</span>
+                <select value={form.kind} onChange={(event) => updateField('kind', event.target.value as ArchiveContentKind)}>
+                  <option value="workshop">workshop</option>
+                  <option value="essay">essay</option>
+                  <option value="exhibition">exhibition</option>
+                  <option value="project">project</option>
+                  <option value="archive-record">archive-record</option>
+                </select>
+              </label>
+
+              <label className="keeper-field">
+                <span>공개 상태</span>
+                <select value={form.visibility} onChange={(event) => updateField('visibility', event.target.value as ArchiveVisibility)}>
+                  <option value="public">public</option>
+                  <option value="unlisted">unlisted</option>
+                  <option value="private">private</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="keeper-field">
+              <span>발행 단계</span>
+              <select value={form.workflowStatus} onChange={(event) => updateField('workflowStatus', event.target.value as ArchiveWorkflowStatus)}>
+                <option value="draft">draft</option>
+                <option value="preview">preview</option>
+                <option value="published">published</option>
+                <option value="archived">archived</option>
+              </select>
+            </label>
+
+            <div className="keeper-field-grid">
+              <label className="keeper-field">
+                <span>시즌</span>
+                <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
+                  {archiveSeasons.map((season) => (
+                    <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="keeper-field">
+                <span>컬렉션 ID</span>
+                <input
+                  list="archive-collection-ids"
+                  value={form.collectionIdsText}
+                  onChange={(event) => updateField('collectionIdsText', event.target.value)}
+                />
+              </label>
+            </div>
+            <datalist id="archive-collection-ids">
+              {archiveCollections.map((collection) => (
+                <option value={collection.id} key={collection.id}>{collection.title}</option>
+              ))}
+            </datalist>
+
             <label className="keeper-field">
               <span>포스터 이미지 URL</span>
               <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
@@ -764,7 +908,27 @@ export default function KeeperPage() {
               <h3>{form.title}</h3>
               <p>{form.subtitle}</p>
               <p>{form.marginalia}</p>
-              <small>{form.shortDescription}</small>
+              <small>{form.workflowStatus} / {form.visibility} / {form.shortDescription}</small>
+            </aside>
+
+            <aside className="keeper-revision-history" aria-label="Archive draft revision history">
+              <div>
+                <span lang="en">Revision history</span>
+                <strong lang="ko">{selectedRevisions.length}개 저장본</strong>
+              </div>
+              {selectedRevisions.length > 0 ? (
+                <ol>
+                  {selectedRevisions.slice(0, 6).map((revision) => (
+                    <li key={revision.id}>
+                      <span>{new Date(revision.savedAt).toLocaleString('ko-KR')}</span>
+                      <small>{revision.label} / {revision.title}</small>
+                      <button type="button" onClick={() => restoreRevision(revision.id)}>이 버전으로 되돌리기</button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p lang="ko">아직 되돌릴 수 있는 초안 이력이 없습니다.</p>
+              )}
             </aside>
           </form>
           </section>

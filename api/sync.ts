@@ -96,6 +96,10 @@ function validateSyncData(scope: SyncScope, data: unknown) {
   }
 }
 
+function savedAtFromBody(body: Record<string, unknown>) {
+  return typeof body.baseSavedAt === 'string' ? body.baseSavedAt : null;
+}
+
 export default async function handler(request: any, response: any) {
   const scope = request.query?.scope;
   if (!allowedScopes.has(scope)) {
@@ -133,6 +137,16 @@ export default async function handler(request: any, response: any) {
       }
       const data = body.data ?? body;
       validateSyncData(scope, data);
+      const baseSavedAt = savedAtFromBody(body);
+      const existing = await readBlobJson(pathname);
+
+      if (existing?.savedAt && (!baseSavedAt || existing.savedAt !== baseSavedAt)) {
+        return sendJson(response, 409, {
+          ok: false,
+          error: 'sync_conflict',
+          savedAt: existing.savedAt,
+        });
+      }
 
       const saved = {
         scope,

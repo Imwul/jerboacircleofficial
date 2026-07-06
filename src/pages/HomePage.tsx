@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { events, type ArchiveEvent } from '../data/events';
+import {
+  archiveCollections,
+  archiveSeasons,
+  events,
+  getCollectionsForEvent,
+  getPublicArchiveEvents,
+  getSeasonById,
+  type ArchiveEvent,
+} from '../data/events';
 import type { SiteText } from '../data/siteText';
 import { applyArchiveDrafts } from '../utils/archiveDrafts';
 import { loadServerSync } from '../utils/serverSync';
@@ -17,6 +25,7 @@ interface ArchiveSyncPayload {
 }
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
+type ArchiveTaxonomyFilter = string | 'all';
 
 const archiveBookmarkStorageKey = 'jerboa-circle-archive-bookmarks';
 
@@ -239,6 +248,7 @@ function matchesArchiveQuery(event: ArchiveEvent, query: string) {
   if (!query.trim()) return true;
 
   const searchable = [
+    event.kind,
     event.edition,
     event.title,
     event.subtitle,
@@ -248,6 +258,9 @@ function matchesArchiveQuery(event: ArchiveEvent, query: string) {
     event.shortDescription,
     event.longDescription,
     event.location,
+    getSeasonById(event.seasonId)?.title,
+    getSeasonById(event.seasonId)?.label,
+    ...getCollectionsForEvent(event).map((collection) => collection.title),
     ...event.passage,
     ...event.materials,
     ...event.themes,
@@ -265,6 +278,9 @@ function PosterTile({
   isBookmarked: boolean;
   onToggleBookmark: (id: string) => void;
 }) {
+  const season = getSeasonById(event.seasonId);
+  const collections = getCollectionsForEvent(event);
+
   return (
     <article className="poster-tile section-reveal">
       <button
@@ -283,6 +299,7 @@ function PosterTile({
         <div className="poster-caption">
           <span>{event.edition}</span>
           <h2>{event.title}</h2>
+          <small>{season ? `${season.label} / ${collections[0]?.title ?? event.kind}` : event.kind}</small>
           <small>{event.latinQuote}</small>
           <p lang="ko">{event.shortDescription}</p>
           <em lang="ko">{event.marginalia}</em>
@@ -296,11 +313,20 @@ function PosterTile({
 function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEvent[]; siteText: SiteText }) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>('all');
+  const [seasonFilter, setSeasonFilter] = useState<ArchiveTaxonomyFilter>('all');
+  const [collectionFilter, setCollectionFilter] = useState<ArchiveTaxonomyFilter>('all');
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
   const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
+  const seasonOptions = archiveSeasons.filter((season) => archiveEvents.some((event) => event.seasonId === season.id));
+  const collectionOptions = archiveCollections.filter((collection) => (
+    collection.visibility === 'public'
+    && archiveEvents.some((event) => event.collectionIds.includes(collection.id) || collection.eventIds.includes(event.id))
+  ));
   const visibleEvents = archiveEvents.filter((event) => {
     const statusMatches = statusFilter === 'all' || event.status === statusFilter;
-    return statusMatches && matchesArchiveQuery(event, query);
+    const seasonMatches = seasonFilter === 'all' || event.seasonId === seasonFilter;
+    const collectionMatches = collectionFilter === 'all' || event.collectionIds.includes(collectionFilter);
+    return statusMatches && seasonMatches && collectionMatches && matchesArchiveQuery(event, query);
   });
   const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
   const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
@@ -350,6 +376,32 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
             </button>
           ))}
         </div>
+        <label className="archive-select">
+          <span lang="ko">시즌</span>
+          <select
+            value={seasonFilter}
+            onChange={(event) => setSeasonFilter(event.target.value)}
+            aria-label="시즌으로 기록 필터링"
+          >
+            <option value="all">All seasons</option>
+            {seasonOptions.map((season) => (
+              <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+            ))}
+          </select>
+        </label>
+        <label className="archive-select">
+          <span lang="ko">컬렉션</span>
+          <select
+            value={collectionFilter}
+            onChange={(event) => setCollectionFilter(event.target.value)}
+            aria-label="컬렉션으로 기록 필터링"
+          >
+            <option value="all">All collections</option>
+            {collectionOptions.map((collection) => (
+              <option value={collection.id} key={collection.id}>{collection.title}</option>
+            ))}
+          </select>
+        </label>
         <p className="archive-results-count" lang="ko">
           {visibleEvents.length}개의 기록
           {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
@@ -360,7 +412,7 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
           <a href={event.ctaHref} key={event.id}>
             <span>{event.edition}</span>
             <strong>{event.title}</strong>
-            <em>{event.date}</em>
+            <em>{getSeasonById(event.seasonId)?.label ?? event.date}</em>
             <small lang="ko">{event.marginalia}</small>
           </a>
         ))}
@@ -428,8 +480,8 @@ function SiteFooter({ siteText }: { siteText: SiteText }) {
 export default function HomePage() {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
-  const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
-  const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0];
+  const archiveEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
+  const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0] ?? events[0];
 
   usePageMetadata({
     title: 'Jerboa Circle Official Archive',

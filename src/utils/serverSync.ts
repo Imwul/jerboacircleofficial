@@ -14,6 +14,20 @@ interface ServerSyncResponse<T> {
   error?: string;
 }
 
+interface SaveServerSyncOptions {
+  baseSavedAt?: string | null;
+}
+
+export class ServerSyncError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public savedAt?: string,
+  ) {
+    super(message);
+  }
+}
+
 function headers(syncKey?: string) {
   return {
     'content-type': 'application/json',
@@ -29,16 +43,24 @@ async function parseServerResponse<T>(response: Response) {
 
   const payload = (await response.json()) as ServerSyncResponse<T>;
   if (!response.ok || !payload.ok) {
-    throw new Error(payload.error || `sync_${response.status}`);
+    throw new ServerSyncError(payload.error || `sync_${response.status}`, response.status, payload.savedAt);
   }
   return payload;
 }
 
-export async function saveServerSync<T>(scope: SyncScope, data: T, syncKey?: string) {
+export async function saveServerSync<T>(
+  scope: SyncScope,
+  data: T,
+  syncKey?: string,
+  options: SaveServerSyncOptions = {},
+) {
   const response = await fetch(`/api/sync?scope=${scope}`, {
     method: 'POST',
     headers: headers(syncKey),
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({
+      data,
+      ...(options.baseSavedAt ? { baseSavedAt: options.baseSavedAt } : {}),
+    }),
   });
 
   return parseServerResponse<T>(response);

@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ADMIN_PASSWORD } from '../constants';
-import { events, type ArchiveEvent, type EventStatus } from '../data/events';
+import {
+  archiveCollections,
+  archiveSeasons,
+  events,
+  getCollectionsForEvent,
+  getSeasonById,
+  type ArchiveContentKind,
+  type ArchiveEvent,
+  type ArchiveVisibility,
+  type ArchiveWorkflowStatus,
+  type EventStatus,
+} from '../data/events';
 import type { SiteText } from '../data/siteText';
 import {
   applyArchiveDrafts,
@@ -10,11 +21,12 @@ import {
   type ArchiveDraftMap,
   type ArchiveEventDraft,
 } from '../utils/archiveDrafts';
-import { loadServerSync, saveServerSync } from '../utils/serverSync';
+import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
+import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -32,6 +44,11 @@ function detailTextLang(text: string) {
 }
 
 interface DetailFormState {
+  kind: ArchiveContentKind;
+  visibility: ArchiveVisibility;
+  workflowStatus: ArchiveWorkflowStatus;
+  seasonId: string;
+  collectionIdsText: string;
   edition: string;
   title: string;
   subtitle: string;
@@ -51,6 +68,11 @@ interface DetailFormState {
 
 function toDetailForm(event: ArchiveEvent): DetailFormState {
   return {
+    kind: event.kind,
+    visibility: event.visibility,
+    workflowStatus: event.workflowStatus,
+    seasonId: event.seasonId,
+    collectionIdsText: event.collectionIds.join(' / '),
     edition: event.edition,
     title: event.title,
     subtitle: event.subtitle,
@@ -71,6 +93,11 @@ function toDetailForm(event: ArchiveEvent): DetailFormState {
 
 function toDetailDraft(form: DetailFormState, event: ArchiveEvent): ArchiveEventDraft {
   return {
+    kind: form.kind,
+    visibility: form.visibility,
+    workflowStatus: form.workflowStatus,
+    seasonId: form.seasonId,
+    collectionIds: splitDetailList(form.collectionIdsText),
     edition: form.edition,
     title: form.title,
     subtitle: form.subtitle,
@@ -109,19 +136,32 @@ function validateDetailForm(form: DetailFormState) {
 
   const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
   if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (!archiveSeasons.some((season) => season.id === form.seasonId)) return '시즌을 선택하세요';
+  if (splitDetailList(form.collectionIdsText).length === 0) return '컬렉션을 하나 이상 입력하세요';
   if (splitDetailList(form.passageText).length === 0) return '여정을 하나 이상 입력하세요';
   if (splitDetailList(form.materialsText).length === 0) return '자료를 하나 이상 입력하세요';
   if (splitDetailList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
   return '';
 }
 
-function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: () => void }) {
+function DetailKeeperPanel({
+  event,
+  onSaved,
+  serverSavedAt,
+  onServerSavedAt,
+}: {
+  event: ArchiveEvent;
+  onSaved: () => void;
+  serverSavedAt: string | null;
+  onServerSavedAt: (savedAt: string | null) => void;
+}) {
   const [code, setCode] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
   const [unlocked, setUnlocked] = useState(false);
   const [form, setForm] = useState(() => toDetailForm(event));
   const [status, setStatus] = useState('Keeper seal이 닫혀 있습니다');
+  const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
 
-  const statusTone = status.includes('실패') || status.includes('닫혔') || status.includes('없음')
+  const statusTone = status.includes('실패') || status.includes('닫혔') || status.includes('없음') || status.includes('먼저') || status.includes('보류')
     ? 'warning'
     : status.includes('봉인') || status.includes('반영') || status.includes('준비')
       ? 'sealed'
@@ -129,6 +169,25 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
 
   function updateField<Key extends keyof DetailFormState>(key: Key, value: DetailFormState[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function createDetailArchivePayload(nextDraft: ArchiveEventDraft) {
+    return {
+      drafts: {
+        ...readArchiveDrafts(),
+        [event.id]: nextDraft,
+      },
+      siteText: getSiteText(),
+    };
+  }
+
+  function captureArchiveRecovery(nextDraft: ArchiveEventDraft, reason: string, remoteSavedAt?: string | null) {
+    writeSyncRecovery('archive', createDetailArchivePayload(nextDraft), {
+      baseSavedAt: serverSavedAt,
+      remoteSavedAt,
+      reason,
+    });
+    setHasArchiveRecovery(true);
   }
 
   function unlockEditor() {
@@ -166,7 +225,7 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
       setStatus(`입력 확인 / ${validation}`);
       return;
     }
-    writeArchiveDraft(event.id, toDetailDraft(form, event));
+    writeArchiveDraft(event.id, toDetailDraft(form, event), { label: form.workflowStatus });
     setStatus('로컬 초안 보관 중');
     onSaved();
   }
@@ -179,17 +238,20 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
         return;
       }
       const nextDraft = toDetailDraft(form, event);
-      writeArchiveDraft(event.id, nextDraft);
-      await saveServerSync<ArchiveSyncPayload>('archive', {
-        drafts: {
-          ...readArchiveDrafts(),
-          [event.id]: nextDraft,
-        },
-        siteText: getSiteText(),
-      }, code);
+      writeArchiveDraft(event.id, nextDraft, { label: form.workflowStatus });
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', createDetailArchivePayload(nextDraft), code, {
+        baseSavedAt: serverSavedAt,
+      });
+      onServerSavedAt(result.savedAt || serverSavedAt);
       setStatus('공동 장부에 봉인됨');
       onSaved();
     } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        captureArchiveRecovery(toDetailDraft(form, event), 'archive_detail_sync_conflict', error.savedAt);
+        onServerSavedAt(error.savedAt || serverSavedAt);
+        setStatus('공동 장부가 먼저 바뀌었습니다 / Keeper Desk에서 열람 후 다시 봉인');
+        return;
+      }
       console.error('Detail archive save failed:', error);
       setStatus('공동 장부 봉인 실패 / 열쇠 확인');
     }
@@ -249,6 +311,58 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
               </select>
             </label>
           </div>
+          <div className="detail-keeper-grid">
+            <label>
+              <span>종류</span>
+              <select value={form.kind} onChange={(event) => updateField('kind', event.target.value as ArchiveContentKind)}>
+                <option value="workshop">workshop</option>
+                <option value="essay">essay</option>
+                <option value="exhibition">exhibition</option>
+                <option value="project">project</option>
+                <option value="archive-record">archive-record</option>
+              </select>
+            </label>
+            <label>
+              <span>공개 상태</span>
+              <select value={form.visibility} onChange={(event) => updateField('visibility', event.target.value as ArchiveVisibility)}>
+                <option value="public">public</option>
+                <option value="unlisted">unlisted</option>
+                <option value="private">private</option>
+              </select>
+            </label>
+            <label>
+              <span>발행 단계</span>
+              <select value={form.workflowStatus} onChange={(event) => updateField('workflowStatus', event.target.value as ArchiveWorkflowStatus)}>
+                <option value="draft">draft</option>
+                <option value="preview">preview</option>
+                <option value="published">published</option>
+                <option value="archived">archived</option>
+              </select>
+            </label>
+          </div>
+          <div className="detail-keeper-grid">
+            <label>
+              <span>시즌</span>
+              <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
+                {archiveSeasons.map((season) => (
+                  <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>컬렉션 ID</span>
+            <input
+              list="detail-archive-collection-ids"
+              value={form.collectionIdsText}
+              onChange={(event) => updateField('collectionIdsText', event.target.value)}
+            />
+          </label>
+          <datalist id="detail-archive-collection-ids">
+            {archiveCollections.map((collection) => (
+              <option value={collection.id} key={collection.id}>{collection.title}</option>
+            ))}
+          </datalist>
           <label>
             <span>포스터 URL</span>
             <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
@@ -280,6 +394,11 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
           <div className="detail-keeper-actions">
             <button type="submit"><span className="keeper-button-label">로컬 초안 봉인</span></button>
             <button type="button" onClick={publishToServer}><span className="keeper-button-label">공동 장부에 봉인</span></button>
+            {hasArchiveRecovery && (
+              <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}>
+                <span className="keeper-button-label">복구 파일 받기</span>
+              </button>
+            )}
             <a href={`${detailRootHref()}godmode/`}><span className="keeper-button-label">Keeper Desk</span></a>
           </div>
         </form>
@@ -288,7 +407,22 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
   );
 }
 
-function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteText: SiteText; onSaved: () => void }) {
+function EventDetail({
+  event,
+  siteText,
+  onSaved,
+  serverSavedAt,
+  onServerSavedAt,
+}: {
+  event: ArchiveEvent;
+  siteText: SiteText;
+  onSaved: () => void;
+  serverSavedAt: string | null;
+  onServerSavedAt: (savedAt: string | null) => void;
+}) {
+  const season = getSeasonById(event.seasonId);
+  const collections = getCollectionsForEvent(event);
+
   return (
     <div className="public-home detail-home">
       <header className="archive-header">
@@ -352,6 +486,14 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
               <dd lang={detailTextLang(event.location)}>{event.location}</dd>
             </div>
             <div>
+              <dt lang="ko">시즌</dt>
+              <dd>{season ? `${season.label} / ${season.title}` : event.seasonId}</dd>
+            </div>
+            <div>
+              <dt lang="ko">컬렉션</dt>
+              <dd>{collections.map((collection) => collection.title).join(' / ') || event.collectionIds.join(' / ')}</dd>
+            </div>
+            <div>
               <dt lang={detailTextLang(siteText.detailThemeLabel)}>{siteText.detailThemeLabel}</dt>
               <dd lang={detailTextLang(event.themes.join(' / '))}>{event.themes.join(' / ')}</dd>
             </div>
@@ -361,6 +503,12 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
           </a>
         </article>
       </main>
+      <DetailKeeperPanel
+        event={event}
+        onSaved={onSaved}
+        onServerSavedAt={onServerSavedAt}
+        serverSavedAt={serverSavedAt}
+      />
     </div>
   );
 }
@@ -368,9 +516,14 @@ function EventDetail({ event, siteText, onSaved }: { event: ArchiveEvent; siteTe
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
+  const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const event = useMemo(
-    () => archiveEvents.find((archiveEvent) => archiveEvent.id === id),
+    () => archiveEvents.find((archiveEvent) => (
+      archiveEvent.id === id
+      && archiveEvent.visibility !== 'private'
+      && archiveEvent.workflowStatus !== 'archived'
+    )),
     [archiveEvents, id],
   );
 
@@ -397,6 +550,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           setSiteText(getSiteText());
         }
 
+        setServerSavedAt(result.saved.savedAt);
         setVersion((current) => current + 1);
       } catch (error) {
         if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
@@ -433,5 +587,13 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     );
   }
 
-  return <EventDetail event={event} siteText={siteText} onSaved={() => setVersion((current) => current + 1)} />;
+  return (
+    <EventDetail
+      event={event}
+      onSaved={() => setVersion((current) => current + 1)}
+      onServerSavedAt={setServerSavedAt}
+      serverSavedAt={serverSavedAt}
+      siteText={siteText}
+    />
+  );
 }
