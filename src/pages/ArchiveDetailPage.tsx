@@ -357,7 +357,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
 
         setVersion((current) => current + 1);
       } catch (error) {
-        console.warn('Public archive sync skipped:', error);
+        if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
+          console.warn('Public archive sync skipped:', error);
+        }
       }
     }
 

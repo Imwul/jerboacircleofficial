@@ -22,6 +22,11 @@ function headers(syncKey?: string) {
 }
 
 async function parseServerResponse<T>(response: Response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('sync_unavailable');
+  }
+
   const payload = (await response.json()) as ServerSyncResponse<T>;
   if (!response.ok || !payload.ok) {
     throw new Error(payload.error || `sync_${response.status}`);

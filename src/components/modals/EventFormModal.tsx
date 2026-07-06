@@ -3,11 +3,17 @@ import React, { useState, useEffect } from 'react';
 import { format, parseISO, addMinutes } from 'date-fns';
 import { CalendarEvent, ThemeColor, THEME_CONFIG } from '../../types';
 
+export interface EventRecurrence {
+  type: 'count' | 'date';
+  value: number | string;
+  daysOfWeek: number[];
+}
+
 interface EventFormModalProps {
   isOpen: boolean;
   event?: CalendarEvent | null;
   initialDate?: Date;
-  onSave: (event: CalendarEvent, recurrence?: any) => void;
+  onSave: (event: CalendarEvent, recurrence?: EventRecurrence) => void;
   onClose: () => void;
   themeNames: Record<ThemeColor, string>;
 }

@@ -7,7 +7,7 @@ import { CalendarView } from './components/views/CalendarView';
 import { ProfileView } from './components/views/ProfileView';
 import { AdminView } from './components/views/AdminView';
 import { HabitTrackingView } from './components/views/HabitTrackingView';
-import { EventFormModal } from './components/modals/EventFormModal';
+import { EventFormModal, type EventRecurrence } from './components/modals/EventFormModal';
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
 import { loadServerSync, saveServerSync } from './utils/serverSync';
@@ -118,7 +118,6 @@ interface MembersSyncPayload {
 }
 
 function App() {
-  console.log('App component rendering');
   const [users, setUsers] = useState<User[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.USERS);
@@ -205,7 +204,9 @@ function App() {
       return true;
     } catch (error) {
       setServerSyncStatus('공동 장부가 잠시 닫혔습니다 / 로컬 초안 보관 중');
-      console.error('Server save failed:', error);
+      if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
+        console.error('Server save failed:', error);
+      }
       return false;
     }
   };
@@ -233,7 +234,9 @@ function App() {
       }
     } catch (error) {
       setServerSyncStatus('공동 장부가 잠시 닫혔습니다 / 로컬 초안 보관 중');
-      console.error('Server load failed:', error);
+      if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
+        console.error('Server load failed:', error);
+      }
     } finally {
       hasServerHydrated.current = true;
       localNoticeArmed.current = true;
@@ -464,7 +467,7 @@ function App() {
     setClipboard(null);
   };
 
-  const handleEventSubmit = (eventData: Partial<CalendarEvent>, recurrence?: { type: 'count' | 'date', count: number, endDate: string, daysOfWeek: number[] }) => {
+  const handleEventSubmit = (eventData: Partial<CalendarEvent>, recurrence?: EventRecurrence) => {
     const selectedColor = (eventData.theme as ThemeColor) || ThemeColor.SAGE;
     const newThemeName = eventData.themeName || themeNames[selectedColor];
 
@@ -492,7 +495,7 @@ function App() {
       if (recurrence) {
         const newEvents = generateRecurringEvents(baseEvent, { 
           type: recurrence.type, 
-          value: recurrence.type === 'count' ? recurrence.count : recurrence.endDate,
+          value: recurrence.value,
           daysOfWeek: recurrence.daysOfWeek
         });
         setEvents(prev => [...prev, ...newEvents]);
