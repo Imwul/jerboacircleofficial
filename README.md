@@ -8,6 +8,7 @@ Jerboa Circle is a public event poster archive for an independent literary and a
 - Data saves immediately in the browser with `localStorage`.
 - Backup and transfer use the built-in sync code export/import flow.
 - The app is ready for simple Vercel deployment.
+- Shared sync requires `JERBOA_SYNC_KEY` in Vercel.
 - Public poster archive lives at `/`.
 - Individual records live at `/archive/:id`.
 - Internal member tools live at `/members`.
@@ -19,10 +20,22 @@ npm install
 npm run dev
 ```
 
+Use Vercel's local runtime when testing the shared sync API:
+
+```bash
+npm run dev:vercel
+```
+
 ## Build
 
 ```bash
 npm run build
+```
+
+Run the full pre-deploy check:
+
+```bash
+npm run check
 ```
 
 ## Deploy on Vercel
