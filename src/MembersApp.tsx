@@ -11,6 +11,7 @@ import { EventFormModal, type EventRecurrence } from './components/modals/EventF
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
 import { loadServerSync, saveServerSync } from './utils/serverSync';
+import { usePageMetadata } from './utils/pageMetadata';
 import './MembersArchive.css';
 import './MembersStability.css';
 
@@ -498,6 +499,10 @@ function App() {
           value: recurrence.value,
           daysOfWeek: recurrence.daysOfWeek
         });
+        if (newEvents.length === 0) {
+          setNotice('반복 일정 조건을 확인해주세요.');
+          return;
+        }
         setEvents(prev => [...prev, ...newEvents]);
       } else {
         setEvents(prev => [...prev, baseEvent]);
@@ -552,6 +557,12 @@ function App() {
     : currentUser === 'admin'
       ? '프로그램 일정, 회원 기록, 공동 장부, 백업 파일을 정돈하는 보관자 책상입니다.'
       : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 남기는 비공개 장부입니다.';
+
+  usePageMetadata({
+    title: `${archiveSectionTitle} | Jerboa Circle Private Room`,
+    description: archiveSectionNote,
+    canonicalPath: '/members/',
+  });
 
   return (
     <ErrorBoundary>

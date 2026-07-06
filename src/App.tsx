@@ -2,8 +2,14 @@ import HomePage from './pages/HomePage';
 import MembersApp from './MembersApp';
 import ArchiveDetailPage from './pages/ArchiveDetailPage';
 import KeeperPage from './pages/KeeperPage';
+import { usePageMetadata } from './utils/pageMetadata';
 
 function NotFoundPage() {
+  usePageMetadata({
+    title: '없는 길 | Jerboa Circle',
+    description: '이 주소에는 아직 열린 Jerboa Circle 기록이 없습니다.',
+  });
+
   return (
     <div className="public-home detail-home">
       <header className="archive-header" aria-label="Jerboa Circle navigation">

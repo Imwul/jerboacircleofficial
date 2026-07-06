@@ -14,6 +14,7 @@ import { loadServerSync, saveServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
 import { resizeImage } from '../utils/imageUtils';
+import { usePageMetadata } from '../utils/pageMetadata';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -89,6 +90,31 @@ function toDetailDraft(form: DetailFormState, event: ArchiveEvent): ArchiveEvent
   };
 }
 
+function splitDetailList(value: string) {
+  return value.split(/\n|\//).map((item) => item.trim()).filter(Boolean);
+}
+
+function validateDetailForm(form: DetailFormState) {
+  const requiredFields: Array<[keyof DetailFormState, string]> = [
+    ['edition', '판본'],
+    ['title', '제목'],
+    ['subtitle', '부제'],
+    ['date', '일자'],
+    ['posterImage', '포스터 이미지'],
+    ['shortDescription', '짧은 설명'],
+    ['longDescription', '긴 설명'],
+    ['location', '형식'],
+    ['ctaLabel', '버튼 문구'],
+  ];
+
+  const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
+  if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (splitDetailList(form.passageText).length === 0) return '여정을 하나 이상 입력하세요';
+  if (splitDetailList(form.materialsText).length === 0) return '자료를 하나 이상 입력하세요';
+  if (splitDetailList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
+  return '';
+}
+
 function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: () => void }) {
   const [code, setCode] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
   const [unlocked, setUnlocked] = useState(false);
@@ -135,6 +161,11 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
 
   function saveLocal(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
+    const validation = validateDetailForm(form);
+    if (validation) {
+      setStatus(`입력 확인 / ${validation}`);
+      return;
+    }
     writeArchiveDraft(event.id, toDetailDraft(form, event));
     setStatus('로컬 초안 보관 중');
     onSaved();
@@ -142,6 +173,11 @@ function DetailKeeperPanel({ event, onSaved }: { event: ArchiveEvent; onSaved: (
 
   async function publishToServer() {
     try {
+      const validation = validateDetailForm(form);
+      if (validation) {
+        setStatus(`입력 확인 / ${validation}`);
+        return;
+      }
       const nextDraft = toDetailDraft(form, event);
       writeArchiveDraft(event.id, nextDraft);
       await saveServerSync<ArchiveSyncPayload>('archive', {
@@ -337,6 +373,12 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     () => archiveEvents.find((archiveEvent) => archiveEvent.id === id),
     [archiveEvents, id],
   );
+
+  usePageMetadata({
+    title: event ? `${event.title} | Jerboa Circle` : `${siteText.missingTitle} | Jerboa Circle`,
+    description: event ? event.shortDescription : 'Jerboa Circle archive record was not found.',
+    canonicalPath: event ? `/archive/${event.id}/` : undefined,
+  });
 
   useEffect(() => {
     let ignore = false;

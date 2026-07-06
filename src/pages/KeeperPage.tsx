@@ -19,6 +19,7 @@ import {
   writeSiteTextDraft,
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
+import { usePageMetadata } from '../utils/pageMetadata';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -178,6 +179,53 @@ function timeLabel(date = new Date()) {
   });
 }
 
+function splitDraftList(value: string) {
+  return value.split(/\n|\//).map((item) => item.trim()).filter(Boolean);
+}
+
+function validateKeeperForm(form: KeeperFormState) {
+  const requiredFields: Array<[keyof KeeperFormState, string]> = [
+    ['edition', '판본'],
+    ['title', '제목'],
+    ['subtitle', '부제'],
+    ['date', '일자'],
+    ['posterImage', '포스터 이미지'],
+    ['shortDescription', '짧은 설명'],
+    ['longDescription', '긴 설명'],
+    ['location', '형식'],
+    ['ctaLabel', '버튼 문구'],
+  ];
+
+  const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
+  if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (splitDraftList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
+  if (splitDraftList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
+  if (splitDraftList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
+  return '';
+}
+
+function validateSiteTextForm(siteText: SiteText) {
+  const requiredKeys: Array<[keyof SiteText, string]> = [
+    ['wordmarkSmall', '헤더 작은 문구'],
+    ['navFeaturedEn', '탭 1 영어'],
+    ['navArchiveEn', '탭 2 영어'],
+    ['navManifestoEn', '탭 3 영어'],
+    ['navJoinEn', '탭 4 영어'],
+    ['navMembersEn', '탭 5 영어'],
+    ['mastheadCaptionEn', '인장 캡션 영어'],
+    ['mastheadIntroKo', '대문 한글 설명'],
+    ['archiveHeading', '아카이브 큰 문장'],
+    ['manifestoBody', '소개 본문'],
+    ['joinHeading', '문의 큰 문장'],
+    ['joinCtaLabel', '문의 버튼 문구'],
+    ['joinCtaHref', '문의 버튼 링크'],
+    ['missingTitle', '없는 기록 제목'],
+  ];
+
+  const emptyField = requiredKeys.find(([key]) => !siteText[key].trim());
+  return emptyField ? `${emptyField[1]}을 입력하세요` : '';
+}
+
 export default function KeeperPage() {
   const [mode, setMode] = useState<'events' | 'text'>(() => (
     window.location.pathname.replace(/\/+$/, '').endsWith('/godmode') ? 'text' : 'events'
@@ -194,6 +242,12 @@ export default function KeeperPage() {
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
 
+  usePageMetadata({
+    title: mode === 'text' ? 'Text Register | Jerboa Circle Keeper' : 'Register of Passages | Jerboa Circle Keeper',
+    description: 'Jerboa Circle keeper desk for archive records, site text, drafts, and shared publication.',
+    canonicalPath: mode === 'text' ? '/godmode/' : '/keeper/',
+  });
+
   function selectEvent(event: ArchiveEvent) {
     setSelectedId(event.id);
     setForm(toFormState(event));
@@ -209,6 +263,11 @@ export default function KeeperPage() {
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const validation = validateKeeperForm(form);
+    if (validation) {
+      setSyncStatus(`입력 확인 / ${validation}`);
+      return;
+    }
     writeArchiveDraft(selectedEvent.id, toDraft(form));
     setVersion((current) => current + 1);
     setSyncStatus(`로컬 초안 봉인됨 / ${timeLabel()}`);
@@ -216,6 +275,11 @@ export default function KeeperPage() {
 
   function saveSiteTextDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const validation = validateSiteTextForm(siteTextForm);
+    if (validation) {
+      setSyncStatus(`입력 확인 / ${validation}`);
+      return;
+    }
     writeSiteTextDraft(siteTextForm);
     setSyncStatus(`문구실 초안 봉인됨 / ${timeLabel()}`);
   }
@@ -279,6 +343,16 @@ export default function KeeperPage() {
 
   async function saveArchiveToServer() {
     try {
+      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form) : '';
+      if (archiveValidation) {
+        setSyncStatus(`입력 확인 / ${archiveValidation}`);
+        return;
+      }
+      const textValidation = mode === 'text' || isTextDirty ? validateSiteTextForm(siteTextForm) : '';
+      if (textValidation) {
+        setSyncStatus(`입력 확인 / ${textValidation}`);
+        return;
+      }
       if (isDirty) {
         writeArchiveDraft(selectedEvent.id, toDraft(form));
       }

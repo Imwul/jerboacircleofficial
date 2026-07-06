@@ -5,6 +5,7 @@ import { applyArchiveDrafts } from '../utils/archiveDrafts';
 import { loadServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import { usePageMetadata } from '../utils/pageMetadata';
 import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import { editorialPlates } from '../data/manuscriptPlates';
 import './HomePage.css';
@@ -429,6 +430,12 @@ export default function HomePage() {
   const [siteText, setSiteText] = useState(() => getSiteText());
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0];
+
+  usePageMetadata({
+    title: 'Jerboa Circle Official Archive',
+    description: `${currentEvent.title}: ${currentEvent.shortDescription}`,
+    canonicalPath: '/',
+  });
 
   useEffect(() => {
     let ignore = false;

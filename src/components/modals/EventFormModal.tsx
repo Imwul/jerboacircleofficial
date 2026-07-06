@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { format, parseISO, addMinutes } from 'date-fns';
+import React, { useState, useEffect, useMemo } from 'react';
+import { format, parseISO, addMinutes, isBefore, isValid } from 'date-fns';
 import { CalendarEvent, ThemeColor, THEME_CONFIG } from '../../types';
 
 export interface EventRecurrence {
@@ -73,8 +73,30 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     setThemeName(themeNames[newTheme]);
   };
 
+  const validationMessage = useMemo(() => {
+    if (!title.trim()) return '프로그램 제목을 입력하세요.';
+
+    const startDate = parseISO(date);
+    if (!isValid(startDate)) return '날짜와 시간을 확인하세요.';
+    if (!Number.isFinite(duration) || duration <= 0) return '진행 시간을 확인하세요.';
+
+    if (isRecurring) {
+      if (selectedDays.length === 0) return '반복할 요일을 하나 이상 선택하세요.';
+      if (recurrenceType === 'count' && Number(recurrenceValue) < 1) {
+        return '반복 횟수는 1 이상이어야 합니다.';
+      }
+      if (recurrenceType === 'date') {
+        const endDate = parseISO(String(recurrenceValue));
+        if (!isValid(endDate)) return '반복 종료일을 선택하세요.';
+        if (isBefore(endDate, startDate)) return '반복 종료일은 시작일 이후여야 합니다.';
+      }
+    }
+
+    return '';
+  }, [date, duration, isRecurring, recurrenceType, recurrenceValue, selectedDays.length, title]);
+
   const handleSave = () => {
-    if (!title.trim()) return;
+    if (validationMessage) return;
 
     const startDate = parseISO(date);
     const endDate = addMinutes(startDate, duration);
@@ -96,7 +118,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
 
     const recurrence = isRecurring ? {
       type: recurrenceType,
-      value: recurrenceValue,
+      value: recurrenceType === 'count' ? Number(recurrenceValue) : recurrenceValue,
       daysOfWeek: selectedDays
     } : undefined;
 
@@ -262,7 +284,12 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
                   <div className="flex items-center gap-4">
                     <select 
                       value={recurrenceType} 
-                      onChange={e => setRecurrenceType(e.target.value as any)}
+                      onChange={(event) => {
+                        const nextType = event.target.value === 'date' ? 'date' : 'count';
+                        const parsedDate = parseISO(date);
+                        setRecurrenceType(nextType);
+                        setRecurrenceValue(nextType === 'count' ? 4 : format(isValid(parsedDate) ? parsedDate : new Date(), 'yyyy-MM-dd'));
+                      }}
                       className="bg-white border border-stone-200 rounded-lg p-2 text-[10px] font-bold outline-none"
                     >
                       <option value="count">횟수로 반복</option>
@@ -290,9 +317,13 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
           )}
         </div>
 
+        {validationMessage && (
+          <p className="text-xs font-bold text-red-500" role="alert" lang="ko">{validationMessage}</p>
+        )}
+
         <div className="flex gap-2 pt-4">
           <button onClick={onClose} className="flex-1 py-4 bg-stone-100 text-stone-500 text-sm font-black tracking-tighter rounded-2xl active:scale-95 transition-all"><span lang="ko">닫기</span></button>
-          <button onClick={handleSave} disabled={!title.trim()} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all disabled:opacity-40"><span lang="ko">프로그램 저장</span></button>
+          <button onClick={handleSave} disabled={Boolean(validationMessage)} className="flex-1 py-4 bg-stone-900 text-white text-sm font-black tracking-tighter rounded-2xl shadow-xl active:scale-95 transition-all disabled:opacity-40"><span lang="ko">프로그램 저장</span></button>
         </div>
       </div>
     </div>
