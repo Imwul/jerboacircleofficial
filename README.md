@@ -38,6 +38,8 @@ Run the full pre-deploy check:
 npm run check
 ```
 
+The check includes a static route smoke test and a performance budget so large new assets are caught before deploy.
+
 ## Deploy on Vercel
 
 Import this repository in Vercel and use the default Vite settings:
