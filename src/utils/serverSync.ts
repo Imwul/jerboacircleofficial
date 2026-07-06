@@ -16,6 +16,7 @@ interface ServerSyncResponse<T> {
 
 interface SaveServerSyncOptions {
   baseSavedAt?: string | null;
+  authSession?: string | null;
 }
 
 export class ServerSyncError extends Error {
@@ -28,10 +29,11 @@ export class ServerSyncError extends Error {
   }
 }
 
-function headers(syncKey?: string) {
+function headers(syncKey?: string, authSession?: string | null) {
   return {
     'content-type': 'application/json',
     ...(syncKey ? { 'x-jerboa-sync-key': syncKey } : {}),
+    ...(authSession ? { 'x-jerboa-session': authSession } : {}),
   };
 }
 
@@ -56,7 +58,7 @@ export async function saveServerSync<T>(
 ) {
   const response = await fetch(`/api/sync?scope=${scope}`, {
     method: 'POST',
-    headers: headers(syncKey),
+    headers: headers(syncKey, options.authSession),
     body: JSON.stringify({
       data,
       ...(options.baseSavedAt ? { baseSavedAt: options.baseSavedAt } : {}),
@@ -66,9 +68,13 @@ export async function saveServerSync<T>(
   return parseServerResponse<T>(response);
 }
 
-export async function loadServerSync<T>(scope: SyncScope, syncKey?: string) {
+export async function loadServerSync<T>(
+  scope: SyncScope,
+  syncKey?: string,
+  options: { authSession?: string | null } = {},
+) {
   const response = await fetch(`/api/sync?scope=${scope}`, {
-    headers: headers(syncKey),
+    headers: headers(syncKey, options.authSession),
   });
 
   return parseServerResponse<T>(response);

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
-import { ADMIN_PASSWORD } from '../constants';
 import {
   archiveCollections,
   archiveSeasons,
@@ -27,6 +26,7 @@ import { editorialPlates } from '../data/manuscriptPlates';
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
+import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -155,15 +155,18 @@ function DetailKeeperPanel({
   serverSavedAt: string | null;
   onServerSavedAt: (savedAt: string | null) => void;
 }) {
-  const [code, setCode] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
-  const [unlocked, setUnlocked] = useState(false);
+  const [code, setCode] = useState('');
+  const [unlocked, setUnlocked] = useState(() => Boolean(roleSessionToken('archive-editor')));
   const [form, setForm] = useState(() => toDetailForm(event));
-  const [status, setStatus] = useState('Keeper seal이 닫혀 있습니다');
+  const [status, setStatus] = useState(() => (
+    roleSessionToken('archive-editor') ? '아카이브 편집자 역할이 확인되었습니다' : 'Keeper seal이 닫혀 있습니다'
+  ));
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
 
   const statusTone = status.includes('실패') || status.includes('닫혔') || status.includes('없음') || status.includes('먼저') || status.includes('보류')
     ? 'warning'
-    : status.includes('봉인') || status.includes('반영') || status.includes('준비')
+    : status.includes('봉인') || status.includes('반영') || status.includes('준비') || status.includes('확인')
       ? 'sealed'
       : 'idle';
 
@@ -190,15 +193,25 @@ function DetailKeeperPanel({
     setHasArchiveRecovery(true);
   }
 
-  function unlockEditor() {
+  async function unlockEditor() {
     if (!code.trim()) {
-      setStatus('Keeper seal을 열 열쇠를 입력하세요');
+      setStatus('아카이브 편집자 역할 열쇠를 입력하세요');
       return;
     }
 
-    localStorage.setItem('jerboa_keeper_sync_key', code);
-    setUnlocked(true);
-    setStatus(code === ADMIN_PASSWORD ? '로컬 초안층이 열렸습니다' : '공동 장부 열쇠로 초안층이 열렸습니다');
+    try {
+      setIsUnlocking(true);
+      await authenticateRole('archive-editor', code);
+      setCode('');
+      setUnlocked(true);
+      setStatus('아카이브 편집자 역할이 확인되었습니다');
+    } catch (error) {
+      setStatus(error instanceof Error && error.message === 'role_auth_not_configured'
+        ? '서버에 아카이브 편집자 역할 열쇠가 아직 설정되지 않았습니다'
+        : '아카이브 편집자 역할 열쇠가 일치하지 않습니다');
+    } finally {
+      setIsUnlocking(false);
+    }
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -239,8 +252,14 @@ function DetailKeeperPanel({
       }
       const nextDraft = toDetailDraft(form, event);
       writeArchiveDraft(event.id, nextDraft, { label: form.workflowStatus });
+      const authSession = roleSessionToken('archive-editor');
+      if (!authSession) {
+        setStatus('아카이브 편집자 역할 확인이 필요합니다');
+        return;
+      }
       const result = await saveServerSync<ArchiveSyncPayload>('archive', createDetailArchivePayload(nextDraft), code, {
         baseSavedAt: serverSavedAt,
+        authSession,
       });
       onServerSavedAt(result.savedAt || serverSavedAt);
       setStatus('공동 장부에 봉인됨');
@@ -269,9 +288,11 @@ function DetailKeeperPanel({
           type="password"
           value={code}
           onChange={(event) => setCode(event.target.value)}
-          placeholder="Keeper seal key"
+          placeholder="아카이브 편집자 역할 열쇠"
         />
-        <button type="button" onClick={unlockEditor}><span className="keeper-button-label">Seal 열기</span></button>
+        <button type="button" onClick={unlockEditor} disabled={isUnlocking}>
+          <span className="keeper-button-label">{isUnlocking ? '역할 확인 중' : 'Seal 열기'}</span>
+        </button>
       </div>
       <p className="detail-keeper-status" data-sync-state={statusTone} lang="ko">{status}</p>
 

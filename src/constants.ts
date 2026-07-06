@@ -2,8 +2,6 @@
 import { Tier, User, CalendarEvent, ThemeColor } from './types';
 import { addDays, addHours, format, startOfToday } from 'date-fns';
 
-export const ADMIN_PASSWORD = "8888";
-
 const today = startOfToday();
 
 export const INITIAL_USERS: User[] = [

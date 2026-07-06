@@ -13,6 +13,7 @@ import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
 import { loadServerSync, saveServerSync, ServerSyncError } from './utils/serverSync';
 import { usePageMetadata } from './utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from './utils/syncRecovery';
+import { roleSessionToken } from './utils/roleAuth';
 import './MembersArchive.css';
 import './MembersStability.css';
 
@@ -206,7 +207,8 @@ function App() {
   };
 
   const saveMembersToServer = async (source = '자동 저장') => {
-    if (!memberSyncKey.trim()) {
+    const authSession = roleSessionToken('member-admin');
+    if (!memberSyncKey.trim() && !authSession) {
       setServerSyncStatus('공동 장부 열쇠 없음 / 로컬 장부 보관 중');
       return false;
     }
@@ -215,6 +217,7 @@ function App() {
       setServerSyncStatus(`${source} / 공동 장부에 봉인 중`);
       const result = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey, {
         baseSavedAt: serverSavedAt.current,
+        authSession,
       });
       serverSavedAt.current = result.savedAt || serverSavedAt.current;
       setServerSyncStatus(`공동 장부에 봉인됨 / ${format(new Date(result.savedAt || new Date()), 'HH:mm:ss')}`);
@@ -236,7 +239,8 @@ function App() {
   };
 
   const loadMembersFromServer = async () => {
-    if (!memberSyncKey.trim()) {
+    const authSession = roleSessionToken('member-admin');
+    if (!memberSyncKey.trim() && !authSession) {
       setServerSyncStatus('공동 장부 열쇠 없음 / 로컬 장부로 시작');
       hasServerHydrated.current = true;
       localNoticeArmed.current = true;
@@ -245,7 +249,7 @@ function App() {
 
     try {
       setServerSyncStatus('공동 장부 여는 중');
-      const result = await loadServerSync<MembersSyncPayload>('members', memberSyncKey);
+      const result = await loadServerSync<MembersSyncPayload>('members', memberSyncKey, { authSession });
       setHasServerConflict(false);
 
       if (result.exists && result.saved?.data) {
@@ -255,7 +259,7 @@ function App() {
         setServerSyncStatus(`공동 장부 열람됨 / ${format(new Date(result.saved.savedAt), 'HH:mm:ss')}`);
       } else {
         setServerSyncStatus('공동 장부 없음 / 새 장부 생성 중');
-        const created = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey);
+        const created = await saveServerSync('members', createMembersSyncPayload(), memberSyncKey, { authSession });
         serverSavedAt.current = created.savedAt || null;
         setServerSyncStatus('공동 장부 생성됨 / 첫 판본 봉인됨');
       }
@@ -373,6 +377,7 @@ function App() {
           applyMembersSyncPayload(data);
           void saveServerSync('members', data, memberSyncKey, {
             baseSavedAt: serverSavedAt.current,
+            authSession: roleSessionToken('member-admin'),
           }).then((result) => {
             serverSavedAt.current = result.savedAt || serverSavedAt.current;
             setServerSyncStatus('가져오기 완료 / 공동 장부에 봉인됨');
@@ -430,6 +435,7 @@ function App() {
         applyMembersSyncPayload(data);
         const result = await saveServerSync('members', data, memberSyncKey, {
           baseSavedAt: serverSavedAt.current,
+          authSession: roleSessionToken('member-admin'),
         });
         serverSavedAt.current = result.savedAt || serverSavedAt.current;
         setServerSyncStatus('백업 파일 적용 / 공동 장부에 봉인됨');

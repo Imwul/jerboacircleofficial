@@ -9,6 +9,7 @@ Jerboa Circle is a public event poster archive for an independent literary and a
 - Backup and transfer use the built-in sync code export/import flow.
 - The app is ready for simple Vercel deployment.
 - Shared sync requires `JERBOA_SYNC_KEY` in Vercel.
+- Keeper access is role-based and verified by the server; no admin password is bundled into the public app.
 - Public poster archive lives at `/`.
 - Individual records live at `/archive/:id`.
 - Internal member tools live at `/members`.
@@ -46,3 +47,11 @@ Import this repository in Vercel and use the default Vite settings:
 
 - Build command: `npm run build`
 - Output directory: `dist`
+
+Recommended environment variables:
+
+- `JERBOA_SYNC_KEY`: legacy/shared write key for member and archive sync.
+- `JERBOA_AUTH_SECRET`: signing secret for temporary role sessions.
+- `JERBOA_ADMIN_KEY`: owner key that can authenticate either role.
+- `JERBOA_MEMBER_ADMIN_KEY`: key for `/members` admin tools.
+- `JERBOA_ARCHIVE_EDITOR_KEY`: key for archive keeper/editor tools.

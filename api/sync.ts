@@ -1,5 +1,6 @@
 import { get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
+import { roleCanSync, verifyRoleSession, type AccessRole } from '../server/authCore';
 
 type SyncScope = 'members' | 'archive';
 
@@ -73,6 +74,16 @@ function assertSyncKey(request: any) {
     && crypto.timingSafeEqual(serverBuffer, requestBuffer);
 }
 
+function acceptedRolesForScope(scope: SyncScope): AccessRole[] {
+  return scope === 'members' ? ['member-admin'] : ['archive-editor'];
+}
+
+function assertRoleSession(request: any, scope: SyncScope) {
+  const session = String(request.headers['x-jerboa-session'] || '');
+  const role = verifyRoleSession(session, acceptedRolesForScope(scope));
+  return Boolean(role && roleCanSync(role, scope));
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -111,10 +122,10 @@ export default async function handler(request: any, response: any) {
 
   const needsSyncKey = scope === 'members' || (scope === 'archive' && request.method !== 'GET');
 
-  if (needsSyncKey && !assertSyncKey(request)) {
+  if (needsSyncKey && !assertSyncKey(request) && !assertRoleSession(request, scope)) {
     return sendJson(response, 401, {
       ok: false,
-      error: 'sync_key_required',
+      error: 'sync_auth_required',
     });
   }
 

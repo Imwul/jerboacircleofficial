@@ -34,6 +34,7 @@ import {
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
+import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -381,6 +382,28 @@ export default function KeeperPage() {
     localStorage.setItem('jerboa_keeper_sync_key', value);
   }
 
+  async function resolveArchiveAuth() {
+    const existingSession = roleSessionToken('archive-editor');
+    if (existingSession) {
+      return { authSession: existingSession, syncKey: '' };
+    }
+
+    if (!serverKey.trim()) {
+      return { authSession: null, syncKey: '' };
+    }
+
+    try {
+      const session = await authenticateRole('archive-editor', serverKey);
+      setSyncStatus('아카이브 편집자 역할 확인됨');
+      return { authSession: session.session, syncKey: '' };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'role_auth_not_configured') {
+        setSyncStatus('역할 열쇠 미설정 / 공동 장부 열쇠로 시도');
+      }
+      return { authSession: null, syncKey: serverKey };
+    }
+  }
+
   function createArchiveSyncPayload() {
     const drafts = {
       ...readArchiveDrafts(),
@@ -421,8 +444,15 @@ export default function KeeperPage() {
         writeSiteTextDraft(siteTextForm);
       }
 
-      const result = await saveServerSync<ArchiveSyncPayload>('archive', createArchiveSyncPayload(), serverKey, {
+      const auth = await resolveArchiveAuth();
+      if (!auth.syncKey && !auth.authSession) {
+        setSyncStatus('공동 장부 또는 아카이브 편집자 열쇠 필요');
+        return;
+      }
+
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', createArchiveSyncPayload(), auth.syncKey, {
         baseSavedAt: archiveSavedAt,
+        authSession: auth.authSession,
       });
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
       setHasArchiveConflict(false);
@@ -444,7 +474,10 @@ export default function KeeperPage() {
   async function loadArchiveFromServer() {
     try {
       setSyncStatus('공동 장부 여는 중');
-      const result = await loadServerSync<ArchiveSyncPayload>('archive', serverKey);
+      const auth = await resolveArchiveAuth();
+      const result = await loadServerSync<ArchiveSyncPayload>('archive', auth.syncKey, {
+        authSession: auth.authSession,
+      });
       setHasArchiveConflict(false);
       if (result.exists && result.saved?.data) {
         if (result.saved.data.drafts) {
@@ -601,12 +634,12 @@ export default function KeeperPage() {
           )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
             <label>
-              <span>공동 장부 열쇠</span>
+              <span>역할 또는 공동 장부 열쇠</span>
               <input
                 type="password"
                 value={serverKey}
                 onChange={(event) => updateServerKey(event.target.value)}
-                placeholder="보관자 열쇠"
+                placeholder="아카이브 편집자 또는 공동 장부 열쇠"
               />
             </label>
             <div className="keeper-sync-actions">

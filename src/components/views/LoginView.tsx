@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { User } from '../../types';
 import { format, subDays } from 'date-fns';
 import { privateArchivePlate } from '../../data/manuscriptPlates';
+import { authenticateRole } from '../../utils/roleAuth';
 
 interface LoginViewProps {
   users: User[];
@@ -18,6 +19,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
+  const [isAdminChecking, setIsAdminChecking] = useState(false);
 
   const getTodayKey = () => {
     const now = new Date();
@@ -30,15 +32,22 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   const todayKey = getTodayKey();
   const entryImage = mainImage || privateArchivePlate;
 
-  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+  const handleAdminLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPassword === '8888') {
+    setAdminError('');
+    setIsAdminChecking(true);
+
+    try {
+      await authenticateRole('member-admin', adminPassword);
       onAdminLogin();
       setShowAdminModal(false);
       setAdminPassword('');
-      setAdminError('');
-    } else {
-      setAdminError('비밀번호가 일치하지 않습니다.');
+    } catch (error) {
+      setAdminError(error instanceof Error && error.message === 'role_auth_not_configured'
+        ? '서버에 보관자 역할 열쇠가 아직 설정되지 않았습니다.'
+        : '보관자 역할 열쇠가 일치하지 않습니다.');
+    } finally {
+      setIsAdminChecking(false);
     }
   };
 
@@ -168,8 +177,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                 />
                 {adminError && <p className="text-xs text-red-500 font-bold">{adminError}</p>}
               </div>
-              <button type="submit" className="w-full py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all">
-                <span className="archive-ko-label">보관자 책상 열기</span>
+              <button type="submit" disabled={isAdminChecking} className="w-full py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all disabled:opacity-50">
+                <span className="archive-ko-label">{isAdminChecking ? '역할 확인 중' : '보관자 책상 열기'}</span>
               </button>
             </form>
           </div>
