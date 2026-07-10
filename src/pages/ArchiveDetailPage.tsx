@@ -27,6 +27,7 @@ import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
+import { trackProductEvent } from '../utils/productAnalytics';
 import './HomePage.css';
 import './EditorialStability.css';
 
@@ -586,6 +587,18 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!event) return;
+
+    trackProductEvent('archive_record_open', {
+      recordId: event.id,
+      kind: event.kind,
+      status: event.status,
+      seasonId: event.seasonId,
+      collectionCount: event.collectionIds.length,
+    });
+  }, [event?.id]);
 
   if (!event) {
     return (

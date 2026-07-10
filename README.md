@@ -55,3 +55,6 @@ Recommended environment variables:
 - `JERBOA_ADMIN_KEY`: owner key that can authenticate either role.
 - `JERBOA_MEMBER_ADMIN_KEY`: key for `/members` admin tools.
 - `JERBOA_ARCHIVE_EDITOR_KEY`: key for archive keeper/editor tools.
+- `JERBOA_ANALYTICS_DISABLED=true`: optional kill switch for product analytics.
+
+Product analytics only records operational signals such as public archive searches, record opens, joins/cancels, habit status changes, and sync failures. It does not send names, comments, uploaded media, or private reflection text.

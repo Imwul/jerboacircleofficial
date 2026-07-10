@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { User, Tier, TIER_COLORS, AVATAR_ICONS, AVATAR_COLORS } from '../../types';
 import { differenceInDays, parseISO, addWeeks, startOfDay } from 'date-fns';
 import { resizeImage } from '../../utils/imageUtils';
+import { deriveParticipantJourney } from '../../utils/participantJourney';
 
 interface ProfileViewProps {
   user: User;
@@ -31,6 +32,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
   const remainingDays = getRemainingDays();
   const isExpired = remainingDays < 0;
+  const journey = deriveParticipantJourney(user);
 
   const handleUpdateAvatar = (icon: string, color: string) => {
     onUpdateUser({ ...user, avatarIcon: icon, avatarColor: color, profileImage: undefined });
@@ -88,6 +90,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
             <span className="text-xs text-stone-400 ml-1">{isExpired || remainingDays === 0 ? '' : '남음'}</span>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white p-5 rounded-3xl border border-stone-100 shadow-sm space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] font-bold text-stone-400 mb-1">Journey state</div>
+            <div className="text-xl font-black text-stone-900">{journey.label}</div>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-stone-100 text-[10px] font-black text-stone-500">{journey.englishLabel}</span>
+        </div>
+        <p className="text-xs font-bold text-stone-400" lang="ko">{journey.note}</p>
+        {user.journeyNotes && (
+          <p className="text-sm font-bold text-stone-700" lang="ko">{user.journeyNotes}</p>
+        )}
       </div>
 
       <div className="space-y-3">

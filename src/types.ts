@@ -18,6 +18,14 @@ export enum ThemeColor {
   LIME = 'lime'
 }
 
+export type ParticipantJourneyStage =
+  | 'first-visit'
+  | 'invited'
+  | 'active'
+  | 'lapsed'
+  | 'returning'
+  | 'season-complete';
+
 export interface HabitRecord {
   status: 'success' | 'fail' | 'none';
   photo?: string; 
@@ -32,6 +40,12 @@ export interface HabitRecord {
 export interface User {
   id: string;
   name: string;
+  journeyStage?: ParticipantJourneyStage;
+  invitedAt?: string;
+  firstJoinedAt?: string;
+  lastActiveAt?: string;
+  completedSeasonIds?: string[];
+  journeyNotes?: string;
   tier: Tier;
   coins: number;
   tierStartDate: string;

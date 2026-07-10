@@ -1,3 +1,5 @@
+import { trackProductEvent } from './productAnalytics';
+
 export type SyncScope = 'members' | 'archive';
 
 export interface ServerSyncRecord<T> {
@@ -56,16 +58,26 @@ export async function saveServerSync<T>(
   syncKey?: string,
   options: SaveServerSyncOptions = {},
 ) {
-  const response = await fetch(`/api/sync?scope=${scope}`, {
-    method: 'POST',
-    headers: headers(syncKey, options.authSession),
-    body: JSON.stringify({
-      data,
-      ...(options.baseSavedAt ? { baseSavedAt: options.baseSavedAt } : {}),
-    }),
-  });
+  try {
+    const response = await fetch(`/api/sync?scope=${scope}`, {
+      method: 'POST',
+      headers: headers(syncKey, options.authSession),
+      body: JSON.stringify({
+        data,
+        ...(options.baseSavedAt ? { baseSavedAt: options.baseSavedAt } : {}),
+      }),
+    });
 
-  return parseServerResponse<T>(response);
+    return await parseServerResponse<T>(response);
+  } catch (error) {
+    trackProductEvent(error instanceof ServerSyncError && error.message === 'sync_conflict' ? 'sync_conflict' : 'sync_failure', {
+      scope,
+      method: 'POST',
+      status: error instanceof ServerSyncError ? error.status : null,
+      code: error instanceof Error ? error.message : 'unknown',
+    });
+    throw error;
+  }
 }
 
 export async function loadServerSync<T>(
@@ -73,9 +85,19 @@ export async function loadServerSync<T>(
   syncKey?: string,
   options: { authSession?: string | null } = {},
 ) {
-  const response = await fetch(`/api/sync?scope=${scope}`, {
-    headers: headers(syncKey, options.authSession),
-  });
+  try {
+    const response = await fetch(`/api/sync?scope=${scope}`, {
+      headers: headers(syncKey, options.authSession),
+    });
 
-  return parseServerResponse<T>(response);
+    return await parseServerResponse<T>(response);
+  } catch (error) {
+    trackProductEvent(error instanceof ServerSyncError && error.message === 'sync_conflict' ? 'sync_conflict' : 'sync_failure', {
+      scope,
+      method: 'GET',
+      status: error instanceof ServerSyncError ? error.status : null,
+      code: error instanceof Error ? error.message : 'unknown',
+    });
+    throw error;
+  }
 }

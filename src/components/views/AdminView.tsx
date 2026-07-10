@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { User, Tier, TIER_COLORS } from '../../types';
+import { User, Tier, TIER_COLORS, type CalendarEvent, type ParticipantJourneyStage } from '../../types';
 import { resizeImage } from '../../utils/imageUtils';
 import { HabitTrackingView } from './HabitTrackingView';
-import { format, subDays } from 'date-fns';
+import { format, isBefore, isValid, parseISO, startOfDay, subDays } from 'date-fns';
+import { deriveParticipantJourney, participantJourneyLabels } from '../../utils/participantJourney';
 
 interface AdminViewProps {
   users: User[];
+  events: CalendarEvent[];
   onUpdateUser: (user: User) => void;
   onDeleteUser: (userId: string) => void;
   onAddUser: (user: User) => void;
@@ -23,8 +25,77 @@ interface AdminViewProps {
   onUpdateMainImage: (image: string | null) => void;
 }
 
+type RosterSnapshot = Record<string, string[]>;
+
+const rosterSnapshotStorageKey = 'jerboa-facilitator-roster-baseline';
+
+function csvCell(value: string) {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function createRosterSnapshot(events: CalendarEvent[], users: User[]): RosterSnapshot {
+  return Object.fromEntries(events.map((event) => [
+    event.id,
+    users
+      .filter((user) => user.enrolledEventIds.includes(event.id))
+      .map((user) => user.id)
+      .sort(),
+  ]));
+}
+
+function readRosterSnapshot(): RosterSnapshot {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const raw = window.localStorage.getItem(rosterSnapshotStorageKey);
+    return raw ? (JSON.parse(raw) as RosterSnapshot) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeRosterSnapshot(snapshot: RosterSnapshot) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(rosterSnapshotStorageKey, JSON.stringify(snapshot));
+}
+
+function getRosterChanges(baseline: RosterSnapshot, events: CalendarEvent[], users: User[]) {
+  const userById = new Map(users.map((user) => [user.id, user]));
+  const currentSnapshot = createRosterSnapshot(events, users);
+
+  return events.flatMap((event) => {
+    const previousIds = new Set(baseline[event.id] ?? []);
+    const currentIds = new Set(currentSnapshot[event.id] ?? []);
+    const joined = [...currentIds].filter((id) => !previousIds.has(id));
+    const cancelled = [...previousIds].filter((id) => !currentIds.has(id));
+
+    return [
+      ...joined.map((userId) => ({ event, user: userById.get(userId), type: 'joined' as const })),
+      ...cancelled.map((userId) => ({ event, user: userById.get(userId), type: 'cancelled' as const })),
+    ].filter((change) => change.user);
+  });
+}
+
+function parseEventDate(value?: string) {
+  if (!value) return null;
+  const date = parseISO(value);
+  return isValid(date) ? date : null;
+}
+
+function getEventSortTime(event: CalendarEvent) {
+  return (parseEventDate(event.date) ?? parseEventDate(event.endDate))?.getTime() ?? Number.MAX_SAFE_INTEGER;
+}
+
+function formatEventDateLabel(value: string) {
+  const date = parseEventDate(value);
+  if (!date) return '날짜 미정';
+
+  return value.includes('T') ? format(date, 'yyyy.MM.dd HH:mm') : format(date, 'yyyy.MM.dd');
+}
+
 export const AdminView: React.FC<AdminViewProps> = ({ 
   users,
+  events,
   onUpdateUser,
   onDeleteUser,
   onAddUser,
@@ -40,11 +111,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
   mainImage,
   onUpdateMainImage,
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'operations' | 'users' | 'settings'>('operations');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [viewingHabitUser, setViewingHabitUser] = useState<User | null>(null);
   const [bulkEditDateModalOpen, setBulkEditDateModalOpen] = useState(false);
   const [bulkEndDate, setBulkEndDate] = useState('');
+  const [journeyFilter, setJourneyFilter] = useState<ParticipantJourneyStage | 'all'>('all');
+  const [rosterBaseline, setRosterBaseline] = useState(() => readRosterSnapshot());
+  const journeyStages: ParticipantJourneyStage[] = ['first-visit', 'invited', 'active', 'returning', 'lapsed', 'season-complete'];
 
   const getTodayKey = () => {
     const now = new Date();
@@ -55,6 +129,75 @@ export const AdminView: React.FC<AdminViewProps> = ({
   };
 
   const todayKey = getTodayKey();
+  const todayStart = startOfDay(new Date());
+  const upcomingEvents = [...events]
+    .filter((event) => {
+      const eventDate = parseEventDate(event.endDate || event.date);
+      return eventDate ? !isBefore(startOfDay(eventDate), todayStart) : true;
+    })
+    .sort((a, b) => getEventSortTime(a) - getEventSortTime(b));
+  const nextSessions = upcomingEvents.slice(0, 6).map((event) => {
+    const enrolledUsers = users.filter((user) => user.enrolledEventIds.includes(event.id));
+    const missingReflectionUsers = enrolledUsers.filter((user) => user.habitRecords?.[todayKey]?.status !== 'success');
+    const capacity = event.maxParticipants ?? null;
+    const capacityRatio = capacity ? enrolledUsers.length / capacity : 0;
+
+    return {
+      event,
+      enrolledUsers,
+      missingReflectionUsers,
+      capacity,
+      capacityRatio,
+      isCapacityWarning: Boolean(capacity && capacityRatio >= 0.8),
+      needsDateReview: !parseEventDate(event.date) || !parseEventDate(event.endDate),
+    };
+  });
+  const rosterChanges = getRosterChanges(rosterBaseline, events, users);
+  const capacityWarnings = nextSessions.filter((session) => session.isCapacityWarning);
+  const missingReflectionCount = nextSessions.reduce((sum, session) => sum + session.missingReflectionUsers.length, 0);
+  const usersWithJourney = users.map((user) => ({
+    user,
+    journey: deriveParticipantJourney(user),
+  }));
+  const visibleUsers = usersWithJourney.filter(({ journey }) => (
+    journeyFilter === 'all' || journey.stage === journeyFilter
+  ));
+  const journeyCounts = journeyStages.reduce((counts, stage) => ({
+    ...counts,
+    [stage]: usersWithJourney.filter(({ journey }) => journey.stage === stage).length,
+  }), {} as Partial<Record<ParticipantJourneyStage, number>>);
+
+  function refreshRosterBaseline() {
+    const nextSnapshot = createRosterSnapshot(events, users);
+    writeRosterSnapshot(nextSnapshot);
+    setRosterBaseline(nextSnapshot);
+  }
+
+  function downloadAttendanceCsv(event: CalendarEvent) {
+    const enrolledUsers = users.filter((user) => user.enrolledEventIds.includes(event.id));
+    const rows = [
+      ['event_id', 'event_title', 'event_date', 'member_name', 'journey_stage', 'today_reflection', 'coins'],
+      ...enrolledUsers.map((user) => {
+        const journey = deriveParticipantJourney(user);
+        return [
+          event.id,
+          event.title,
+          event.date,
+          user.name,
+          journey.stage,
+          user.habitRecords?.[todayKey]?.status || 'none',
+          String(user.coins),
+        ];
+      }),
+    ];
+    const csv = rows.map((row) => row.map(csvCell).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `jerboa-attendance-${event.title.replace(/[^a-z0-9가-힣]+/gi, '-').replace(/^-+|-+$/g, '') || event.id}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   const handleBulkEditSave = () => {
     if (bulkEndDate) {
@@ -124,6 +267,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
       </div>
 
       <div className="flex bg-white border-b border-stone-100">
+        <button
+          onClick={() => setActiveTab('operations')}
+          className={`flex-1 py-3 text-[10px] font-bold transition-all ${activeTab === 'operations' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
+        >
+          <span className="archive-ko-label">운영실</span>
+        </button>
         <button 
           onClick={() => setActiveTab('users')}
           className={`flex-1 py-3 text-[10px] font-bold transition-all ${activeTab === 'users' ? 'text-stone-900 border-b-2 border-stone-900' : 'text-stone-400'}`}
@@ -139,7 +288,117 @@ export const AdminView: React.FC<AdminViewProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {activeTab === 'users' ? (
+        {activeTab === 'operations' ? (
+          <div className="space-y-4 pb-20">
+            <section className="grid grid-cols-2 sm:grid-cols-4 gap-3" aria-label="운영 요약">
+              <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+                <span className="text-[9px] font-black text-stone-400 tracking-widest">운영 확인</span>
+                <strong className="block text-2xl font-black text-stone-900">{upcomingEvents.length}</strong>
+              </div>
+              <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+                <span className="text-[9px] font-black text-stone-400 tracking-widest">정원 경고</span>
+                <strong className="block text-2xl font-black text-stone-900">{capacityWarnings.length}</strong>
+              </div>
+              <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+                <span className="text-[9px] font-black text-stone-400 tracking-widest">미기록 참여자</span>
+                <strong className="block text-2xl font-black text-stone-900">{missingReflectionCount}</strong>
+              </div>
+              <div className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm">
+                <span className="text-[9px] font-black text-stone-400 tracking-widest">명단 변화</span>
+                <strong className="block text-2xl font-black text-stone-900">{rosterChanges.length}</strong>
+              </div>
+            </section>
+
+            <section className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm space-y-3" aria-label="명단 변화">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-black text-stone-900">Roster changes</h3>
+                  <p className="text-[10px] font-bold text-stone-400">마지막 기준 저장 이후 신청/취소 변화</p>
+                </div>
+                <button type="button" onClick={refreshRosterBaseline} className="text-[10px] bg-stone-100 text-stone-600 px-3 py-2 rounded-full font-bold hover:bg-stone-200 transition-colors">
+                  기준 갱신
+                </button>
+              </div>
+              {rosterChanges.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2">
+                  {rosterChanges.slice(0, 8).map((change) => (
+                    <div key={`${change.event.id}-${change.user!.id}-${change.type}`} className="p-3 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-between gap-3">
+                      <div>
+                        <strong className="block text-sm text-stone-800">{change.user!.name}</strong>
+                        <span className="text-[10px] text-stone-400 font-bold">{change.event.title}</span>
+                      </div>
+                      <span className={`text-[10px] font-black px-2 py-1 rounded-full ${change.type === 'joined' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-500'}`}>
+                        {change.type === 'joined' ? '신청' : '취소'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs font-bold text-stone-400">기준 이후 명단 변화가 없습니다.</p>
+              )}
+            </section>
+
+            <section className="space-y-3" aria-label="다가오는 세션 운영">
+              <h3 className="text-xs font-bold text-stone-400 tracking-widest ml-1">다가오는 / 확인 필요 세션</h3>
+              {nextSessions.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {nextSessions.map(({ event, enrolledUsers, missingReflectionUsers, capacity, capacityRatio, isCapacityWarning, needsDateReview }) => (
+                    <article key={event.id} className="bg-white p-5 rounded-3xl border border-stone-100 shadow-sm space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <span className="text-[10px] font-black text-stone-400">{formatEventDateLabel(event.date)}</span>
+                          <h4 className="text-lg font-black text-stone-900">{event.title}</h4>
+                          <p className="text-xs font-bold text-stone-400">
+                            {needsDateReview ? '날짜 확인 필요 / ' : ''}{event.themeName} / {event.isReward ? '문장 지급' : `${event.cost} 문장 필요`}
+                          </p>
+                        </div>
+                        <button type="button" onClick={() => downloadAttendanceCsv(event)} className="text-[10px] bg-stone-900 text-white px-3 py-2 rounded-full font-bold shadow-sm">
+                          출석 CSV
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-stone-50 rounded-2xl p-3">
+                          <span className="block text-[9px] font-black text-stone-400">신청</span>
+                          <strong className="text-lg font-black">{enrolledUsers.length}{capacity ? `/${capacity}` : ''}</strong>
+                        </div>
+                        <div className={`rounded-2xl p-3 ${isCapacityWarning ? 'bg-red-50 text-red-600' : 'bg-stone-50 text-stone-700'}`}>
+                          <span className="block text-[9px] font-black">정원</span>
+                          <strong className="text-lg font-black">{capacity ? `${Math.round(capacityRatio * 100)}%` : '제한 없음'}</strong>
+                        </div>
+                        <div className="bg-stone-50 rounded-2xl p-3">
+                          <span className="block text-[9px] font-black text-stone-400">오늘 미기록</span>
+                          <strong className="text-lg font-black">{missingReflectionUsers.length}</strong>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {enrolledUsers.length > 0 ? (
+                          enrolledUsers.slice(0, 8).map((user) => {
+                            const journey = deriveParticipantJourney(user);
+                            const reflected = user.habitRecords?.[todayKey]?.status === 'success';
+                            return (
+                              <div key={user.id} className="flex items-center justify-between gap-2 text-xs font-bold text-stone-500">
+                                <span>{user.name}</span>
+                                <span>{journey.label} / {reflected ? '오늘 기록 있음' : '오늘 기록 없음'}</span>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p className="text-xs font-bold text-stone-400">아직 신청한 회원이 없습니다.</p>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white p-5 rounded-3xl border border-stone-100 shadow-sm text-xs font-bold text-stone-400">
+                  예정된 세션이 없습니다.
+                </div>
+              )}
+            </section>
+          </div>
+        ) : activeTab === 'users' ? (
           <div className="space-y-3">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-xs font-bold text-stone-400 ml-1">등록된 회원 / {users.length}</h3>
@@ -151,16 +410,47 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <span className="archive-ko-label">종료일 표시</span>
                 </button>
                 <button 
-                  onClick={() => setEditingUser({ id: Math.random().toString(36).substr(2, 9), name: '', tier: Tier.SILT, coins: 0, tierStartDate: new Date().toISOString(), tierDurationWeeks: 4, enrolledEventIds: [], avatarIcon: '⚜', avatarColor: '#e57758' })}
+                  onClick={() => setEditingUser({
+                    id: Math.random().toString(36).substr(2, 9),
+                    name: '',
+                    journeyStage: 'invited',
+                    invitedAt: new Date().toISOString(),
+                    tier: Tier.SILT,
+                    coins: 0,
+                    tierStartDate: new Date().toISOString(),
+                    tierDurationWeeks: 4,
+                    enrolledEventIds: [],
+                    avatarIcon: '⚜',
+                    avatarColor: '#e57758',
+                  })}
                   className="text-[10px] bg-stone-900 text-white px-3 py-1 rounded-full font-bold shadow-lg"
                 >
                   <span className="archive-ko-label">+ 기록 추가</span>
                 </button>
               </div>
             </div>
+
+            <section className="bg-white p-4 rounded-3xl border border-stone-100 shadow-sm space-y-3" aria-label="참가자 여정 현황">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {journeyStages.map((stage) => (
+                  <button
+                    type="button"
+                    key={stage}
+                    onClick={() => setJourneyFilter(journeyFilter === stage ? 'all' : stage)}
+                    className={`p-3 rounded-2xl border text-left transition-all ${journeyFilter === stage ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-100 bg-stone-50 text-stone-600'}`}
+                  >
+                    <span className="block text-[9px] font-black tracking-widest">{participantJourneyLabels[stage].ko}</span>
+                    <strong className="text-lg font-black">{journeyCounts[stage] ?? 0}</strong>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] font-bold text-stone-400">
+                {journeyFilter === 'all' ? '전체 여정 상태를 보는 중' : `${participantJourneyLabels[journeyFilter].ko} 회원만 보는 중`}
+              </p>
+            </section>
             
             <div className="grid grid-cols-1 gap-3">
-              {users.map(user => (
+              {visibleUsers.map(({ user, journey }) => (
                 <div key={user.id} className="member-record-row bg-white p-5 rounded-3xl border border-stone-100 shadow-sm group hover:shadow-md transition-all">
                   <div className="flex items-center gap-4">
                     <div
@@ -176,6 +466,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="font-black text-stone-900 text-base">{user.name}</div>
+                        <span className="px-2 py-0.5 bg-stone-100 text-stone-500 text-[8px] font-black border border-stone-200 rounded-md">
+                          {journey.label}
+                        </span>
                         {user.habitRecords?.[todayKey]?.status === 'success' && (
                           <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
                             수련 완료
@@ -185,6 +478,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       <div className="flex gap-2 items-center">
                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${TIER_COLORS[user.tier]}`}>{user.tier}</span>
                         <span className="text-[10px] text-stone-400 font-bold tracking-tight">{user.coins} <span className="text-[8px] opacity-60">문장</span></span>
+                        <span className="text-[10px] text-stone-400 font-bold tracking-tight">{journey.note}</span>
                       </div>
                     </div>
                   </div>
@@ -378,6 +672,31 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   value={editingUser.tierEndDate || ''} 
                   onChange={e => setEditingUser({...editingUser, tierEndDate: e.target.value})}
                   className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">참가자 여정</label>
+                <select
+                  value={editingUser.journeyStage || deriveParticipantJourney(editingUser).stage}
+                  onChange={e => setEditingUser({
+                    ...editingUser,
+                    journeyStage: e.target.value as ParticipantJourneyStage,
+                    invitedAt: editingUser.invitedAt || new Date().toISOString(),
+                  })}
+                  className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
+                >
+                  {journeyStages.map((stage) => (
+                    <option value={stage} key={stage}>{participantJourneyLabels[stage].ko}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-stone-400 tracking-widest">여정 메모</label>
+                <textarea
+                  value={editingUser.journeyNotes || ''}
+                  onChange={e => setEditingUser({...editingUser, journeyNotes: e.target.value})}
+                  className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200 h-20 resize-none"
+                  placeholder="복귀 연락, 시즌 완료, 다음 초대 등 운영 메모"
                 />
               </div>
             </div>

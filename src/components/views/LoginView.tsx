@@ -4,6 +4,7 @@ import { User } from '../../types';
 import { format, subDays } from 'date-fns';
 import { privateArchivePlate } from '../../data/manuscriptPlates';
 import { authenticateRole } from '../../utils/roleAuth';
+import { deriveParticipantJourney } from '../../utils/participantJourney';
 
 interface LoginViewProps {
   users: User[];
@@ -80,38 +81,45 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">
-          {users.map(user => (
-            <button
-              key={user.id}
-              onClick={() => onUserLogin(user)}
-              className="member-record-row p-5 bg-white hover:bg-stone-50 border border-stone-100 rounded-[2rem] transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
-            >
-              <div 
-                className="member-seal"
-                style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
+          {users.map(user => {
+            const journey = deriveParticipantJourney(user);
+
+            return (
+              <button
+                key={user.id}
+                onClick={() => onUserLogin(user)}
+                className="member-record-row p-5 bg-white hover:bg-stone-50 border border-stone-100 rounded-[2rem] transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
               >
-                {user.profileImage ? (
-                  <img src={user.profileImage} alt={user.name} />
-                ) : (
-                  <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
-                )}
-              </div>
-              <div className="record-title text-left space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <div className="font-black text-stone-900 text-base">{user.name}</div>
-                  {user.habitRecords?.[todayKey]?.status === 'success' && (
-                    <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
-                      수련 완료
-                    </div>
+                <div
+                  className="member-seal"
+                  style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
+                >
+                  {user.profileImage ? (
+                    <img src={user.profileImage} alt={user.name} />
+                  ) : (
+                    <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
                   )}
                 </div>
-                <div className="record-meta text-[9px] text-stone-400 font-black" lang="ko">{user.tier} / 개인 기록과 신청 내역</div>
-              </div>
-              <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-              </div>
-            </button>
-          ))}
+                <div className="record-title text-left space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <div className="font-black text-stone-900 text-base">{user.name}</div>
+                    <div className="px-2 py-0.5 bg-stone-50 text-stone-500 text-[8px] font-black border border-stone-200 rounded-md">
+                      {journey.label}
+                    </div>
+                    {user.habitRecords?.[todayKey]?.status === 'success' && (
+                      <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
+                        수련 완료
+                      </div>
+                    )}
+                  </div>
+                  <div className="record-meta text-[9px] text-stone-400 font-black" lang="ko">{user.tier} / {journey.note}</div>
+                </div>
+                <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

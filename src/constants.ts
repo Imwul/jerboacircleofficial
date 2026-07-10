@@ -13,6 +13,10 @@ export const INITIAL_USERS: User[] = [
     tierStartDate: format(today, 'yyyy-MM-dd'),
     tierDurationWeeks: 2,
     enrolledEventIds: [],
+    journeyStage: 'active',
+    invitedAt: format(addDays(today, -7), 'yyyy-MM-dd'),
+    firstJoinedAt: format(addDays(today, -6), 'yyyy-MM-dd'),
+    lastActiveAt: format(today, 'yyyy-MM-dd'),
     avatarIcon: '⚜',
     avatarColor: '#cf6f8c'
   },
@@ -24,6 +28,10 @@ export const INITIAL_USERS: User[] = [
     tierStartDate: format(addDays(today, -5), 'yyyy-MM-dd'),
     tierDurationWeeks: 2,
     enrolledEventIds: [],
+    journeyStage: 'returning',
+    invitedAt: format(addDays(today, -12), 'yyyy-MM-dd'),
+    firstJoinedAt: format(addDays(today, -5), 'yyyy-MM-dd'),
+    lastActiveAt: format(addDays(today, -1), 'yyyy-MM-dd'),
     avatarIcon: '⭑',
     avatarColor: '#979bc8'
   },
@@ -35,6 +43,8 @@ export const INITIAL_USERS: User[] = [
     tierStartDate: format(addDays(today, -2), 'yyyy-MM-dd'),
     tierDurationWeeks: 2,
     enrolledEventIds: [],
+    journeyStage: 'invited',
+    invitedAt: format(addDays(today, -2), 'yyyy-MM-dd'),
     avatarIcon: '✦',
     avatarColor: '#d4a23e'
   }

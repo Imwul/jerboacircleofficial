@@ -14,6 +14,7 @@ import { loadServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
+import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import { editorialPlates } from '../data/manuscriptPlates';
 import './HomePage.css';
@@ -338,9 +339,39 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
         ? current.filter((bookmarkId) => bookmarkId !== id)
         : [...current, id];
       writeArchiveBookmarks(next);
+      trackProductEvent('archive_bookmark_toggle', {
+        recordId: id,
+        active: next.includes(id),
+      });
       return next;
     });
   }
+
+  useEffect(() => {
+    const term = normalizeSearchTerm(query);
+    if (term.length < 2) return;
+
+    const timer = window.setTimeout(() => {
+      trackProductEvent('archive_search', {
+        term,
+        resultCount: visibleEvents.length,
+        statusFilter,
+        seasonFilter,
+        collectionFilter,
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timer);
+  }, [query, visibleEvents.length, statusFilter, seasonFilter, collectionFilter]);
+
+  useEffect(() => {
+    trackProductEvent('archive_filter_change', {
+      statusFilter,
+      seasonFilter,
+      collectionFilter,
+      resultCount: visibleEvents.length,
+    });
+  }, [statusFilter, seasonFilter, collectionFilter, visibleEvents.length]);
 
   return (
     <section className="poster-archive" id="archive">

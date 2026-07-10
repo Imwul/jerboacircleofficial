@@ -14,6 +14,8 @@ import { loadServerSync, saveServerSync, ServerSyncError } from './utils/serverS
 import { usePageMetadata } from './utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from './utils/syncRecovery';
 import { roleSessionToken } from './utils/roleAuth';
+import { deriveParticipantJourney, stampParticipantActivity } from './utils/participantJourney';
+import { trackProductEvent } from './utils/productAnalytics';
 import './MembersArchive.css';
 import './MembersStability.css';
 
@@ -456,7 +458,9 @@ function App() {
 
   const handleUserLogin = (user: User) => {
     const latestUser = users.find(u => u.id === user.id) || user;
-    setCurrentUser(latestUser);
+    const activeUser = stampParticipantActivity(latestUser);
+    setUsers(prev => prev.map(u => u.id === activeUser.id ? activeUser : u));
+    setCurrentUser(activeUser);
     setActiveTab('calendar');
   };
 
@@ -477,7 +481,11 @@ function App() {
 
   const handleUpdateUser = (updates: Partial<User>) => {
     if (!activeUserData || currentUser === 'admin') return;
-    setUsers(prev => prev.map(u => u.id === activeUserData.id ? { ...u, ...updates } : u));
+    setUsers(prev => prev.map(u => (
+      u.id === activeUserData.id
+        ? stampParticipantActivity({ ...u, ...updates })
+        : u
+    )));
   };
 
   const handleDeleteUser = (userId: string) => {
@@ -578,26 +586,43 @@ function App() {
       setNotice('이 장에 들어가기 위한 문장이 부족합니다.'); return;
     }
     const updatedUser = {
-      ...activeUserData,
+      ...stampParticipantActivity(activeUserData),
       coins: event.isReward ? activeUserData.coins + event.cost : activeUserData.coins - event.cost,
       enrolledEventIds: [...activeUserData.enrolledEventIds, event.id]
     };
+    trackProductEvent('member_event_join', {
+      eventId: event.id,
+      theme: event.theme,
+      isReward: event.isReward,
+      cost: event.cost,
+      participantStage: deriveParticipantJourney(activeUserData).stage,
+    });
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
   const cancelEvent = (event: CalendarEvent) => {
     if (!activeUserData) return;
     const updatedUser = {
-      ...activeUserData,
+      ...stampParticipantActivity(activeUserData),
       coins: event.isReward ? activeUserData.coins - event.cost : activeUserData.coins + event.cost,
       enrolledEventIds: activeUserData.enrolledEventIds.filter(id => id !== event.id)
     };
+    trackProductEvent('member_event_cancel', {
+      eventId: event.id,
+      theme: event.theme,
+      isReward: event.isReward,
+      cost: event.cost,
+      participantStage: deriveParticipantJourney(activeUserData).stage,
+    });
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
   const todayKeyForArchive = format(new Date(), 'yyyy-MM-dd');
   const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
   const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
+  const journeySummaries = users.map((user) => deriveParticipantJourney(user));
+  const activeParticipants = journeySummaries.filter((summary) => summary.stage === 'active' || summary.stage === 'returning').length;
+  const lapsedParticipants = journeySummaries.filter((summary) => summary.stage === 'lapsed').length;
   const archiveSectionTitle = !currentUser
     ? 'Antecamera'
     : currentUser === 'admin'
@@ -718,12 +743,12 @@ function App() {
               </div>
               <div>
                 <span lang="en">Reader folios</span>
-                <small lang="ko">회원 수</small>
-                <strong>{users.length}</strong>
+                <small lang="ko">활동/복귀 중</small>
+                <strong>{activeParticipants}</strong>
               </div>
               <div>
                 <span lang="en">Marks today</span>
-                <small lang="ko">오늘 주석을 남긴 회원</small>
+                <small lang="ko">{lapsedParticipants > 0 ? `쉬는 중 ${lapsedParticipants}명` : '오늘 주석을 남긴 회원'}</small>
                 <strong>{completedToday}</strong>
               </div>
             </section>
@@ -752,6 +777,7 @@ function App() {
               ) : (
                 <AdminView 
                   users={users} 
+                  events={events}
                   onUpdateUser={(user) => setUsers(prev => prev.map(u => u.id === user.id ? user : u))}
                   onAddUser={(user) => setUsers(prev => [...prev, user])}
                   onDeleteUser={handleDeleteUser}

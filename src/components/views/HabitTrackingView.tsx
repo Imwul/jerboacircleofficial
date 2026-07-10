@@ -4,6 +4,8 @@ import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO,
 import { User, HabitRecord, TIER_COLORS } from '../../types';
 import { StarRating } from '../ui/StarRating';
 import { resizeImage } from '../../utils/imageUtils';
+import { deriveParticipantJourney } from '../../utils/participantJourney';
+import { trackProductEvent } from '../../utils/productAnalytics';
 
 interface HabitTrackingViewProps {
   user: User;
@@ -103,6 +105,18 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
 
     const coinDiff = newStreakCount - oldStreakCount;
     const newCoins = user.coins + coinDiff;
+
+    if (updates.status || updates.photo || updates.comment || updates.rating !== undefined) {
+      trackProductEvent('habit_status_update', {
+        status: updatedRecord.status,
+        isAdmin,
+        dateRelation: selectedDateKey === todayKey ? 'today' : selectedDateKey < todayKey ? 'past' : 'future',
+        hasPhoto: Boolean(updatedRecord.photo),
+        hasComment: Boolean(updatedRecord.comment),
+        hasRating: updatedRecord.rating !== undefined,
+        participantStage: deriveParticipantJourney(user).stage,
+      });
+    }
 
     onUpdateUser({ ...user, habitRecords: updatedRecords, coins: newCoins });
   };
