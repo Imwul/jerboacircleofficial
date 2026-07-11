@@ -37,6 +37,7 @@ import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from 
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import './HomePage.css';
 import './EditorialStability.css';
+import '../JerboaCondoRefine.css';
 
 interface KeeperFormState {
   kind: ArchiveContentKind;
@@ -57,6 +58,8 @@ interface KeeperFormState {
   passageText: string;
   materialsText: string;
   themesText: string;
+  referenceIdsText: string;
+  relatedEventIdsText: string;
   location: string;
   ctaLabel: string;
 }
@@ -153,6 +156,8 @@ function toFormState(event: ArchiveEvent): KeeperFormState {
     passageText: event.passage.join(' / '),
     materialsText: event.materials.join(' / '),
     themesText: event.themes.join(' / '),
+    referenceIdsText: event.referenceIds.join(' / '),
+    relatedEventIdsText: event.relatedEventIds.join(' / '),
     location: event.location,
     ctaLabel: event.ctaLabel,
   };
@@ -187,6 +192,8 @@ function toDraft(form: KeeperFormState): ArchiveEventDraft {
       .split(/\n|\//)
       .map((theme) => theme.trim())
       .filter(Boolean),
+    referenceIds: splitDraftList(form.referenceIdsText),
+    relatedEventIds: splitDraftList(form.relatedEventIdsText),
     location: form.location,
     ctaLabel: form.ctaLabel,
   };
@@ -361,6 +368,8 @@ export default function KeeperPage() {
       passage: ['부름', '통과', '귀환'],
       materials: ['book', 'image', 'note'],
       themes: ['Fragment', 'Passage'],
+      referenceIds: [],
+      relatedEventIds: [],
       location: '저보아 서클',
       ctaLabel: '기록 열기',
       ctaHref: `./archive/${nextId}/`,
@@ -735,10 +744,10 @@ export default function KeeperPage() {
               </div>
 
               <div className="keeper-actions">
-                <button className="archive-cta" type="submit">문구 초안 봉인</button>
-                <button className="archive-cta inverse" onClick={resetSiteTextDraft} type="button">문구 원본 복원</button>
-                <button className="archive-cta" onClick={saveArchiveToServer} type="button">공동 장부에 봉인</button>
-                <a className="archive-cta" href="/">공개 화면 보기</a>
+                <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">문구 초안 봉인</span></button>
+                <button className="archive-cta inverse" onClick={resetSiteTextDraft} type="button"><span className="archive-cta-label" lang="ko">문구 원본 복원</span></button>
+                <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
+                <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
               </div>
             </form>
           </section>
@@ -917,6 +926,26 @@ export default function KeeperPage() {
               />
             </label>
 
+            <label className="keeper-field">
+              <span>참조 노드 ID</span>
+              <small>책, 작품, 인용, 도판, 장소의 ID를 / 로 구분합니다</small>
+              <textarea
+                rows={3}
+                value={form.referenceIdsText}
+                onChange={(event) => updateField('referenceIdsText', event.target.value)}
+              />
+            </label>
+
+            <label className="keeper-field">
+              <span>연결 프로그램 ID</span>
+              <small>과거와 미래에 직접 이어지는 프로그램 ID를 / 로 구분합니다</small>
+              <textarea
+                rows={3}
+                value={form.relatedEventIdsText}
+                onChange={(event) => updateField('relatedEventIdsText', event.target.value)}
+              />
+            </label>
+
             <div className="keeper-field-grid">
               <label className="keeper-field">
                 <span>형식</span>
@@ -930,10 +959,10 @@ export default function KeeperPage() {
             </div>
 
             <div className="keeper-actions">
-              <button className="archive-cta" type="submit">초안 봉인</button>
-              <button className="archive-cta inverse" onClick={resetDraft} type="button">원본 복원</button>
-              <button className="archive-cta" onClick={saveArchiveToServer} type="button">공동 장부에 봉인</button>
-              <a className="archive-cta" href="/">공개 화면 보기</a>
+              <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">초안 봉인</span></button>
+              <button className="archive-cta inverse" onClick={resetDraft} type="button"><span className="archive-cta-label" lang="ko">원본 복원</span></button>
+              <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
+              <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
             </div>
 
             <aside className="keeper-record-preview" aria-label="Public archive record preview">

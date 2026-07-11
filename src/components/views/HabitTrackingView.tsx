@@ -191,13 +191,13 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
             <h2 className="text-2xl font-black tracking-tighter text-stone-900">습관 트래킹</h2>
             <p className="text-[10px] font-bold text-stone-400 tracking-widest">익일 새벽 2시까지 인증 가능</p>
           </div>
-          {!isAdmin && <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest">로그아웃</button>}
+          {!isAdmin && <button onClick={onLogout} className="member-text-action text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest">로그아웃</button>}
         </div>
 
         <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100 space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-[10px] font-bold text-stone-400 tracking-widest">나의 목표</span>
-            {(canEdit || isAdmin) && <button onClick={() => setShowGoalInput(true)} className="text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 font-bold">수정</button>}
+            {(canEdit || isAdmin) && <button onClick={() => setShowGoalInput(true)} className="member-text-action text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 font-bold">수정</button>}
           </div>
           {showGoalInput ? (
             <div className="flex gap-2">

@@ -1,0 +1,491 @@
+/* Condo-informed refinement.
+   The established typefaces, Korean compression and palette are intentionally
+   untouched. This layer only completes frames and clarifies interaction. */
+
+html body .public-home {
+  --refine-frame: 2px;
+  --refine-cell: 1px;
+  width: 100%;
+  min-height: 100vh;
+  border: var(--refine-frame) solid var(--ink, var(--register-ink));
+  box-sizing: border-box;
+}
+
+/* Major publication blocks read as complete plates instead of open bands. */
+html body .public-home :is(
+  .archive-header,
+  .publication-masthead,
+  .featured-event,
+  .archive-section-title,
+  .archive-tools,
+  .archive-ledger,
+  .poster-grid,
+  .manifesto-block,
+  .join-block,
+  .archive-footer,
+  .detail-record,
+  .detail-keeper-panel,
+  .keeper-room
+) {
+  outline: var(--refine-cell) solid var(--ink) !important;
+  outline-offset: calc(-1 * var(--refine-cell)) !important;
+}
+
+html body .public-home .archive-section-title {
+  min-height: 0 !important;
+  grid-template-rows: auto auto !important;
+}
+
+html body #root .public-home .archive-tools {
+  grid-template-columns:
+    minmax(19rem, 1.25fr)
+    minmax(24rem, 1.35fr)
+    minmax(10rem, 0.7fr)
+    minmax(10rem, 0.7fr)
+    minmax(9rem, 0.55fr) !important;
+}
+
+/* Every true grid cell receives four visible sides. Adjacent outlines overlap
+   into one quiet rule, so the page does not become heavier. */
+html body .public-home :is(
+  .archive-wordmark,
+  .archive-nav a,
+  .masthead-mark,
+  .masthead-index,
+  .orientation-kicker,
+  .orientation-ledger > strong,
+  .orientation-routes a,
+  .featured-poster-wrap,
+  .featured-copy,
+  .section-kicker,
+  .constellation-grid,
+  .text-index,
+  .event-meta > div,
+  .archive-section-title > h2,
+  .archive-section-title > .editorial-plate,
+  .archive-search,
+  .archive-filter-set,
+  .archive-select,
+  .archive-results-count,
+  .archive-filter-set button,
+  .archive-ledger a,
+  .poster-tile,
+  .poster-frame,
+  .manifesto-block > .section-kicker,
+  .manifesto-block > .editorial-plate,
+  .manifesto-block > p,
+  .join-block > div,
+  .join-block > .archive-cta,
+  .detail-poster,
+  .detail-copy,
+  .detail-meta,
+  .archive-reference-index,
+  .archive-connection-index
+) {
+  outline: var(--refine-cell) solid var(--ink) !important;
+  outline-offset: calc(-1 * var(--refine-cell)) !important;
+}
+
+html body .public-home :is(
+  .archive-nav a,
+  .orientation-routes a,
+  .archive-filter-set button,
+  .archive-ledger a,
+  .poster-tile
+) {
+  border: 0 !important;
+}
+
+/* Direction tabs: a small editorial joke borrowed from file tabs, while the
+   existing colour and lettering remain exactly as they were. */
+html body .public-home :is(.orientation-routes a, .archive-ledger a) {
+  position: relative !important;
+  padding-right: 2.8rem !important;
+}
+
+html body .public-home :is(.orientation-routes a, .archive-ledger a)::after {
+  content: "☞" / "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 2.15rem;
+  height: 2.15rem;
+  place-items: center;
+  border-left: var(--refine-cell) solid currentColor;
+  border-bottom: var(--refine-cell) solid currentColor;
+  background: transparent;
+  color: var(--ink, var(--register-ink));
+  font-family: "Apple Symbols", "Arial Unicode MS", serif;
+  font-size: 1.55rem;
+  font-weight: 400;
+  line-height: 1;
+  pointer-events: none;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+html body .public-home :is(.orientation-routes a, .archive-ledger a):is(:hover, :focus-visible)::after {
+  background: var(--ink, var(--register-ink));
+  color: var(--paper, var(--register-paper));
+  transform: translate(1px, -1px);
+}
+
+/* Primary calls to action are now unmistakably controls: label + action cell. */
+html body #root .public-home .archive-cta {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 3.2rem !important;
+  padding: 0 2.75rem 0 1rem !important;
+  border: var(--refine-frame) solid var(--ink) !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  transform: none !important;
+  max-width: 100% !important;
+}
+
+html body .public-home .archive-cta::after {
+  content: "☞" / "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: 2.35rem;
+  place-items: center;
+  border-left: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Apple Symbols", "Arial Unicode MS", serif;
+  font-size: 1.55rem;
+  line-height: 1;
+  pointer-events: none;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+html body #root .public-home .archive-cta-label {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  align-items: center !important;
+  padding: 0.62rem 0.5rem 0.62rem 0 !important;
+  line-height: 1.42 !important;
+  box-sizing: border-box !important;
+}
+
+html body #root .public-home .poster-caption {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .public-home .archive-cta:is(:hover, :focus-visible)::after {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translate(1px, -1px);
+}
+
+/* Poster records remain image-first. A small filing tab at the lower edge is
+   enough to reveal that the entire record can be opened. */
+html body .public-home .poster-tile > a {
+  position: relative !important;
+  display: block !important;
+  min-height: 100% !important;
+  cursor: pointer !important;
+}
+
+html body .public-home .poster-open-tab {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  min-width: 5.5rem;
+  min-height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  padding: 0.35rem 0.65rem;
+  border-top: var(--refine-frame) solid var(--ink);
+  border-left: var(--refine-frame) solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  line-height: 1;
+  pointer-events: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+html body .public-home .poster-open-tab i {
+  margin-left: 0;
+  font-family: "Apple Symbols", "Arial Unicode MS", serif;
+  font-size: 1.28em;
+  font-style: normal;
+}
+
+html body .public-home .poster-tile > a:is(:hover, :focus-visible) .poster-open-tab {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+html body #root .public-home .poster-caption {
+  gap: 0.72rem !important;
+  padding: 1.08rem 1.08rem 3.55rem !important;
+}
+
+html body #root .public-home .poster-caption h2 {
+  margin: 0.08rem 0 0.18rem !important;
+  line-height: 1.08 !important;
+}
+
+html body #root .public-home .poster-caption :is(small, p, em) {
+  line-height: 1.55 !important;
+}
+
+html body #root .public-home .archive-ledger a {
+  align-content: start !important;
+  row-gap: 0.42rem !important;
+  min-height: 8.6rem !important;
+  padding: 0.92rem 3rem 1rem 1rem !important;
+}
+
+html body #root .public-home .archive-ledger a strong {
+  margin: 0.08rem 0 0.12rem !important;
+  line-height: 1.18 !important;
+}
+
+html body #root .public-home .archive-ledger a :is(span, em, small) {
+  line-height: 1.45 !important;
+}
+
+/* Toggle buttons show both a complete boundary and a persistent state mark. */
+html body .public-home .archive-filter-set button {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: auto auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-items: start !important;
+  gap: 0.52rem !important;
+  padding-inline: 0.72rem !important;
+  outline: var(--refine-cell) solid var(--ink) !important;
+  outline-offset: calc(-1 * var(--refine-cell)) !important;
+}
+
+html body .public-home .archive-filter-set button::before {
+  content: "";
+  width: 0.56rem;
+  height: 0.56rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+html body .public-home .archive-filter-set button[aria-pressed="true"]::before {
+  background: currentColor;
+}
+
+html body #root .public-home .archive-filter-label {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .featured-copy .section-kicker {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) !important;
+  justify-content: start !important;
+  align-items: center !important;
+  column-gap: 0.48rem !important;
+}
+
+html body #root .public-home .featured-copy .section-kicker :is(.kicker-en, .kicker-divider, .kicker-ko) {
+  align-self: center !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .featured-copy .section-kicker .kicker-ko {
+  font-size: clamp(1.05rem, 1.25vw, 1.2rem) !important;
+  transform-origin: left center !important;
+}
+
+html body #root .public-home .archive-search-control {
+  position: relative !important;
+  display: grid !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  transform: none !important;
+}
+
+html body #root .public-home .archive-search-control > input {
+  grid-area: 1 / 1 !important;
+}
+
+html body #root .public-home .archive-search-placeholder {
+  position: absolute !important;
+  z-index: 1 !important;
+  top: 50% !important;
+  left: 0.82rem !important;
+  width: max-content !important;
+  max-width: calc((100% - 1.64rem) / var(--ko-ritual-scale-x)) !important;
+  color: rgba(5, 5, 5, 0.42) !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body .public-home .archive-bookmark {
+  border: var(--refine-frame) solid var(--ink) !important;
+  outline: 0 !important;
+}
+
+html body .public-home .archive-bookmark::before {
+  content: "";
+  display: inline-block;
+  width: 0.48rem;
+  height: 0.48rem;
+  margin-right: 0.32rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+html body .public-home .archive-bookmark[aria-pressed="true"]::before {
+  background: currentColor;
+}
+
+/* Native selects keep their behaviour, but a dedicated arrow cell makes the
+   whole control legible before interaction. */
+html body .public-home .archive-select {
+  position: relative !important;
+  outline: var(--refine-cell) solid var(--ink) !important;
+  outline-offset: calc(-1 * var(--refine-cell)) !important;
+  background-image: none !important;
+}
+
+html body .public-home .archive-select select {
+  padding-right: 0.8rem !important;
+  cursor: pointer !important;
+  appearance: auto !important;
+}
+
+html body .public-home .archive-select::after {
+  content: none !important;
+}
+
+html body #root .public-home .archive-results-count {
+  align-self: stretch !important;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  outline: var(--refine-cell) solid var(--ink) !important;
+  outline-offset: calc(-1 * var(--refine-cell)) !important;
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  transform: none !important;
+}
+
+html body #root .public-home .archive-results-count > span[lang="ko"] {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .event-meta > div {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-content: start !important;
+  row-gap: 0.62rem !important;
+}
+
+html body #root .public-home .event-meta > div > dt,
+html body #root .public-home .event-meta > div > dd {
+  display: block !important;
+  grid-column: 1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  transform-origin: left top !important;
+}
+
+html body #root .public-home .event-meta > div > dt {
+  grid-row: 1 !important;
+}
+
+html body #root .public-home .event-meta > div > dd {
+  grid-row: 2 !important;
+}
+
+/* Related programme links are records, not passive rows. */
+html body .public-home .archive-connection-index li > a {
+  position: relative !important;
+  padding-right: 3rem !important;
+}
+
+html body .public-home .archive-connection-index li > a::after {
+  content: "☞" / "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  width: 2.25rem;
+  height: 100%;
+  place-items: center;
+  border-left: var(--refine-cell) solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Apple Symbols", "Arial Unicode MS", serif;
+  font-size: 1.5rem;
+  pointer-events: none;
+}
+
+/* Focus is deliberately stronger than hover and never relies on colour alone. */
+html body .public-home :is(a, button, input, select, textarea):focus-visible,
+html body .members-archive :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ink, var(--register-ink)) !important;
+  outline-offset: -5px !important;
+}
+
+@media (max-width: 720px) {
+  html body .public-home {
+    border-width: 1px;
+  }
+
+  html body .public-home .poster-open-tab {
+    min-width: 4.8rem;
+    min-height: 2.1rem;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  html body #root .public-home .archive-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .public-home .archive-search,
+  html body .public-home .archive-filter-set,
+  html body .public-home .archive-results-count {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 980px) {
+  html body #root .public-home .archive-tools {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .public-home *::after,
+  html body .public-home *::before {
+    transition: none !important;
+  }
+}

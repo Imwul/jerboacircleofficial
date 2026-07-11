@@ -26,6 +26,8 @@ export type ArchiveEventDraft = Partial<
     | 'passage'
     | 'materials'
     | 'themes'
+    | 'referenceIds'
+    | 'relatedEventIds'
     | 'location'
     | 'ctaLabel'
     | 'ctaHref'
@@ -178,6 +180,8 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     passage: listFromDraft(draft.passage, []),
     materials: listFromDraft(draft.materials, []),
     themes: listFromDraft(draft.themes, []),
+    referenceIds: draft.referenceIds ?? [],
+    relatedEventIds: draft.relatedEventIds ?? [],
     location: draft.location || '',
     ctaLabel: draft.ctaLabel || '기록 열기',
     ctaHref: draft.ctaHref || `./archive/${id}/`,
@@ -199,6 +203,8 @@ export function applyArchiveDrafts(baseEvents: ArchiveEvent[]) {
       ...event,
       ...draft,
       themes: draft.themes?.length ? draft.themes : event.themes,
+      referenceIds: draft.referenceIds !== undefined ? draft.referenceIds : event.referenceIds,
+      relatedEventIds: draft.relatedEventIds !== undefined ? draft.relatedEventIds : event.relatedEventIds,
       collectionIds: draft.collectionIds?.length ? draft.collectionIds : event.collectionIds,
       workflowStatus: draft.workflowStatus || event.workflowStatus,
     };

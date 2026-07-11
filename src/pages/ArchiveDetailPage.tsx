@@ -23,6 +23,7 @@ import {
 import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
+import type { ArchiveProgrammeConnection, ArchiveReference } from '../data/archiveKnowledge';
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
@@ -30,11 +31,14 @@ import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import { trackProductEvent } from '../utils/productAnalytics';
 import './HomePage.css';
 import './EditorialStability.css';
+import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
 }
+
+type ArchiveKnowledgeModule = typeof import('../data/archiveKnowledge');
 
 function detailRootHref() {
   return window.location.pathname.includes('/archive/') ? '../../' : './';
@@ -63,6 +67,8 @@ interface DetailFormState {
   passageText: string;
   materialsText: string;
   themesText: string;
+  referenceIdsText: string;
+  relatedEventIdsText: string;
   location: string;
   ctaLabel: string;
 }
@@ -87,6 +93,8 @@ function toDetailForm(event: ArchiveEvent): DetailFormState {
     passageText: event.passage.join(' / '),
     materialsText: event.materials.join(' / '),
     themesText: event.themes.join(' / '),
+    referenceIdsText: event.referenceIds.join(' / '),
+    relatedEventIdsText: event.relatedEventIds.join(' / '),
     location: event.location,
     ctaLabel: event.ctaLabel,
   };
@@ -112,6 +120,8 @@ function toDetailDraft(form: DetailFormState, event: ArchiveEvent): ArchiveEvent
     passage: form.passageText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
     materials: form.materialsText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
     themes: form.themesText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
+    referenceIds: splitDetailList(form.referenceIdsText),
+    relatedEventIds: splitDetailList(form.relatedEventIdsText),
     location: form.location,
     ctaLabel: form.ctaLabel,
     ctaHref: event.ctaHref || `./archive/${event.id}/`,
@@ -412,6 +422,16 @@ function DetailKeeperPanel({
               <span>주제</span>
               <textarea rows={4} value={form.themesText} onChange={(event) => updateField('themesText', event.target.value)} />
             </label>
+            <label>
+              <span>참조 노드 ID</span>
+              <small>책, 작품, 인용, 도판, 장소의 ID를 / 로 구분합니다</small>
+              <textarea rows={4} value={form.referenceIdsText} onChange={(event) => updateField('referenceIdsText', event.target.value)} />
+            </label>
+            <label>
+              <span>연결 프로그램 ID</span>
+              <small>이 판본과 직접 이어지는 프로그램 ID를 / 로 구분합니다</small>
+              <textarea rows={4} value={form.relatedEventIdsText} onChange={(event) => updateField('relatedEventIdsText', event.target.value)} />
+            </label>
           </div>
           <div className="detail-keeper-actions">
             <button type="submit"><span className="keeper-button-label">로컬 초안 봉인</span></button>
@@ -429,14 +449,41 @@ function DetailKeeperPanel({
   );
 }
 
+function ArchiveReferenceIndex({
+  references,
+  kindLabel,
+}: {
+  references: ArchiveReference[];
+  kindLabel: (kind: ArchiveReference['kind']) => string;
+}) {
+  return (
+    <div className="text-index archive-reference-index">
+      <span className="text-index-title"><span lang="ko">원전 · 인용 · 도판 · 장소</span></span>
+      <ol>
+        {references.map((reference) => (
+          <li key={reference.id}>
+            <span className="archive-knowledge-kind" lang="ko">{kindLabel(reference.kind)}</span>
+            <strong>{reference.title}</strong>
+            <small lang="ko">
+              {[reference.attribution, reference.description].filter(Boolean).join(' · ')}
+            </small>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function EventDetail({
   event,
+  archiveEvents,
   siteText,
   onSaved,
   serverSavedAt,
   onServerSavedAt,
 }: {
   event: ArchiveEvent;
+  archiveEvents: ArchiveEvent[];
   siteText: SiteText;
   onSaved: () => void;
   serverSavedAt: string | null;
@@ -444,6 +491,22 @@ function EventDetail({
 }) {
   const season = getSeasonById(event.seasonId);
   const collections = getCollectionsForEvent(event);
+  const [archiveKnowledge, setArchiveKnowledge] = useState<ArchiveKnowledgeModule | null>(null);
+  const relationRecords = archiveEvents.filter((record) => (
+    record.visibility !== 'private' && record.workflowStatus !== 'archived'
+  ));
+  const references: ArchiveReference[] = archiveKnowledge?.getArchiveReferencesForEvent(event) ?? [];
+  const connections: ArchiveProgrammeConnection[] = archiveKnowledge?.getArchiveConnections(event, relationRecords) ?? [];
+
+  useEffect(() => {
+    let ignore = false;
+    void import('../data/archiveKnowledge').then((module) => {
+      if (!ignore) setArchiveKnowledge(module);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <div className="public-home detail-home">
@@ -494,6 +557,37 @@ function EventDetail({
               </ol>
             </div>
           </div>
+          {(references.length > 0 || connections.length > 0) && (
+            <section className="detail-archive-context" aria-labelledby="archive-relations-title">
+              <p className="section-kicker" id="archive-relations-title">
+                <span className="kicker-en" lang="en">Archive relations</span>
+                <span className="kicker-divider" aria-hidden="true"> / </span>
+                <span className="kicker-ko" lang="ko">자료와 판본의 연결 계보</span>
+              </p>
+              <div className="constellation-grid archive-knowledge-grid">
+                <ArchiveReferenceIndex
+                  references={references}
+                  kindLabel={(kind) => archiveKnowledge?.archiveReferenceKindLabel(kind) ?? kind}
+                />
+                <div className="text-index archive-connection-index">
+                  <span className="text-index-title"><span lang="ko">이어지는 프로그램</span></span>
+                  <ol>
+                    {connections.map((connection) => (
+                      <li key={connection.event.id}>
+                        <a href={`${detailRootHref()}archive/${connection.event.id}/`}>
+                          <span className="archive-knowledge-kind" lang="ko">
+                            {archiveKnowledge?.archiveConnectionDirectionLabel(connection.direction) ?? connection.direction} · {connection.event.edition}
+                          </span>
+                          <strong>{connection.event.title}</strong>
+                          <small lang="ko">{connection.note}</small>
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            </section>
+          )}
           <dl className="event-meta detail-meta">
             <div>
               <dt lang={detailTextLang(siteText.metaEdition)}>{siteText.metaEdition}</dt>
@@ -521,7 +615,7 @@ function EventDetail({
             </div>
           </dl>
           <a className="archive-cta" href={detailRootHref()}>
-            {siteText.detailBackLabel}
+            <span className="archive-cta-label" lang={detailTextLang(siteText.detailBackLabel)}>{siteText.detailBackLabel}</span>
           </a>
         </article>
       </main>
@@ -614,7 +708,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           <p className="section-kicker">{siteText.missingKicker}</p>
           <h1 lang="ko">{siteText.missingTitle}</h1>
           <a className="archive-cta" href={detailRootHref()}>
-            {siteText.detailBackLabel}
+            <span className="archive-cta-label" lang={detailTextLang(siteText.detailBackLabel)}>{siteText.detailBackLabel}</span>
           </a>
         </main>
       </div>
@@ -623,6 +717,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
 
   return (
     <EventDetail
+      archiveEvents={archiveEvents}
       event={event}
       onSaved={() => setVersion((current) => current + 1)}
       onServerSavedAt={setServerSavedAt}

@@ -19,6 +19,7 @@ import jerboaSeal from '../assets/identity/jerboa-seal.png';
 import { editorialPlates } from '../data/manuscriptPlates';
 import './HomePage.css';
 import './EditorialStability.css';
+import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
@@ -27,6 +28,7 @@ interface ArchiveSyncPayload {
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
 type ArchiveTaxonomyFilter = string | 'all';
+type ArchiveKnowledgeModule = typeof import('../data/archiveKnowledge');
 
 const archiveBookmarkStorageKey = 'jerboa-circle-archive-bookmarks';
 
@@ -237,15 +239,20 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
           <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
         </div>
         <EventMeta event={featuredEvent} siteText={siteText} />
-        <a className="archive-cta" href={featuredEvent.ctaHref} lang={textLang(featuredEvent.ctaLabel)}>
-          {featuredEvent.ctaLabel}
+        <a className="archive-cta" href={featuredEvent.ctaHref}>
+          <span className="archive-cta-label" lang={textLang(featuredEvent.ctaLabel)}>{featuredEvent.ctaLabel}</span>
         </a>
       </div>
     </section>
   );
 }
 
-function matchesArchiveQuery(event: ArchiveEvent, query: string) {
+function matchesArchiveQuery(
+  event: ArchiveEvent,
+  query: string,
+  archiveEvents: ArchiveEvent[],
+  archiveKnowledge: ArchiveKnowledgeModule | null,
+) {
   if (!query.trim()) return true;
 
   const searchable = [
@@ -265,6 +272,7 @@ function matchesArchiveQuery(event: ArchiveEvent, query: string) {
     ...event.passage,
     ...event.materials,
     ...event.themes,
+    archiveKnowledge?.archiveKnowledgeSearchText(event, archiveEvents),
   ].join(' ').toLowerCase();
 
   return searchable.includes(query.trim().toLowerCase());
@@ -306,6 +314,7 @@ function PosterTile({
           <em lang="ko">{event.marginalia}</em>
           <ThemeList themes={event.themes} />
         </div>
+        <span className="poster-open-tab" aria-hidden="true">Open <i>☞</i></span>
       </a>
     </article>
   );
@@ -317,6 +326,7 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
   const [seasonFilter, setSeasonFilter] = useState<ArchiveTaxonomyFilter>('all');
   const [collectionFilter, setCollectionFilter] = useState<ArchiveTaxonomyFilter>('all');
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
+  const [archiveKnowledge, setArchiveKnowledge] = useState<ArchiveKnowledgeModule | null>(null);
   const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
   const seasonOptions = archiveSeasons.filter((season) => archiveEvents.some((event) => event.seasonId === season.id));
   const collectionOptions = archiveCollections.filter((collection) => (
@@ -327,7 +337,8 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
     const statusMatches = statusFilter === 'all' || event.status === statusFilter;
     const seasonMatches = seasonFilter === 'all' || event.seasonId === seasonFilter;
     const collectionMatches = collectionFilter === 'all' || event.collectionIds.includes(collectionFilter);
-    return statusMatches && seasonMatches && collectionMatches && matchesArchiveQuery(event, query);
+    return statusMatches && seasonMatches && collectionMatches
+      && matchesArchiveQuery(event, query, archiveEvents, archiveKnowledge);
   });
   const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
   const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
@@ -346,6 +357,19 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
       return next;
     });
   }
+
+  useEffect(() => {
+    if (query.trim().length < 2 || archiveKnowledge) return;
+    let ignore = false;
+
+    void import('../data/archiveKnowledge').then((module) => {
+      if (!ignore) setArchiveKnowledge(module);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [query, archiveKnowledge]);
 
   useEffect(() => {
     const term = normalizeSearchTerm(query);
@@ -386,13 +410,15 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
       <div className="archive-tools" aria-label="Archive search and filters">
         <label className="archive-search">
           <span lang="en">Find</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="제목, 주제, 자료 검색"
-            aria-label="아카이브 검색"
-          />
+          <span className="archive-search-control">
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="아카이브 검색"
+            />
+            {!query && <span className="archive-search-placeholder" lang="ko" aria-hidden="true">제목, 주제, 자료 검색</span>}
+          </span>
         </label>
         <div className="archive-filter-set" aria-label="Archive status filter">
           {statusFilters.map((filter) => (
@@ -403,7 +429,9 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
               aria-pressed={statusFilter === filter}
               onClick={() => setStatusFilter(filter)}
             >
-              {filter === 'all' ? 'All' : statusLabel(filter, siteText)}
+              <span className="archive-filter-label" lang={filter === 'all' ? 'en' : 'ko'}>
+                {filter === 'all' ? 'All' : statusLabel(filter, siteText)}
+              </span>
             </button>
           ))}
         </div>
@@ -433,9 +461,11 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
             ))}
           </select>
         </label>
-        <p className="archive-results-count" lang="ko">
-          {visibleEvents.length}개의 기록
-          {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
+        <p className="archive-results-count">
+          <span lang="ko">
+            {visibleEvents.length}개의 기록
+            {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
+          </span>
         </p>
       </div>
       <div className="archive-ledger" aria-label="Programme index">
@@ -492,8 +522,8 @@ function JoinBlock({ siteText }: { siteText: SiteText }) {
         />
         <h2 className="ko-display"><span lang="ko">{siteText.joinHeading}</span></h2>
       </div>
-      <a className="archive-cta inverse" href={siteText.joinCtaHref} lang={textLang(siteText.joinCtaLabel)}>
-        {siteText.joinCtaLabel}
+      <a className="archive-cta inverse" href={siteText.joinCtaHref}>
+        <span className="archive-cta-label" lang={textLang(siteText.joinCtaLabel)}>{siteText.joinCtaLabel}</span>
       </a>
     </section>
   );

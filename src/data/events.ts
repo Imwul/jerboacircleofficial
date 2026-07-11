@@ -53,6 +53,8 @@ export interface ArchiveEvent {
   passage: string[];
   materials: string[];
   themes: string[];
+  referenceIds: string[];
+  relatedEventIds: string[];
   location: string;
   ctaLabel: string;
   ctaHref: string;
@@ -133,6 +135,19 @@ export const events: ArchiveEvent[] = [
     passage: ['부름', '숲', '질문', '불씨', '귀환'],
     materials: ['Canticum 2:13', 'Dante: selva oscura', 'Job 38:7', 'Grail question'],
     themes: ['Grail', 'Forest', 'Relic', 'Rose', 'Fire', 'Star'],
+    referenceIds: [
+      'canticum-canticorum',
+      'song-2-13',
+      'divine-comedy',
+      'selva-oscura',
+      'book-of-job',
+      'job-38-7',
+      'perceval',
+      'grail-question',
+      'grail-table-plate',
+      'dante-stars-plate',
+    ],
+    relatedEventIds: [],
     location: '저보아 서클 / 비공개 프로그램',
     ctaLabel: '기록에 들어가기',
     ctaHref: './archive/scintilla-animae/',
@@ -161,6 +176,8 @@ export const events: ArchiveEvent[] = [
     passage: ['낭독', '침묵', '여백', '잔향'],
     materials: ['Sir Gawain', 'voice', 'margin', 'winter room'],
     themes: ['Reading', 'Voice', 'Margin'],
+    referenceIds: ['sir-gawain', 'stori-stif', 'winter-room', 'bestiary-margin-plate'],
+    relatedEventIds: [],
     location: '테이블 모임',
     ctaLabel: '기록 읽기',
     ctaHref: './archive/reading-edge-room/',
@@ -189,6 +206,8 @@ export const events: ArchiveEvent[] = [
     passage: ['발신', '거리', '불가능한 주소', '응답'],
     materials: ['Song 2:14', 'letter', 'absence', 'future place'],
     themes: ['Letter', 'Distance', 'Fragment'],
+    referenceIds: ['canticum-canticorum', 'song-2-14', 'unmade-place', 'love-window-plate'],
+    relatedEventIds: [],
     location: '서신 원탁',
     ctaLabel: '기록 열기',
     ctaHref: './archive/letters-unmade-places/',
@@ -217,6 +236,8 @@ export const events: ArchiveEvent[] = [
     passage: ['폐관', '응시', '잔상', '보존'],
     materials: ['Dante: stelle', 'museum label', 'object', 'afterimage'],
     themes: ['Museum', 'Image', 'Afterimage'],
+    referenceIds: ['divine-comedy', 'riveder-le-stelle', 'museum-after-hours-place', 'dante-stars-plate'],
+    relatedEventIds: [],
     location: '감상 세션',
     ctaLabel: '기록 보기',
     ctaHref: './archive/museum-after-hours/',

@@ -1,8 +1,19 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import HomePage from './pages/HomePage';
-import MembersApp from './MembersApp';
 import ArchiveDetailPage from './pages/ArchiveDetailPage';
-import KeeperPage from './pages/KeeperPage';
 import { usePageMetadata } from './utils/pageMetadata';
+import './JerboaCondoRefine.css';
+
+const MembersApp = lazy(() => import('./MembersApp'));
+const KeeperPage = lazy(() => import('./pages/KeeperPage'));
+
+function DeferredRoute({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<span className="sr-only" role="status">페이지를 여는 중</span>}>
+      {children}
+    </Suspense>
+  );
+}
 
 function NotFoundPage() {
   usePageMetadata({
@@ -40,7 +51,7 @@ function NotFoundPage() {
           <p className="event-description" lang="ko">
             기록벽에서 프로그램을 다시 찾거나, 비공개 장부로 돌아가 주세요.
           </p>
-          <a className="archive-cta" href="/#archive" lang="ko">기록벽으로 돌아가기</a>
+          <a className="archive-cta" href="/#archive"><span className="archive-cta-label" lang="ko">기록벽으로 돌아가기</span></a>
         </section>
       </main>
     </div>
@@ -57,8 +68,8 @@ function App() {
   const archiveMatch = path.match(/\/archive\/([^/]+)$/);
 
   if (isHomeRoute || isArchiveIndexRoute) return <HomePage />;
-  if (isMembersRoute) return <MembersApp />;
-  if (isKeeperRoute || isGodmodeRoute) return <KeeperPage />;
+  if (isMembersRoute) return <DeferredRoute><MembersApp /></DeferredRoute>;
+  if (isKeeperRoute || isGodmodeRoute) return <DeferredRoute><KeeperPage /></DeferredRoute>;
   if (archiveMatch) return <ArchiveDetailPage id={archiveMatch[1]} />;
   return <NotFoundPage />;
 }

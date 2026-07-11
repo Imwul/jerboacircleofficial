@@ -90,8 +90,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handleEventClick = (eventId: string) => {
     setExpandedEvents(prev => {
       const currentState = prev[eventId];
-      if (!currentState) return { ...prev, [eventId]: 'summary' };
-      if (currentState === 'summary') return { ...prev, [eventId]: 'detail' };
+      if (!currentState || currentState === 'summary') return { ...prev, [eventId]: 'detail' };
       const next = { ...prev };
       delete next[eventId];
       return next;
