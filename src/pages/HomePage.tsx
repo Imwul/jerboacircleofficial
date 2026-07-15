@@ -629,7 +629,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="public-home">
+    <div className="public-home archive-home">
       <a className="skip-to-archive" href="#archive"><span lang="ko">기록 목록으로 바로가기</span></a>
       <SiteHeader siteText={siteText} />
       <main>

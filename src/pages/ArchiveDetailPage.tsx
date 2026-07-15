@@ -444,7 +444,7 @@ function EventDetail({
           <p className="section-kicker">
             <span className="kicker-en" lang="en">{event.edition}</span>
           </p>
-          <h1>{event.title}</h1>
+          <h1 className={event.title.length > 18 ? 'is-long-title' : undefined}>{event.title}</h1>
           <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
           <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
