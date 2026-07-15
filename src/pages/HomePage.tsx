@@ -15,7 +15,7 @@ import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
-import jerboaSeal from '../assets/identity/jerboa-seal.webp';
+import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
