@@ -39,6 +39,8 @@ Chronology should remain the default archive view because it explains institutio
 
 **Implemented in this pass:** reference records are now first-class editable content in the Keeper Desk and shared sync. A keeper can add or edit a source once and every programme using it receives the update. Backup and recovery include these records.
 
+**Media checkpoint:** every editorial and member-room manuscript plate now resolves through one reusable media registry. Each public-domain work carries an exact museum title, object number, source URL, rights URL, credit, and descriptive alt text; its catalogue record and on-page image can no longer drift into separate metadata.
+
 ### Member room
 
 **Purpose:** coherent. The calendar, programme detail, enrolment, personal register, profile, and continuation prompts form one participant journey.
@@ -122,6 +124,8 @@ This pass deliberately implements only improvements that strengthen the existing
 - shareable catalogue search/type state;
 - session-only handling of shared operational keys;
 - keyboard-operable profile seal;
-- current member-layout consistency and a verified, sourced medieval manuscript asset.
+- current member-layout consistency;
+- a shared media-asset registry and seven verified Metropolitan Museum of Art public-domain manuscript records;
+- generated catalogue provenance, institutional source links, rights links, credits, and alt text for every current editorial plate.
 
 The next implementation phase should begin with the Critical infrastructure decisions above, not with additional public-facing features.

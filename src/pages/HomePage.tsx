@@ -17,6 +17,7 @@ import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import jerboaSeal from '../assets/identity/jerboa-seal.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
+import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
 import {
   applyArchiveReferenceDrafts,
@@ -74,14 +75,14 @@ function textLang(text: string) {
 
 function EditorialPlate({
   className,
-  image,
+  asset,
 }: {
   className: string;
-  image: string;
+  asset: ArchiveMediaAsset;
 }) {
   return (
     <figure className={`editorial-plate ${className}`} aria-hidden="true">
-      <img src={image} alt="" loading="lazy" decoding="async" />
+      <img src={asset.src} alt="" loading="lazy" decoding="async" />
     </figure>
   );
 }
@@ -146,7 +147,7 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
         <p lang="ko">{siteText.mastheadIntroKo}</p>
         <EditorialPlate
           className="editorial-plate--masthead"
-          image={editorialPlates.masthead}
+          asset={editorialPlates.masthead}
         />
         <div className="orientation-ledger" aria-label="How to read this archive">
           <p className="orientation-kicker">
@@ -246,12 +247,12 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
         <p className="korean-annotation" lang="ko">
           {siteText.featuredAnnotation}
         </p>
-        <p className="event-subtitle">{featuredEvent.subtitle}</p>
-        <p className="latin-line">{featuredEvent.latinQuote}</p>
+        <p className="event-subtitle" lang={textLang(featuredEvent.subtitle)}>{featuredEvent.subtitle}</p>
+        <p className="latin-line" lang={textLang(featuredEvent.latinQuote)}>{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
         <EditorialPlate
           className="editorial-plate--featured"
-          image={editorialPlates.featured}
+          asset={editorialPlates.featured}
         />
         <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
         <div className="constellation-grid" aria-label="Programme constellation">
@@ -428,7 +429,7 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
         <h2 className="ko-display"><span lang="ko">{siteText.archiveHeading}</span></h2>
         <EditorialPlate
           className="editorial-plate--archive"
-          image={editorialPlates.archive}
+          asset={editorialPlates.archive}
         />
       </div>
       <div className="archive-tools" aria-label="Archive search and filters">
@@ -569,7 +570,7 @@ function ManifestoBlock({ siteText }: { siteText: SiteText }) {
       <EditorialKicker en={siteText.manifestoKickerEn} ko={siteText.manifestoKickerKo} />
       <EditorialPlate
         className="editorial-plate--manifesto"
-        image={editorialPlates.manifesto}
+        asset={editorialPlates.manifesto}
       />
       <p className="ko-display"><span lang="ko">{siteText.manifestoBody}</span></p>
     </section>
@@ -583,7 +584,7 @@ function JoinBlock({ siteText }: { siteText: SiteText }) {
         <EditorialKicker en={siteText.joinKickerEn} ko={siteText.joinKickerKo} />
         <EditorialPlate
           className="editorial-plate--join"
-          image={editorialPlates.join}
+          asset={editorialPlates.join}
         />
         <h2 className="ko-display"><span lang="ko">{siteText.joinHeading}</span></h2>
       </div>
@@ -602,6 +603,7 @@ function SiteFooter({ siteText }: { siteText: SiteText }) {
         <a href="/catalogue/">Catalogue</a>
         <a href="/feed.xml">Feed</a>
         <a href="/archive.json">Data</a>
+        <a href="/catalogue/?kind=image">Image credits</a>
       </nav>
       <span lang="it">{siteText.footerRight}</span>
     </footer>

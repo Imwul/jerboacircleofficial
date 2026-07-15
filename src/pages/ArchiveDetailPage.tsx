@@ -450,11 +450,11 @@ function EventDetail({
             <span className="kicker-ko" lang="ko">{siteText.detailKickerKo}</span>
           </p>
           <h1>{event.title}</h1>
-          <p className="event-subtitle">{event.subtitle}</p>
-          <p className="latin-line">{event.latinQuote}</p>
+          <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
+          <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
           <figure className="detail-manuscript-plate" aria-hidden="true">
-            <img src={editorialPlates.detail} alt="" loading="lazy" decoding="async" />
+            <img src={editorialPlates.detail.src} alt="" loading="lazy" decoding="async" />
           </figure>
           <p className="detail-long" lang="ko">{event.longDescription}</p>
           <div className="constellation-grid" aria-label="Archive record path and materials">
@@ -496,7 +496,7 @@ function EventDetail({
                           <span className="archive-knowledge-kind" lang="ko">
                             {archiveConnectionDirectionLabel(connection.direction)} · {connection.event.edition}
                           </span>
-                          <strong>{connection.event.title}</strong>
+                          <strong lang={/[가-힣]/.test(connection.event.title) ? 'ko' : 'en'}>{connection.event.title}</strong>
                           <small lang="ko">{connection.note}</small>
                         </a>
                       </li>

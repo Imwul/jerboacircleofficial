@@ -14,6 +14,7 @@ import {
 } from '../utils/archiveReferenceDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { loadServerSync } from '../utils/serverSync';
+import { getArchiveMediaAsset } from '../data/mediaAssets';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -35,15 +36,23 @@ function textLanguage(text: string) {
   return /[가-힣]/.test(text) ? 'ko' : 'en';
 }
 
+function BilingualLabel({ en, ko }: { en: string; ko: string }) {
+  return (
+    <>
+      <span lang="en">{en}</span><span className="bilingual-divider" aria-hidden="true"> / </span><span lang="ko">{ko}</span>
+    </>
+  );
+}
+
 function referenceMetadata(reference: NonNullable<ReturnType<typeof getArchiveReference>>) {
   return [
-    ['Creator / 만든 이', reference.creator],
-    ['Date / 연도', reference.date],
-    ['Edition / 판본', reference.edition],
-    ['Locator / 쪽·행', reference.locator],
-    ['Language / 언어', reference.language],
-    ['Rights / 권리', reference.rights],
-  ].filter((row): row is [string, string] => Boolean(row[1]));
+    { en: 'Creator', ko: '만든 이', value: reference.creator },
+    { en: 'Date', ko: '연도', value: reference.date },
+    { en: 'Edition', ko: '판본', value: reference.edition },
+    { en: 'Locator', ko: '쪽·행', value: reference.locator },
+    { en: 'Language', ko: '언어', value: reference.language },
+    { en: 'Rights', ko: '권리', value: reference.rights },
+  ].filter((row): row is { en: string; ko: string; value: string } => Boolean(row.value));
 }
 
 function copyWithSelection(text: string) {
@@ -83,6 +92,7 @@ export default function CataloguePage({ id }: { id?: string }) {
   const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
   const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const selected = getArchiveReference(id, references);
+  const selectedMedia = selected?.mediaAssetId ? getArchiveMediaAsset(selected.mediaAssetId) : undefined;
   const usedBy = selected ? publicEvents.filter((event) => event.referenceIds.includes(selected.id)) : [];
   const parent = selected?.parentId ? getArchiveReference(selected.parentId, references) : undefined;
   const children = selected ? references.filter((reference) => reference.parentId === selected.id) : [];
@@ -172,22 +182,35 @@ export default function CataloguePage({ id }: { id?: string }) {
         {selected ? (
           <article className="catalogue-detail">
             <p className="section-kicker"><span lang="en">{selected.kind}</span> / <span lang="ko">{archiveReferenceKindLabel(selected.kind)}</span></p>
-            <h1 lang={textLanguage(selected.title)}>{selected.title}</h1>
-            {selected.attribution && <p className="event-subtitle">{selected.attribution}</p>}
+            <h1 className={selected.title.length > 64 ? 'is-long-title' : undefined} lang={textLanguage(selected.title)}>{selected.title}</h1>
+            {selected.attribution && <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>}
+            {selectedMedia && (
+              <figure className="catalogue-media-asset">
+                <img src={selectedMedia.src} alt={selectedMedia.altText} decoding="async" />
+                <figcaption>
+                  <strong className="archive-body-en" lang="en">{selectedMedia.repository}</strong>
+                  <span className="archive-body-en" lang="en">{selectedMedia.repositoryObjectId} · {selectedMedia.rights}</span>
+                </figcaption>
+              </figure>
+            )}
             <p className="detail-long" lang="ko">{selected.description}</p>
 
             {(metadata.length > 0 || selected.citationNote || selected.sourceUrl) && (
               <section className="catalogue-provenance" aria-labelledby="catalogue-provenance-title">
-                <h2 id="catalogue-provenance-title">Source note / 출처와 이용 정보</h2>
+                <h2 id="catalogue-provenance-title"><BilingualLabel en="Source note" ko="출처와 이용 정보" /></h2>
                 {metadata.length > 0 && (
                   <dl>
-                    {metadata.map(([label, value]) => (
-                      <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                    {metadata.map(({ en, ko, value }) => (
+                      <div key={en}>
+                        <dt><BilingualLabel en={en} ko={ko} /></dt>
+                        <dd className={textLanguage(value) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(value)}>{value}</dd>
+                      </div>
                     ))}
                   </dl>
                 )}
-                {selected.citationNote && <p><strong>Citation / 인용 표기</strong><span>{selected.citationNote}</span></p>}
-                {selected.sourceUrl && <a href={selected.sourceUrl} rel="noreferrer" target="_blank">원문 출처 열기</a>}
+                {selected.citationNote && <p><strong><BilingualLabel en="Citation" ko="인용 표기" /></strong><span className={textLanguage(selected.citationNote) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(selected.citationNote)}>{selected.citationNote}</span></p>}
+                {selected.sourceUrl && <a href={selected.sourceUrl} rel="noreferrer" target="_blank"><span lang="ko">소장기관 원문 기록 열기</span></a>}
+                {selectedMedia && <a href={selectedMedia.rightsUrl} rel="noreferrer" target="_blank"><span className="archive-body-en" lang="en">Open Access</span> <span lang="ko">이용 조건 확인</span></a>}
               </section>
             )}
             <div className="catalogue-export-actions" aria-label="Citation and print actions">
@@ -198,17 +221,17 @@ export default function CataloguePage({ id }: { id?: string }) {
 
             {(parent || children.length > 0) && (
               <section className="catalogue-relations" aria-labelledby="catalogue-family-title">
-                <h2 id="catalogue-family-title">Source relations / 상위 원전과 파생 노드</h2>
-                {parent && <a href={`/catalogue/${parent.id}/`}><span lang="ko">상위 원전</span><strong lang={textLanguage(parent.title)}>{parent.title}</strong></a>}
-                {children.map((child) => <a href={`/catalogue/${child.id}/`} key={child.id}><span lang="ko">{archiveReferenceKindLabel(child.kind)}</span><strong lang={textLanguage(child.title)}>{child.title}</strong></a>)}
+                <h2 id="catalogue-family-title"><BilingualLabel en="Source relations" ko="상위 원전과 파생 노드" /></h2>
+                {parent && <a href={`/catalogue/${parent.id}/`}><span lang="ko">상위 원전</span><strong className={textLanguage(parent.title) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(parent.title)}>{parent.title}</strong></a>}
+                {children.map((child) => <a href={`/catalogue/${child.id}/`} key={child.id}><span lang="ko">{archiveReferenceKindLabel(child.kind)}</span><strong className={textLanguage(child.title) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(child.title)}>{child.title}</strong></a>)}
               </section>
             )}
 
             <section className="catalogue-programmes" aria-labelledby="catalogue-programmes-title">
-              <h2 id="catalogue-programmes-title">Appears in / 이 자료를 읽는 프로그램</h2>
+              <h2 id="catalogue-programmes-title"><BilingualLabel en="Appears in" ko="이 자료를 읽는 프로그램" /></h2>
               {usedBy.length > 0 ? usedBy.map((event) => (
                 <a href={`/archive/${event.id}/`} key={event.id}>
-                  <span>{event.edition}</span><strong lang={/[가-힣]/.test(event.title) ? 'ko' : 'en'}>{event.title}</strong><small lang="ko">{event.shortDescription}</small>
+                  <span className="archive-body-en" lang="en">{event.edition}</span><strong className={!/[가-힣]/.test(event.title) ? 'archive-body-en' : undefined} lang={/[가-힣]/.test(event.title) ? 'ko' : 'en'}>{event.title}</strong><small lang="ko">{event.shortDescription}</small>
                 </a>
               )) : <p lang="ko">아직 공개 프로그램에 연결되지 않은 자료입니다.</p>}
             </section>
@@ -237,8 +260,8 @@ export default function CataloguePage({ id }: { id?: string }) {
                 return (
                   <a href={`/catalogue/${reference.id}/`} key={reference.id}>
                     <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
-                    <strong lang={textLanguage(reference.title)}>{reference.title}</strong>
-                    <small lang={textLanguage(reference.attribution ?? reference.description)}>{reference.attribution ?? reference.description}</small>
+                    <strong className={textLanguage(reference.title) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(reference.title)}>{reference.title}</strong>
+                    <small className={textLanguage(reference.attribution ?? reference.description) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(reference.attribution ?? reference.description)}>{reference.attribution ?? reference.description}</small>
                     <em lang="ko">연결된 프로그램 {appearances}개</em>
                   </a>
                 );

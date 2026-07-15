@@ -713,7 +713,7 @@ function App() {
             <small lang="ko">보관자 문구실</small>
           </a>
           <figure className="archive-source-plate">
-            <img src={memberScribePlate.src} alt={memberScribePlate.alt} loading="lazy" decoding="async" />
+            <img src={memberScribePlate.src} alt={memberScribePlate.altText} loading="lazy" decoding="async" />
             <figcaption>
               <a href={memberScribePlate.sourceUrl} target="_blank" rel="noreferrer">
                 <span lang="en">St Luke, c. 1275–1325</span>

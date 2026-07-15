@@ -5218,6 +5218,14 @@ html body .public-home.detail-home .archive-connection-index li > a:focus-visibl
   line-height: 1.7;
 }
 
+.catalogue-detail h1.is-long-title {
+  max-width: 72rem;
+  font-size: clamp(2.15rem, 5.2vw, 5.2rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  overflow-wrap: break-word;
+}
+
 .catalogue-tools {
   display: grid;
   grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.3fr);
@@ -5287,6 +5295,50 @@ html body .public-home.detail-home .archive-connection-index li > a:focus-visibl
   line-height: 1;
 }
 
+/* Editorial type roles: display navigation and major titles keep Deigrat;
+   compact English records and body copy use Deutsch Gothic. */
+.public-home .archive-body-en,
+.public-home .catalogue-index .archive-body-en,
+.public-home .catalogue-relations .archive-body-en,
+.public-home .catalogue-programmes .archive-body-en,
+.public-home .event-subtitle[lang="en"],
+.public-home .latin-line[lang="en"],
+.public-home .theme-tags li[lang="en"],
+.public-home .text-index li span[lang="en"],
+.public-home .archive-ledger strong[lang="en"],
+.public-home .archive-connection-index strong[lang="en"],
+.public-home .constellation-node strong[lang="en"] {
+  font-family: var(--font-body-en);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.public-home .catalogue-index strong.archive-body-en,
+.public-home .catalogue-relations strong.archive-body-en,
+.public-home .catalogue-programmes strong.archive-body-en,
+.public-home .constellation-node strong[lang="en"] {
+  line-height: 1.18;
+}
+
+.catalogue-detail .bilingual-divider {
+  font-family: var(--font-display);
+}
+
+.catalogue-detail :is(h2, dt, strong) > [lang="en"] {
+  font-family: var(--font-display);
+}
+
+.catalogue-detail :is(h2, dt, strong) > [lang="ko"],
+.catalogue-provenance a > [lang="ko"] {
+  display: inline-block;
+  max-width: calc(100% / var(--ko-ritual-scale-x));
+  font-family: var(--font-ko);
+  letter-spacing: var(--ko-letter-tight);
+  word-spacing: var(--ko-word-compensation);
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
 .catalogue-index small {
   grid-column: 2;
   line-height: 1.45;
@@ -5306,6 +5358,34 @@ html body .public-home.detail-home .archive-connection-index li > a:focus-visibl
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(1.2rem, 3vw, 2.4rem);
+}
+
+.catalogue-media-asset {
+  display: grid;
+  max-width: 42rem;
+  margin: 1rem 0;
+  border: 2px solid var(--ink);
+  background: var(--signal-cream);
+}
+
+.catalogue-media-asset img {
+  display: block;
+  width: 100%;
+  max-height: 34rem;
+  object-fit: contain;
+  background: var(--signal-cream);
+}
+
+.catalogue-media-asset figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.55rem 0.7rem;
+  border-top: 2px solid var(--ink);
+  font-family: var(--font-ko);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .catalogue-relations,

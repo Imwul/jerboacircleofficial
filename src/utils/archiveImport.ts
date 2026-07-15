@@ -50,7 +50,7 @@ function readDraftCandidate(payload: unknown) {
 
 const referenceKinds = new Set<ArchiveReferenceKind>(['book', 'artwork', 'quotation', 'image', 'place', 'theme']);
 const referenceOptionalFields: Array<keyof ArchiveReference> = [
-  'attribution', 'creator', 'date', 'edition', 'locator', 'sourceUrl', 'rights', 'language', 'citationNote', 'altText', 'parentId',
+  'attribution', 'creator', 'date', 'edition', 'locator', 'sourceUrl', 'rights', 'language', 'citationNote', 'altText', 'mediaAssetId', 'parentId',
 ];
 const referenceFields = new Set<keyof ArchiveReference>([
   'id', 'kind', 'title', 'description', ...referenceOptionalFields,

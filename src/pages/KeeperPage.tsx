@@ -51,6 +51,7 @@ import {
   type ArchiveReferenceDraftMap,
 } from '../utils/archiveReferenceDrafts';
 import { inspectArchiveIntegrity } from '../utils/archiveIntegrity';
+import { getArchiveMediaAsset } from '../data/mediaAssets';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
@@ -84,6 +85,15 @@ function validateReferenceForm(form: ReferenceFormState, references: ArchiveRefe
   if (!/^[a-z0-9가-힣-]+$/.test(form.id)) return '자료 ID는 영문 소문자, 숫자, 한글과 하이픈만 사용할 수 있습니다';
   if (!form.title.trim()) return '자료 제목을 입력하세요';
   if (!form.description.trim()) return '자료 설명을 입력하세요';
+  if ((form.kind === 'image' || form.kind === 'artwork') && !form.sourceUrl?.trim()) return '도판과 작품은 소장기관 원문 출처 URL이 필요합니다';
+  if ((form.kind === 'image' || form.kind === 'artwork') && !form.rights?.trim()) return '도판과 작품은 권리와 재사용 조건이 필요합니다';
+  if ((form.kind === 'image' || form.kind === 'artwork') && !form.altText?.trim()) return '도판과 작품은 이미지 대체 텍스트가 필요합니다';
+  if (form.mediaAssetId) {
+    const mediaAsset = getArchiveMediaAsset(form.mediaAssetId);
+    if (!mediaAsset) return `등록되지 않은 도판 파일 ID입니다: ${form.mediaAssetId}`;
+    if (form.sourceUrl !== mediaAsset.sourceUrl) return '도판 파일과 소장기관 원문 출처가 일치하지 않습니다';
+    if (form.title !== mediaAsset.title) return '검증된 도판의 작품명은 소장기관 기록과 같아야 합니다';
+  }
   if (form.parentId && !references.some((reference) => reference.id === form.parentId)) return `없는 상위 자료 ID입니다: ${form.parentId}`;
   if (form.parentId === form.id) return '자료가 자기 자신을 상위 원전으로 가리킬 수 없습니다';
   if (form.parentId) {
@@ -243,7 +253,10 @@ export default function KeeperPage() {
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
   const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents, referenceRecords), [archiveEvents, referenceRecords]);
-  const selectedIntegrityIssues = integrityIssues.filter((issue) => !issue.recordId || issue.recordId === selectedEvent.id);
+  const selectedIntegrityIssues = integrityIssues.filter((issue) => {
+    if (mode === 'references') return !issue.referenceId || issue.referenceId === selectedReference.id;
+    return !issue.recordId || issue.recordId === selectedEvent.id;
+  });
 
   usePageMetadata({
     title: mode === 'text'
@@ -933,6 +946,13 @@ export default function KeeperPage() {
                 <span lang="ko">원문 출처 URL</span>
                 <input type="url" value={referenceForm.sourceUrl ?? ''} onChange={(event) => updateReferenceField('sourceUrl', event.target.value || undefined)} />
               </label>
+
+              {referenceForm.mediaAssetId && (
+                <label className="keeper-field">
+                  <span lang="ko">검증된 도판 파일</span>
+                  <input value={referenceForm.mediaAssetId} readOnly />
+                </label>
+              )}
 
               <label className="keeper-field">
                 <span lang="ko">권리와 재사용 조건</span>

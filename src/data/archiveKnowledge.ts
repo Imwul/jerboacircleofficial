@@ -1,4 +1,8 @@
 import type { ArchiveEvent } from './events';
+import {
+  getArchiveMediaAsset,
+  mediaAssetCitation,
+} from './mediaAssets';
 
 export type ArchiveReferenceKind = 'book' | 'artwork' | 'quotation' | 'image' | 'place' | 'theme';
 export type ArchiveRelationKind = 'chronology' | 'shared-source' | 'thematic';
@@ -17,8 +21,32 @@ export interface ArchiveReference {
   language?: string;
   citationNote?: string;
   altText?: string;
+  mediaAssetId?: string;
   description: string;
   parentId?: string;
+}
+
+function verifiedImageReference(
+  id: string,
+  mediaAssetId: string,
+  description: string,
+): ArchiveReference {
+  const asset = getArchiveMediaAsset(mediaAssetId);
+  if (!asset) throw new Error(`Missing verified media asset: ${mediaAssetId}`);
+  return {
+    id,
+    kind: 'image',
+    title: asset.title,
+    attribution: `${asset.repository} · ${asset.repositoryObjectId}`,
+    creator: asset.creator,
+    date: asset.date,
+    sourceUrl: asset.sourceUrl,
+    rights: `${asset.rights} · Open Access`,
+    citationNote: mediaAssetCitation(asset),
+    altText: asset.altText,
+    mediaAssetId: asset.id,
+    description,
+  };
 }
 
 export interface ArchiveProgrammeRelation {
@@ -192,46 +220,41 @@ export const archiveReferences: ArchiveReference[] = [
     citationNote: 'Jerboa Circle programme place node.',
     description: '라벨의 설명이 멈춘 뒤 사물과 잔상이 다시 읽히는 장소.',
   },
-  {
-    id: 'grail-table-plate',
-    kind: 'image',
-    title: 'Grail table plate',
-    attribution: 'Jerboa Circle image archive',
-    rights: 'Jerboa Circle archive; reuse by permission',
-    altText: '성배의 질문과 원탁의 관계를 다루는 중세 도판.',
-    citationNote: 'Jerboa Circle image archive, Grail table plate.',
-    description: 'Scintilla Animae에서 질문과 원탁의 관계를 여는 도판.',
-  },
-  {
-    id: 'bestiary-margin-plate',
-    kind: 'image',
-    title: 'Bestiary margin plate',
-    attribution: 'Jerboa Circle image archive',
-    rights: 'Jerboa Circle archive; reuse by permission',
-    altText: '낭독과 여백의 관계를 보여주는 중세 필사본 가장자리 도판.',
-    citationNote: 'Jerboa Circle image archive, Bestiary margin plate.',
-    description: 'Edition 005의 목소리와 여백을 시각적으로 연결하는 도판.',
-  },
-  {
-    id: 'love-window-plate',
-    kind: 'image',
-    title: 'Love window plate',
-    attribution: 'Jerboa Circle image archive',
-    rights: 'Jerboa Circle archive; reuse by permission',
-    altText: '보이지 않는 얼굴과 먼 수신지를 연결하는 창문 도상.',
-    citationNote: 'Jerboa Circle image archive, Love window plate.',
-    description: '보이지 않는 얼굴과 먼 수신지를 연결하는 도판.',
-  },
-  {
-    id: 'dante-stars-plate',
-    kind: 'image',
-    title: 'Dante stars plate',
-    attribution: 'Jerboa Circle image archive',
-    rights: 'Jerboa Circle archive; reuse by permission',
-    altText: '어두운 공간을 지나 다시 별을 바라보는 장면의 도판.',
-    citationNote: 'Jerboa Circle image archive, Dante stars plate.',
-    description: '폐관 이후의 별과 Scintilla Animae의 마지막 표식을 잇는 도판.',
-  },
+  verifiedImageReference(
+    'grail-table-plate',
+    'met-466370-last-supper',
+    '긴 식탁과 잔의 구도를 통해 Scintilla Animae의 성배 질문과 공동의 자리를 여는 도판.',
+  ),
+  verifiedImageReference(
+    'bestiary-margin-plate',
+    'met-463605-singing-monks',
+    '함께 악보를 읽고 노래하는 수도사들을 통해 Edition 005의 목소리와 여백을 연결하는 도판.',
+  ),
+  verifiedImageReference(
+    'love-window-plate',
+    'met-466086-annunciation',
+    '소식이 도착하는 수태고지 장면을 통해 보이지 않는 얼굴과 먼 수신지를 연결하는 도판.',
+  ),
+  verifiedImageReference(
+    'dante-stars-plate',
+    'met-466191-beatus-star',
+    '별이 하늘과 땅 사이를 가로지르는 장면으로 폐관 이후의 별과 현재 판본의 마지막 표식을 잇는 도판.',
+  ),
+  verifiedImageReference(
+    'archive-canon-table-plate',
+    'met-662941-armenian-bifolium',
+    '복음서의 대응 관계를 표로 정리한 이중 잎을 아카이브의 연결과 색인 구조에 대응시키는 도판.',
+  ),
+  verifiedImageReference(
+    'fixed-stars-plate',
+    'met-446297-fixed-stars',
+    '하늘에서 본 별자리와 땅에서 본 별자리를 함께 기록한 필사본을 관계 지도의 시각적 원전으로 삼는 도판.',
+  ),
+  verifiedImageReference(
+    'st-luke-scribe-plate',
+    'met-473633-st-luke',
+    '필사 도구와 책을 곁에 둔 성 루가의 장면을 회원 장부와 보관자 작업의 상징으로 쓰는 도판.',
+  ),
 ];
 
 export const archiveProgrammeRelations: ArchiveProgrammeRelation[] = [

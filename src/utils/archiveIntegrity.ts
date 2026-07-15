@@ -8,6 +8,7 @@ import {
   archiveReferences,
   type ArchiveReference,
 } from '../data/archiveKnowledge';
+import { getArchiveMediaAsset } from '../data/mediaAssets';
 
 export type ArchiveIntegritySeverity = 'error' | 'warning';
 
@@ -15,6 +16,7 @@ export interface ArchiveIntegrityIssue {
   id: string;
   severity: ArchiveIntegritySeverity;
   recordId?: string;
+  referenceId?: string;
   message: string;
 }
 
@@ -64,20 +66,20 @@ export function inspectArchiveIntegrity(
 
   references.forEach((reference, index) => {
     if (references.findIndex((candidate) => candidate.id === reference.id) !== index) {
-      issues.push({ id: `duplicate-reference-${reference.id}`, severity: 'error', message: `중복 자료 ID: ${reference.id}` });
+      issues.push({ id: `duplicate-reference-${reference.id}`, severity: 'error', referenceId: reference.id, message: `중복 자료 ID: ${reference.id}` });
     }
     if (reference.parentId && !referenceIds.has(reference.parentId)) {
-      issues.push({ id: `reference-parent-${reference.id}`, severity: 'error', message: `참조 노드 ${reference.id}의 상위 노드 ${reference.parentId}가 없습니다.` });
+      issues.push({ id: `reference-parent-${reference.id}`, severity: 'error', referenceId: reference.id, message: `참조 노드 ${reference.id}의 상위 노드 ${reference.parentId}가 없습니다.` });
     }
     if (reference.parentId === reference.id) {
-      issues.push({ id: `reference-self-parent-${reference.id}`, severity: 'error', message: `자료 ${reference.id}가 자기 자신을 상위 원전으로 가리킵니다.` });
+      issues.push({ id: `reference-self-parent-${reference.id}`, severity: 'error', referenceId: reference.id, message: `자료 ${reference.id}가 자기 자신을 상위 원전으로 가리킵니다.` });
     }
     if (reference.parentId && reference.parentId !== reference.id) {
       const visited = new Set([reference.id]);
       let nextId: string | undefined = reference.parentId;
       while (nextId && referenceIds.has(nextId)) {
         if (visited.has(nextId)) {
-          issues.push({ id: `reference-cycle-${reference.id}`, severity: 'error', message: `자료 ${reference.title}의 상위 원전 연결이 순환합니다.` });
+          issues.push({ id: `reference-cycle-${reference.id}`, severity: 'error', referenceId: reference.id, message: `자료 ${reference.title}의 상위 원전 연결이 순환합니다.` });
           break;
         }
         visited.add(nextId);
@@ -85,16 +87,32 @@ export function inspectArchiveIntegrity(
       }
     }
     if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.sourceUrl) {
-      issues.push({ id: `reference-source-${reference.id}`, severity: 'warning', message: `${reference.title}: 원문 출처 URL이 없습니다.` });
+      issues.push({ id: `reference-source-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 원문 출처 URL이 없습니다.` });
     }
     if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.rights) {
-      issues.push({ id: `reference-rights-${reference.id}`, severity: 'warning', message: `${reference.title}: 권리와 재사용 조건이 없습니다.` });
+      issues.push({ id: `reference-rights-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 권리와 재사용 조건이 없습니다.` });
     }
     if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.altText) {
-      issues.push({ id: `reference-alt-${reference.id}`, severity: 'warning', message: `${reference.title}: 이미지 대체 텍스트가 없습니다.` });
+      issues.push({ id: `reference-alt-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 이미지 대체 텍스트가 없습니다.` });
+    }
+    if (reference.kind === 'image' && !reference.mediaAssetId) {
+      issues.push({ id: `reference-media-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 검증된 로컬 도판 파일이 연결되지 않았습니다.` });
+    }
+    if (reference.mediaAssetId) {
+      const asset = getArchiveMediaAsset(reference.mediaAssetId);
+      if (!asset) {
+        issues.push({ id: `reference-media-missing-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 등록되지 않은 도판 파일 ID입니다.` });
+      } else {
+        if (reference.sourceUrl !== asset.sourceUrl) {
+          issues.push({ id: `reference-media-source-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 도판 파일과 소장기관 출처가 일치하지 않습니다.` });
+        }
+        if (reference.title !== asset.title) {
+          issues.push({ id: `reference-media-title-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 소장기관 작품명과 자료 제목이 다릅니다.` });
+        }
+      }
     }
     if (reference.kind === 'quotation' && !reference.parentId) {
-      issues.push({ id: `reference-quotation-parent-${reference.id}`, severity: 'warning', message: `${reference.title}: 인용문의 상위 원전이 연결되지 않았습니다.` });
+      issues.push({ id: `reference-quotation-parent-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 인용문의 상위 원전이 연결되지 않았습니다.` });
     }
   });
 

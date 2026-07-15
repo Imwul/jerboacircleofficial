@@ -32,6 +32,17 @@
     U+D7B0-D7FF;
 }
 
+/* Compact editorial English supplied by the archive owner. Display titles and
+   navigation deliberately continue to use Jerboa Deigrat. */
+@font-face {
+  font-family: "Jerboa Deutsch Gothic";
+  src: url("./assets/fonts/Deutsch.ttf") format("truetype");
+  font-display: swap;
+  unicode-range:
+    U+0020-007E,
+    U+00A0-00FF;
+}
+
 @theme {
   --font-sans: "Jerboa Deigrat", "Jerboa Pretendard", ui-serif, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -62,6 +73,7 @@
   --font-heavy-header: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-display: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-body-archive: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-body-en: "Jerboa Deutsch Gothic", "Jerboa Deigrat", Georgia, serif;
   --font-ko: "Jerboa Pretendard", "Jerboa Deigrat", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
