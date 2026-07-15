@@ -1240,3 +1240,429 @@ html body #root .members-archive .archive-main {
     scroll-behavior: auto !important;
   }
 }
+
+/* Phone repair -----------------------------------------------------------
+   The desktop spread deliberately uses strong columns. At phone width those
+   columns must disappear completely rather than survive as narrow implicit
+   tracks inherited from earlier layers. */
+@media (max-width: 640px) {
+  html body #root .public-home .archive-nav > .archive-private-door {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    order: initial !important;
+  }
+
+  html body #root .public-home .archive-nav > a {
+    width: 8.75rem !important;
+    max-width: 8.75rem !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    height: 16.5rem !important;
+    min-height: 16.5rem !important;
+    padding: 0.8rem !important;
+  }
+
+  html body #root .public-home .masthead-logo {
+    width: min(42%, 8.5rem) !important;
+  }
+
+  html body #root .public-home .masthead-ring {
+    left: 50% !important;
+    width: 16rem !important;
+    height: 16rem !important;
+    max-width: calc(100% - 1rem) !important;
+    transform: translateX(-50%) !important;
+  }
+
+  html body #root .public-home .masthead-seal-caption {
+    right: 0.8rem !important;
+    bottom: 0.8rem !important;
+    width: min(11rem, 52%) !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    gap: 0.75rem !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home .masthead-index > p:first-child {
+    max-width: 9ch !important;
+    font-size: clamp(2.75rem, 14vw, 3.45rem) !important;
+    line-height: 0.86 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  html body #root .public-home .masthead-index > p:nth-child(2) {
+    font-size: 1rem !important;
+    line-height: 1.55 !important;
+  }
+
+  html body #root .public-home .orientation-ledger {
+    gap: 0.55rem !important;
+    padding-top: 0.75rem !important;
+  }
+
+  html body #root .public-home .orientation-ledger > strong {
+    font-size: 0.98rem !important;
+    line-height: 1.55 !important;
+  }
+
+  html body #root .public-home .orientation-routes > a {
+    min-height: 3.2rem !important;
+    padding: 0.45rem 0.6rem !important;
+  }
+
+  html body #root .public-home .featured-event {
+    gap: 0.75rem !important;
+  }
+
+  html body #root .public-home .featured-copy {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
+    gap: 0.65rem !important;
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home .featured-copy > .section-kicker,
+  html body #root .public-home .featured-copy > h1,
+  html body #root .public-home .featured-copy > .event-subtitle,
+  html body #root .public-home .featured-copy > .latin-line,
+  html body #root .public-home .featured-copy > .marginal-note,
+  html body #root .public-home .featured-copy > .editorial-plate--featured,
+  html body #root .public-home .featured-copy > .event-description,
+  html body #root .public-home .featured-copy > .constellation-grid,
+  html body #root .public-home .featured-copy > .event-meta,
+  html body #root .public-home .featured-copy > .archive-cta {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body #root .public-home .featured-copy > .section-kicker {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    min-height: 0 !important;
+    padding: 0.55rem 0.65rem !important;
+  }
+
+  html body #root .public-home .featured-copy > .section-kicker :is(.kicker-en, .kicker-ko) {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+  }
+
+  html body #root .public-home .featured-copy h1 {
+    max-width: 100% !important;
+    font-size: clamp(3.15rem, 16vw, 4rem) !important;
+    line-height: 0.84 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home .featured-copy :is(.event-subtitle, .latin-line) {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  html body #root .public-home .featured-copy .editorial-plate--featured {
+    height: 8rem !important;
+  }
+
+  html body #root .public-home .featured-copy .event-description {
+    align-self: auto !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+  }
+
+  html body #root .public-home .featured-copy .constellation-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+  }
+
+  html body #root .public-home .featured-copy > .archive-cta {
+    justify-self: stretch !important;
+  }
+
+  html body #root .public-home .archive-section-title {
+    gap: 0.45rem !important;
+  }
+
+  html body #root .public-home .archive-section-title > .section-kicker,
+  html body #root .public-home .archive-section-title > h2 {
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body #root .public-home .archive-section-title h2 {
+    font-size: clamp(2rem, 11vw, 2.8rem) !important;
+  }
+
+  html body #root .public-home .archive-view-switch {
+    gap: 0.25rem !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) {
+    min-width: 0 !important;
+    min-height: 3.35rem !important;
+    padding: 0.4rem 0.25rem !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) > span {
+    font-size: clamp(1rem, 5.1vw, 1.28rem) !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.4rem !important;
+  }
+
+  html body #root .public-home .archive-filter-set {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    height: auto !important;
+  }
+
+  html body #root .public-home .archive-select {
+    width: 100% !important;
+  }
+
+  html body #root .public-home .poster-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.85rem !important;
+  }
+
+  html body #root .public-home .poster-tile {
+    min-height: 0 !important;
+    padding: 0 0 0.85rem !important;
+  }
+
+  html body #root .public-home .poster-tile > a {
+    display: grid !important;
+    grid-template-columns: minmax(7.4rem, 0.72fr) minmax(0, 1.28fr) !important;
+    grid-template-rows: auto !important;
+    gap: 0.75rem !important;
+    align-items: start !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-frame {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 3 / 4 !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-caption {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-caption h2 {
+    max-width: 100% !important;
+    font-size: clamp(1.9rem, 9vw, 2.45rem) !important;
+    line-height: 0.9 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-caption p[lang="ko"] {
+    font-size: 0.93rem !important;
+    line-height: 1.5 !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-open-tab {
+    display: none !important;
+  }
+
+  html body #root .public-home .poster-tile .archive-bookmark {
+    top: 0.35rem !important;
+    right: 0.35rem !important;
+  }
+
+  /* Programme records: every relationship becomes a full-width editorial
+     row. Narrow multi-column cards were the largest source of phone height. */
+  html body #root .public-home.detail-home .detail-poster {
+    height: min(58vh, 29rem) !important;
+    min-height: 20rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > h1 {
+    max-width: 100% !important;
+    font-size: clamp(3.1rem, 15vw, 3.9rem) !important;
+    line-height: 0.84 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home.detail-home .detail-archive-context,
+  html body #root .public-home.detail-home .archive-knowledge-grid,
+  html body #root .public-home.detail-home .archive-knowledge-grid > .text-index,
+  html body #root .public-home.detail-home .archive-knowledge-grid ol,
+  html body #root .public-home.detail-home .archive-reference-index ol,
+  html body #root .public-home.detail-home .archive-connection-index ol {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home.detail-home .archive-knowledge-grid li {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home.detail-home .archive-knowledge-grid :is(.text-index, .archive-reference-index) li > a,
+  html body #root .public-home.detail-home .archive-connection-index li > a {
+    display: block !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0.7rem 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  html body #root .public-home.detail-home .archive-knowledge-grid :is(.text-index, .archive-reference-index) li > a > :is(span, strong, small),
+  html body #root .public-home.detail-home .archive-connection-index li > a > :is(span, strong, small) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Catalogue introduction and index use one honest reading column. */
+  html body #root .public-home.catalogue-home .catalogue-intro > .section-kicker,
+  html body #root .public-home.catalogue-home .catalogue-intro > h1,
+  html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro h1 {
+    max-width: 9ch !important;
+    font-size: clamp(3.05rem, 14.5vw, 3.75rem) !important;
+    line-height: 0.84 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-tools {
+    gap: 0.55rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    height: auto !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-index > a {
+    min-height: 0 !important;
+    padding: 0.85rem 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > h1 {
+    font-size: clamp(3rem, 14vw, 3.8rem) !important;
+    line-height: 0.86 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Private room and calendar. */
+  html body #root .members-archive .archive-topbar h1[lang="en"] {
+    max-width: calc(100vw - 2rem) !important;
+    font-size: clamp(2.75rem, 13.5vw, 3.45rem) !important;
+    line-height: 0.8 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .members-archive .archive-main,
+  html body #root .members-archive .archive-main > div,
+  html body #root .members-archive .archive-calendar-view,
+  html body #root .members-archive .archive-calendar-scroll,
+  html body #root .members-archive .archive-calendar-grid {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body #root .members-archive .archive-calendar-scroll {
+    padding: 0.45rem !important;
+    overflow-x: hidden !important;
+  }
+
+  html body #root .members-archive .archive-calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    grid-auto-rows: auto !important;
+    gap: 0.18rem !important;
+  }
+
+  html body #root .members-archive .archive-calendar-grid > .archive-weekday {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 2.2rem !important;
+    padding: 0.45rem 0.1rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  html body #root .members-archive .archive-calendar-grid > .archive-calendar-day {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 3.4rem !important;
+    padding: 0.25rem !important;
+  }
+
+  html body #root .members-archive .archive-calendar-grid .calendar-date-mark {
+    width: 1.55rem !important;
+    height: 1.55rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  html body #root .members-archive .archive-calendar-grid .archive-event-dot {
+    width: 0.38rem !important;
+    height: 0.38rem !important;
+  }
+
+  html body #root .members-archive .archive-calendar-detail {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html body #root .members-archive .habit-week-strip {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    min-width: 0 !important;
+    gap: 0.2rem !important;
+  }
+
+  html body #root .members-archive .habit-week-strip > div,
+  html body #root .members-archive .habit-weekday {
+    min-width: 0 !important;
+    width: auto !important;
+  }
+}
