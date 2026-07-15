@@ -258,7 +258,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <HabitTrackingView 
             user={latestUser} 
             onUpdateUser={onUpdateUser} 
-            onLogout={() => {}} 
             isAdmin={true} 
           />
         </div>

@@ -1,171 +1,127 @@
-# Jerboa Circle product and archive roadmap
+# Jerboa Circle — five-year product and archive roadmap
 
-## Product direction
+Audit date: 2026-07-15
+Product principle: grow through durable relationships and editorial memory, not through disconnected features.
 
-Jerboa Circle should grow as one connected cultural archive with three surfaces:
+## Product model
 
-1. The public publication helps a first-time visitor understand the circle, enter through a programme, and follow ideas across editions.
-2. The member room helps a participant understand what is next, join a programme, and preserve a personal practice record.
-3. The keeper desk lets a small editorial team publish once, reuse structured knowledge, detect broken links, and recover safely.
+Jerboa Circle is one archive with three connected experiences:
 
-The archive should gain depth through relationships, not through an ever-growing set of unrelated features.
+1. **Public publication** — a first-time visitor should understand the institution, enter through the current programme, and follow ideas across earlier editions.
+2. **Member room** — a participant should see what is next, join or resume a programme, and preserve a personal practice record.
+3. **Keeper desk** — an editor should enter a fact once, reuse it everywhere, detect incomplete records, preview the result, and recover safely.
 
-## Implementation status — relationship and publication phase
+Chronology should remain the default archive view because it explains institutional continuity without teaching a new interface. Constellation remains the secondary research view: it reveals relationships and highlights the open programme, while using exactly the same records and filters.
 
-Completed in the second product pass:
+## Whole-site review
 
-- Chronology remains the default public archive view. A new Constellation view presents the same filtered records as a relationship map, centers and highlights the currently open programme, and distinguishes chronology, shared-source, and shared-theme links.
-- Books, quotations, images, places, artworks, and themes now have a public catalogue index and stable detail routes. Programme records link into these nodes, and each node links back to every public programme where it appears.
-- Member calendar sessions can link to a public archive record. The keeper chooses the relationship once; members can open the publication, reading materials, and archive context without duplicated descriptions.
-- Public build outputs now include an Atom feed, sitemap, robots policy, and versioned structured archive export. These use the same source records as the website.
-- Shared member and archive payloads now carry an explicit schema version. This is the starting point for future migrations rather than an assumption that browser data will never change shape.
-- The programme editor now keeps hooks stable when opening and closing and traps focus inside the active dialog, supports Escape, and restores focus to the trigger.
+### Public home, current programme, and archive
 
-Completed in the third product pass:
+**Purpose:** clear. The page explains Jerboa Circle, makes the current programme prominent, and leads naturally into the archive.
 
-- Reference records now support creator, date, edition, locator, source URL, rights, language, citation note, and image alt text. Catalogue pages expose the recorded provenance without fabricating missing data.
-- Every programme reading list is generated from its reusable reference relationships. Updating a source node changes every programme context that uses it instead of duplicating copy.
-- Keeper and contextual record editors use the same searchable relationship picker for collections, references, and related programmes. Raw slash-separated IDs are no longer the primary editing workflow.
-- Both record editors now share one form model, conversion layer, and validation function, preventing the detail editor and Keeper Desk from accepting different data.
-- Archive and member backup imports are version-checked, size-limited, structurally validated, summarized, and only then applied through an accessible confirmation dialog.
-- Event, member, and personal-register deletion now use the same accessible confirmation dialog instead of browser alerts; image failures remain in context as recoverable status messages.
-- Catalogue records provide citation-copy and print actions generated from the same provenance metadata.
-- Offline member and keeper work is explicitly marked as a local draft rather than a failed save.
-- Archive routes distinguish loading, temporarily unavailable, unpublished, and not-found states without exposing private titles.
-- Returning members now see their next enrolled programme and unfinished daily reflection before opening the full calendar.
+**What works:** chronology and constellation are complementary rather than competing views; search and filters are shareable in the URL; public records exclude drafts and private material; empty searches offer recovery; responsive navigation keeps the same information order.
 
-Still intentionally requires a separate infrastructure phase:
+**Opportunity:** when programmes are created only through server sync, static titles, social cards, sitemap entries, the feed, and the structured export do not update in the same transaction. This is a publication-system issue, not a visual one.
 
-- Member authentication and per-member server authorization need an identity and invitation policy. A cosmetic PIN layered over the current shared JSON blob would imply privacy without providing it.
-- Record-level database storage, migrations, media storage, scheduled publishing, and cross-device saved lists require a durable backend migration. They should be implemented together rather than added as parallel browser-storage mechanisms.
-- IIIF, transcripts, and edition comparison remain conditional future systems; they should only be introduced when the archive has the corresponding rights, media, and revision material.
+### Programme detail
 
-## Page and workflow review
+**Purpose:** strong. A programme is preserved as an edition with its passage, materials, reading list, provenance, and links to other editions.
 
-### Public home and archive
+**What works:** the reading list is generated from reusable reference records; connections are reciprocal; unpublished and missing states do not reveal private titles; keepers can edit in context after authorization.
 
-Purpose is clear: explain the institution, foreground the current programme, and expose the programme wall. Search already includes programme copy, themes, seasons, collections, references, and related records.
+**Opportunity:** publishing should refuse records with broken relationships, incomplete image rights, or missing share metadata, and should create an immutable edition snapshot.
 
-Completed now:
+### Reference catalogue
 
-- Search, status, season, collection, and bookmark-only filters persist in the URL. A visitor can share a view and return from a record without rebuilding it; a long-term member can keep a repeatable research path.
-- A single reset action clears all archive filters.
-- Images retain the existing design but use smaller delivery formats.
-- Only public, published server records are delivered to anonymous visitors.
+**Purpose:** clear. It shows the books, artworks, quotations, images, places, and themes that form the intellectual structure behind programmes.
 
-Current-scale status:
+**What works:** stable detail routes, provenance, citation copy, print, parent/child source relationships, reciprocal programme links, search and type filters. Search and filter state now persists in the URL.
 
-- Every reference node already has a stable catalogue page and reciprocal programme links.
-- Sitemap, Atom feed, robots policy, and structured archive export are generated from the publication data.
-- The current client index remains appropriate for the catalogue size; a generated server search index is deferred until volume warrants it.
-
-### Archive record
-
-Purpose is strong: preserve the programme as an edition with passage, materials, metadata, references, and connections to other editions.
-
-Completed now:
-
-- Public records have unique build-time titles and descriptions plus richer live Open Graph and X metadata.
-- The embedded editor is hidden unless an archive-editor session is already authenticated. First-time visitors see a coherent publication page; keepers retain contextual editing after authentication.
-- Unlisted, preview, and missing records are marked not to be indexed.
-
-Completed:
-
-- References support edition, locator, source URL, rights, language, citation note, creator, date, and image alt text.
-- Programme reading lists are assembled automatically from reusable reference relationships.
-
-Editorial follow-up:
-
-- Source URLs and edition-specific locators should only be added after a keeper verifies the exact edition; empty provenance is preferable to invented certainty.
+**Implemented in this pass:** reference records are now first-class editable content in the Keeper Desk and shared sync. A keeper can add or edit a source once and every programme using it receives the update. Backup and recovery include these records.
 
 ### Member room
 
-The calendar, programme detail, capacity, join/cancel actions, calendar export, practice record, profile, and participant-journey tools form a coherent member workflow.
+**Purpose:** coherent. The calendar, programme detail, enrolment, personal register, profile, and continuation prompts form one participant journey.
 
-Completed now:
+**What works:** returning members can resume the next programme or unfinished reflection; calendar records can open the corresponding public programme; destructive actions use recoverable confirmations; offline work is described as local rather than lost.
 
-- A rendering failure no longer offers destructive deletion as the primary recovery action. Members can reload or download an emergency backup.
-- The entire member surface is excluded from indexing.
-
-Critical remaining issue:
-
-- Selecting a displayed name is not identity verification. Before the room holds real private reflections or media, introduce member authentication and server-side per-member authorization. A first-time invited member gets a clear, safe entrance; a long-term member can trust that personal records are not exposed to another visitor or shared-device user.
-
-Workflow improvements to follow authentication:
-
-- “My next programme” and the latest unfinished daily reflection now appear as direct resume actions while the full calendar remains one step away.
-- Backup replacement, account deletion, member deletion, and event deletion use accessible, recoverable in-product confirmations.
-- Programme, confirmation, avatar, member-editor, bulk-date, and synchronization-code dialogs trap focus, support Escape, and restore focus.
+**Critical limit:** selecting a displayed name is not authentication. The current shared data model must not be treated as private storage for sensitive reflections, attendance, or images. This requires real identity and authorization, not a cosmetic PIN.
 
 ### Keeper desk and text register
 
-The desk supports drafts, publishing stages, visibility, seasons, collections, revisions, file backup, shared sync, conflict recovery, poster preparation, and site-wide copy.
+**Purpose:** clear. Programme records, recurring site copy, publication state, backups, revisions, and shared sync are maintained in one operational area.
 
-Completed now:
+**Implemented in this pass:** books, artworks, quotations, images, places, and themes can be maintained from a dedicated reference register. Programme pickers use the current register rather than source-code constants. Integrity checks now flag duplicate IDs, broken parent links, orphan quotations, and missing source, rights, or alt text for visual material. Long-lived shared keys are no longer retained in persistent browser storage.
 
-- The desk detects missing seasons, collections, reference nodes, programme links, relation targets, and parent references.
-- Invalid collection, reference, and related-programme IDs are blocked before saving.
-- Keepers can see the valid reference and programme IDs next to the relevant fields.
-- Static routes are generated from the actual public event data rather than a text pattern that also mistook seasons and themes for routes.
+**Remaining friction:** seasons, collections, programme relationship notes, and people are still source-controlled taxonomies. Adding them should become schema-driven only after the durable storage layer exists; another independent browser-only editor would create more migration work.
 
-Completed:
+### Error, empty, offline, and recovery states
 
-- Collections, references, and related programmes use searchable relationship pickers in both editor surfaces.
-- The detail editor and Keeper Desk share one record form model, conversion layer, and validator.
+**Purpose:** complete at the current storage layer. Missing public routes, unpublished records, temporarily unavailable sync, empty search, conflicts, imports, and offline drafts each have distinct messages and recovery paths.
 
-Remaining before catalogue growth:
+**Implemented in this pass:** the profile seal is a real keyboard-operable control. Reference backup imports are structurally validated before replacement.
 
-- Reference nodes, programme relations, seasons, collections, people, and media still live in source files. Move them to first-class keeper editors as part of the durable backend migration so a second browser-only draft system is not introduced.
+## Architecture assessment
 
-### Missing and error states
+The current normalized IDs and reusable relationships are a sound content model. The storage model is not a five-year model: a mutable JSON blob plus browser storage creates whole-dataset conflicts, weak privacy boundaries, limited auditability, and expensive media payloads. Do not patch around this with more local-storage systems.
 
-The public missing route has a clear return path and is excluded from indexing. Search and calendar empty states suggest a recovery action. Sync conflicts preserve local recovery files.
-
-Completed:
-
-- Public records distinguish loading, not found, not yet published, and temporarily unavailable without revealing private titles.
-- Member and keeper surfaces announce offline work as locally preserved and pending a later shared seal.
+Target entities should be versioned records: `Programme`, `ProgrammeEdition`, `Reference`, `Person`, `TaxonomyTerm`, `ProgrammeRelation`, `MediaAsset`, `Member`, `Enrollment`, `PracticeEntry`, and `PublicationRevision`. Media binaries should live in object storage; records should contain rights, source, credit, alt text, dimensions, focal point, and derivatives. Public pages, feeds, maps, reading lists, and exports should all be projections of those records.
 
 ## Prioritized roadmap
 
 ### Critical
 
-1. **Member identity and per-record authorization — infrastructure decision required.** First-time invited members need a safe, understandable entrance; long-term members need durable privacy for reflections, attendance, images, and profiles. Use expiring invitations or passwordless links, server sessions, and authorization on every member read/write—not only on admin sync.
-2. **Durable, versioned storage — infrastructure decision required.** The current shared JSON blob and browser storage are useful for a small circle but will become a contention and payload bottleneck. Move programmes, members, attendance, habits, archive records, references, and revisions into versioned server-side records with migrations. Visitors receive faster public reads; members and keepers avoid whole-dataset conflicts and silent schema drift.
-3. **Public/private publication boundary — implemented and regression checked.** Draft and private archive records are excluded from anonymous responses and static publication routes.
-4. **Safe recovery — implemented at the current storage layer.** Destructive error reset is removed; member and archive imports are validated before an accessible confirmation, conflicts preserve recovery files, and keeper revision restore remains explicit.
+1. **Real member identity, invitation, and row-level authorization.** First-time invited members get an understandable and trustworthy entrance; long-term members can safely keep reflections, attendance, and profile media across devices. Use expiring invitations or passwordless sign-in, server sessions, authorization on every read/write, consent, retention, export, and deletion controls.
+
+2. **Durable normalized database, object storage, and migrations.** First-time visitors receive faster, stable public pages even as the archive grows; long-term members and keepers avoid whole-file conflicts and silent data loss. Migrate programmes, references, relations, members, enrollments, practice entries, and revisions into transactional records with schema migrations and backups.
+
+3. **Transactional publication pipeline.** First-time visitors never encounter an edition whose page, social card, sitemap, feed, and search index disagree; long-term members can rely on stable edition history and links. One publish action should validate, snapshot, generate/revalidate all public projections, and record who published what and when.
+
+4. **Media provenance and rights migration.** First-time visitors receive meaningful alt text and verifiable credit; long-term members and the institution can reuse material without losing origin or permission context. Audit every current visual asset, then require source URL, credit, rights status, alt text, and derivative metadata before publication.
 
 ### High Value
 
-1. **Unified cultural catalogue — public layer implemented; editing layer awaits durable storage.** Programme, reference, book, artwork, quotation, place, image, season, and collection records use stable IDs and reciprocal links. Person records remain a future schema addition when named contributors are ready for publication.
-2. **Connect public programmes to member sessions — implemented.** Calendar sessions carry a stable archive record relationship and open the publication context without duplicate descriptions.
-3. **Schema-driven keeper workflow — core implemented.** Both record editors share conversion and validation, while searchable relationship pickers replace raw IDs. First-class editors for reference and taxonomy records belong with the backend migration.
-4. **Reference and media management — metadata foundation implemented.** Provenance, creator, date, rights, language, citation, and alt text are reusable. Crop/focal point and derivative generation belong with durable media storage.
-5. **Scalable archive search.** Keep the current client search while the catalogue is small, then move to a generated search index with facets for content type, person, reference, year, season, and theme. Newcomers can browse without knowing exact terms; researchers and members can retrieve a remembered fragment years later.
-6. **Publication previews and scheduled releases.** Add a true preview URL, validation summary, and optional publish time. First-time visitors encounter complete editions; keepers can review links, metadata, rights, and mobile copy before release.
-7. **Operational observability.** Track sync failure rates, publication validation failures, empty searches, join failures, and asset errors without collecting reflection text. Visitors face fewer broken paths; members get more reliable programme operations.
+1. **Schema-driven taxonomy and people management.** First-time visitors can follow a person, theme, season, or collection consistently; long-term members can retrieve related programmes years later. Add keeper editors for people, seasons, collections, and theme aliases once they share the durable database and revision model.
+
+2. **Unify programme publication and member scheduling.** First-time visitors see one authoritative description and date; long-term members do not encounter calendar details that diverge from the archive. Treat member sessions as scheduled occurrences of a programme edition, with member-only operational fields layered on top.
+
+3. **Preview, validation diff, scheduled release, and rollback.** First-time visitors receive complete records; members see accurate enrolment and reading material at release time. Keepers should preview desktop/mobile output, see changed fields and integrity failures, schedule publication, and restore the previous published revision.
+
+4. **Generated search index when volume requires it.** First-time visitors can browse without knowing exact terminology; long-term members and researchers can retrieve a remembered quotation, person, place, or image across hundreds of records. Keep current client search until the dataset materially grows, then generate a faceted index from the same normalized records.
+
+5. **Privacy-aware operational observability.** First-time visitors face fewer broken links and failed joins; long-term members get more reliable scheduling and sync. Measure publication failures, asset errors, empty searches, and enrolment failures without collecting reflection content or unnecessary identity data.
 
 ### Nice to Have
 
-1. **Public reference pages and generated reading lists — implemented.** Visitors get an approachable route into the intellectual context; members can revisit a programme’s sources after it ends.
-2. **Cross-device saved archive lists.** Anonymous bookmarks can stay local; authenticated members may opt into syncing them. First-time visitors can save without an account; long-term members can maintain research lists across devices.
-3. **RSS/Atom release feed — implemented.** Email delivery can consume the same feed later rather than becoming another content source.
-4. **Citation and print export — implemented.** A clean citation or print record helps visitors reference Jerboa Circle and helps members preserve a reading packet.
-5. **Better accessible dialogs and status announcements — implemented for current workflows.** This benefits keyboard, screen-reader, and mobile users across both first and repeat visits.
-6. **CSS consolidation.** The layered repair styles work but are costly to reason about. Consolidate by component when touching functionality, without redesigning the visual language.
+1. **Optional saved reading lists after authentication.** First-time visitors can continue using local bookmarks without an account; long-term members can keep selected programmes and sources across devices. Build this only on the identity layer, not as another anonymous server profile.
+
+2. **Curator export bundles.** First-time visitors and researchers can download a concise citation or reading packet; long-term members can preserve the materials of a completed programme. Generate PDF/CSV/JSON from existing programme and reference records rather than maintaining separate documents.
+
+3. **Lightweight editorial analytics.** First-time visitors benefit when failed searches reveal missing terminology; long-term members benefit when confusing enrolment paths are corrected. Collect aggregate, privacy-preserving signals only, with no personal practice text.
+
+4. **Component-level CSS consolidation during functional work.** First-time visitors and members see fewer regressions across browsers and screen sizes; maintainers can change behaviour without fighting layered overrides. Preserve the current visual language and consolidate only the component being touched.
 
 ### Future Ideas
 
-1. **Institutional data export and read-only API.** A documented JSON or CSV export lets libraries, researchers, and future Jerboa projects reuse the archive without scraping it.
-2. **IIIF-compatible image records.** Consider only when artworks and manuscript images require scholarly zoom, manifests, and rights-aware reuse.
-3. **Oral-history and transcript records.** Add only when programmes begin producing recordings with consent, transcript, rights, and preservation workflows.
-4. **Edition comparison.** Once a work has meaningful revisions, show what changed between published editions. Visitors understand the publication history; members can trace how collective inquiry evolved.
-5. **Institutional continuity package.** Scheduled full exports, documented recovery, role handover, and retention policy protect the archive beyond any one maintainer.
+1. **IIIF-compatible image records.** First-time visitors gain scholarly zoom and clear reuse terms; long-term members and researchers can compare details across programmes. Introduce only when the archive owns or can lawfully expose suitable high-resolution media.
 
-## Performance, accessibility, and SEO baseline
+2. **Authority identifiers and linked cultural data.** First-time visitors get clearer context for unfamiliar people and works; long-term researchers can connect Jerboa records to library and museum systems. Add optional VIAF, Wikidata, ORCID, ISBN, or museum object identifiers without making external services a runtime dependency.
 
-- The production check passes TypeScript, build, static-route smoke tests, and asset budgets.
-- Delivered assets are 4.66 MB; the largest remaining asset is the Korean font at 1.75 MB. Further font subsetting should happen only with a tested Korean character strategy.
-- Public archive records receive build-time unique titles and descriptions. Private/member/editor routes and missing pages are noindex.
-- Existing reduced-motion and focus-visible support should be retained. The next accessibility work is dialog focus management, status consistency, and testing at 200% zoom.
-- Static route metadata currently covers source-controlled public records. When server-created records become common, publishing must generate or revalidate their static metadata, sitemap entry, and social image as part of the same transaction.
+3. **Moderated member annotations.** First-time visitors could eventually encounter selected collective insight; long-term members could preserve connections across editions. Build only with explicit consent, moderation, provenance, withdrawal, and public/private boundaries.
+
+4. **Edition comparison and institutional continuity export.** First-time visitors can understand how a programme evolved; long-term members and future keepers can trace editorial decisions. Provide diffs, signed exports, recovery drills, and role-handover documentation once immutable publication revisions exist.
+
+## First implementation checkpoint
+
+This pass deliberately implements only improvements that strengthen the existing archive model without pretending the current storage layer is the final infrastructure:
+
+- first-class reference editing and shared synchronization;
+- reference-aware programme validation and integrity reporting;
+- source, rights, and alt-text completeness checks for visual records;
+- reference-inclusive validated backup and recovery;
+- shareable catalogue search/type state;
+- session-only handling of shared operational keys;
+- keyboard-operable profile seal;
+- current member-layout consistency and a verified, sourced medieval manuscript asset.
+
+The next implementation phase should begin with the Critical infrastructure decisions above, not with additional public-facing features.

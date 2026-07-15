@@ -17,16 +17,22 @@ import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import jerboaSeal from '../assets/identity/jerboa-seal.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
-import { archiveKnowledgeSearchText } from '../data/archiveKnowledge';
+import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
+import {
+  applyArchiveReferenceDrafts,
+  writeArchiveReferenceDrafts,
+  type ArchiveReferenceDraftMap,
+} from '../utils/archiveReferenceDrafts';
 import ArchiveConstellation from '../components/archive/ArchiveConstellation';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
-  schemaVersion?: 1;
+  schemaVersion?: 1 | 2;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
+  references?: ArchiveReferenceDraftMap;
 }
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
@@ -265,6 +271,7 @@ function matchesArchiveQuery(
   event: ArchiveEvent,
   query: string,
   archiveEvents: ArchiveEvent[],
+  references: ArchiveReference[],
 ) {
   if (!query.trim()) return true;
 
@@ -285,7 +292,7 @@ function matchesArchiveQuery(
     ...event.passage,
     ...event.materials,
     ...event.themes,
-    archiveKnowledgeSearchText(event, archiveEvents),
+    archiveKnowledgeSearchText(event, archiveEvents, references),
   ].join(' ').toLowerCase();
 
   return searchable.includes(query.trim().toLowerCase());
@@ -333,7 +340,7 @@ function PosterTile({
   );
 }
 
-function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEvent[]; siteText: SiteText }) {
+function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents: ArchiveEvent[]; references: ArchiveReference[]; siteText: SiteText }) {
   const initialQueryState = useMemo(readArchiveQueryState, []);
   const [query, setQuery] = useState(initialQueryState.query);
   const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>(initialQueryState.status);
@@ -354,7 +361,7 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
     const collectionMatches = collectionFilter === 'all' || event.collectionIds.includes(collectionFilter);
     const filedMatches = !filedOnly || bookmarkedIds.includes(event.id);
     return statusMatches && seasonMatches && collectionMatches && filedMatches
-      && matchesArchiveQuery(event, query, archiveEvents);
+      && matchesArchiveQuery(event, query, archiveEvents, references);
   });
   const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
   const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
@@ -546,7 +553,7 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
             </div>
           )}
         </>
-      ) : orderedVisibleEvents.length > 0 ? <ArchiveConstellation records={orderedVisibleEvents} /> : null}
+      ) : orderedVisibleEvents.length > 0 ? <ArchiveConstellation records={orderedVisibleEvents} references={references} /> : null}
       {orderedVisibleEvents.length === 0 && (
         <div className="archive-empty-state" role="status" lang="ko">
           맞는 기록이 없습니다. 검색어를 줄이거나 상태 필터를 바꿔보세요.
@@ -605,6 +612,7 @@ export default function HomePage() {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
   const archiveEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
+  const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0] ?? events[0];
 
   usePageMetadata({
@@ -631,6 +639,10 @@ export default function HomePage() {
           setSiteText(getSiteText());
         }
 
+        if (result.saved.data.references) {
+          writeArchiveReferenceDrafts(result.saved.data.references);
+        }
+
         setVersion((current) => current + 1);
       } catch (error) {
         if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
@@ -653,7 +665,7 @@ export default function HomePage() {
       <main>
         <Masthead featuredEvent={currentEvent} siteText={siteText} />
         <FeaturedEvent featuredEvent={currentEvent} siteText={siteText} />
-        <PosterArchive archiveEvents={archiveEvents} siteText={siteText} />
+        <PosterArchive archiveEvents={archiveEvents} references={references} siteText={siteText} />
         <ManifestoBlock siteText={siteText} />
         <JoinBlock siteText={siteText} />
       </main>

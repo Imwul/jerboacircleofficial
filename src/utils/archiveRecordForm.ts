@@ -7,7 +7,7 @@ import {
   type ArchiveWorkflowStatus,
   type EventStatus,
 } from '../data/events';
-import { archiveReferences } from '../data/archiveKnowledge';
+import { archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
 import type { ArchiveEventDraft } from './archiveDrafts';
 
 export interface ArchiveRecordFormState {
@@ -94,7 +94,11 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
   };
 }
 
-export function validateArchiveRecordForm(form: ArchiveRecordFormState, records: ArchiveEvent[]) {
+export function validateArchiveRecordForm(
+  form: ArchiveRecordFormState,
+  records: ArchiveEvent[],
+  references: ArchiveReference[] = archiveReferences,
+) {
   const requiredFields: Array<[keyof ArchiveRecordFormState, string]> = [
     ['edition', '판본'],
     ['title', '제목'],
@@ -119,7 +123,7 @@ export function validateArchiveRecordForm(form: ArchiveRecordFormState, records:
   if (splitArchiveFormList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
   if (splitArchiveFormList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
 
-  const knownReferenceIds = new Set(archiveReferences.map((reference) => reference.id));
+  const knownReferenceIds = new Set(references.map((reference) => reference.id));
   const missingReference = splitArchiveFormList(form.referenceIdsText).find((id) => !knownReferenceIds.has(id));
   if (missingReference) return `없는 참조 노드 ID입니다: ${missingReference}`;
   const knownRecordIds = new Set(records.map((record) => record.id));

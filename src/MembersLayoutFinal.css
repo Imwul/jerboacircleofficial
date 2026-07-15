@@ -1,0 +1,499 @@
+/* Final member-room register. This file intentionally comes last so the private
+   workspace has one sizing system instead of accumulated page-specific rules. */
+
+html body .members-archive .archive-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100svh !important;
+  padding: 0.8rem !important;
+  overflow: hidden auto !important;
+}
+
+html body .members-archive .archive-sigil {
+  display: grid !important;
+  flex: 0 0 auto !important;
+  min-height: 6.6rem !important;
+  padding: 0.9rem 1rem 1.15rem !important;
+  align-content: center !important;
+  justify-items: center !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-sigil span {
+  display: block !important;
+  width: 100% !important;
+  font-size: clamp(1.9rem, 2.55vw, 2.7rem) !important;
+  line-height: 0.88 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  transform: none !important;
+}
+
+html body .members-archive .archive-sigil::after {
+  right: 1.05rem !important;
+  bottom: 0.55rem !important;
+  left: 1.05rem !important;
+  width: auto !important;
+}
+
+html body .members-archive .archive-cabinet,
+html body .members-archive .archive-cabinet-note,
+html body .members-archive .archive-public-return {
+  flex: 0 0 auto !important;
+}
+
+html body .members-archive .archive-godmode-link {
+  display: grid !important;
+  flex: 0 0 auto !important;
+  width: calc(100% - 1.6rem) !important;
+  min-height: 5.1rem !important;
+  margin: 1rem 0.8rem 0 !important;
+  padding: 0.78rem 0.9rem !important;
+  place-content: center !important;
+  place-items: center !important;
+  text-align: center !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"],
+html body .members-archive .archive-godmode-link small[lang="ko"] {
+  width: 100% !important;
+  max-width: none !important;
+  text-align: center !important;
+  transform-origin: center !important;
+}
+
+html body .members-archive .archive-godmode-link span[lang="en"] {
+  font-size: clamp(1.16rem, 1.7vw, 1.58rem) !important;
+  line-height: 1.02 !important;
+}
+
+html body .members-archive .archive-godmode-link small[lang="ko"] {
+  margin-top: 0.22rem !important;
+  font-size: 0.76rem !important;
+  line-height: 1.35 !important;
+}
+
+html body .members-archive .archive-source-plate {
+  position: relative !important;
+  display: grid !important;
+  flex: 0 0 auto !important;
+  width: calc(100% - 1.6rem) !important;
+  min-height: 12rem !important;
+  margin: 0.8rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .archive-source-plate img {
+  display: block !important;
+  width: 100% !important;
+  height: 12rem !important;
+  object-fit: cover !important;
+  object-position: center 28% !important;
+  filter: saturate(0.88) contrast(1.03) !important;
+}
+
+html body .members-archive .archive-source-plate figcaption {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  border-top: 2px solid var(--register-ink) !important;
+  background: color-mix(in srgb, var(--register-paper) 93%, transparent) !important;
+}
+
+html body .members-archive .archive-source-plate a {
+  display: grid !important;
+  gap: 0.08rem !important;
+  padding: 0.45rem 0.55rem !important;
+  color: var(--register-ink) !important;
+  text-decoration: none !important;
+}
+
+html body .members-archive .archive-source-plate span {
+  font-family: var(--font-display) !important;
+  font-size: 0.86rem !important;
+  line-height: 1.05 !important;
+}
+
+html body .members-archive .archive-source-plate small {
+  font-family: var(--font-ko) !important;
+  font-size: 0.58rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+}
+
+html body .members-archive .archive-save-notice {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 5 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0.42rem 0.8rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  background: var(--register-blue) !important;
+  font-size: 0.72rem !important;
+  line-height: 1.35 !important;
+  text-align: right !important;
+}
+
+html body .members-archive .archive-topbar {
+  min-height: 10.1rem !important;
+  padding: 1.05rem 1.35rem 1.15rem !important;
+  align-items: start !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-topbar-copy {
+  display: grid !important;
+  min-width: 0 !important;
+  align-content: start !important;
+}
+
+html body .members-archive .archive-topbar h1[lang="en"] {
+  display: block !important;
+  min-height: 0 !important;
+  margin: 0.22rem 0 0.5rem !important;
+  padding: 0.08em 0 0.05em !important;
+  font-size: clamp(2.65rem, 4.1vw, 4.55rem) !important;
+  line-height: 0.96 !important;
+  overflow: visible !important;
+}
+
+html body .members-archive .archive-topbar p[lang="en"] {
+  margin: 0 !important;
+  font-size: clamp(0.98rem, 1.3vw, 1.22rem) !important;
+  line-height: 1.12 !important;
+}
+
+html body .members-archive .archive-topbar span[lang="ko"] {
+  margin: 0 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.55 !important;
+}
+
+html body .members-archive .archive-topbar-actions {
+  align-self: start !important;
+  padding-top: 0 !important;
+}
+
+html body .members-archive .archive-topbar-actions button,
+html body .members-archive .member-text-action,
+html body .members-archive .archive-calendar-nav {
+  box-sizing: border-box !important;
+  min-width: 3rem !important;
+  min-height: 3rem !important;
+  border: 2px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: var(--register-gold) !important;
+  color: var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-toolbar {
+  display: flex !important;
+  min-height: 5.2rem !important;
+  padding: 0.8rem 1rem !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .archive-calendar-period {
+  display: grid !important;
+  grid-template-columns: 3rem minmax(8rem, auto) 3rem !important;
+  align-items: center !important;
+  gap: 0.7rem !important;
+}
+
+html body .members-archive .archive-calendar-nav {
+  display: grid !important;
+  width: 3rem !important;
+  padding: 0 !important;
+  place-items: center !important;
+  background: var(--register-paper) !important;
+}
+
+html body .members-archive .archive-calendar-nav:first-child {
+  background: var(--register-salmon) !important;
+}
+
+html body .members-archive .archive-calendar-nav svg {
+  width: 1.3rem !important;
+  height: 1.3rem !important;
+  stroke-width: 2.4 !important;
+}
+
+html body .members-archive .archive-calendar-month {
+  margin: 0 !important;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(1rem, 1.5vw, 1.32rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+html body .members-archive .archive-calendar-hint {
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  margin: 0 0 0 auto !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+  text-align: right !important;
+}
+
+html body .members-archive .archive-calendar-scroll {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain !important;
+  scrollbar-color: var(--register-gold) var(--register-paper) !important;
+}
+
+html body .members-archive .archive-calendar-grid {
+  width: 100% !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-weekday {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 3.25rem !important;
+  min-height: 3.25rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+  transform: none !important;
+  transform-origin: center !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-weekday[lang="en"] {
+  transform: none !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-weekday:last-of-type {
+  border-right: 0 !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 5.8rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-bottom: 2px solid var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day:nth-child(7n) {
+  border-right: 0 !important;
+}
+
+html body .members-archive .habit-register-heading {
+  align-items: center !important;
+}
+
+html body .members-archive .habit-week-strip {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  width: 100% !important;
+  border: 2px solid var(--register-ink) !important;
+  overflow: hidden !important;
+}
+
+html body .members-archive .habit-week-strip > div {
+  min-width: 0 !important;
+  height: 4.8rem !important;
+}
+
+html body .members-archive .archive-main .habit-weekday,
+html body .members-archive .archive-main .habit-weekday.is-selected {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 4.8rem !important;
+  min-height: 4.8rem !important;
+  max-height: 4.8rem !important;
+  margin: 0 !important;
+  padding: 0.48rem 0.25rem !important;
+  gap: 0.25rem !important;
+  border: 0 !important;
+  border-right: 2px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+}
+
+html body .members-archive .habit-week-strip > div:last-child .habit-weekday {
+  border-right: 0 !important;
+}
+
+html body .members-archive .archive-main .habit-weekday__date {
+  display: grid !important;
+  width: 2.05rem !important;
+  height: 2.05rem !important;
+  min-height: 2.05rem !important;
+  place-items: center !important;
+  line-height: 1 !important;
+}
+
+@media (max-width: 980px) {
+  html body .members-archive .archive-sidebar {
+    display: grid !important;
+    grid-template-columns: minmax(10rem, 0.34fr) minmax(0, 0.66fr) !important;
+    grid-template-rows: auto auto auto !important;
+    min-height: auto !important;
+    padding: 0.75rem !important;
+    border-right: 0 !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+    overflow: visible !important;
+  }
+
+  html body .members-archive .archive-sigil,
+  html body .members-archive .archive-public-return {
+    min-height: 5.7rem !important;
+  }
+
+  html body .members-archive .archive-sigil {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 !important;
+  }
+
+  html body .members-archive .archive-public-return {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 !important;
+  }
+
+  html body .members-archive .archive-cabinet,
+  html body .members-archive .archive-cabinet-note {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+  }
+
+  html body .members-archive .archive-cabinet {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)) !important;
+  }
+
+  html body .members-archive .archive-cabinet button {
+    min-height: 4.25rem !important;
+    border-right: 2px solid var(--register-ink) !important;
+    border-bottom: 2px solid var(--register-ink) !important;
+  }
+
+  html body .members-archive .archive-cabinet button:last-child {
+    border-right: 0 !important;
+  }
+
+  html body .members-archive .archive-source-plate {
+    display: none !important;
+  }
+
+  html body .members-archive .archive-godmode-link {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    min-height: 4.2rem !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .members-archive .archive-topbar {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    min-height: 9rem !important;
+    padding: 0.9rem 0.85rem 1rem !important;
+  }
+
+  html body .members-archive .archive-topbar h1[lang="en"] {
+    font-size: clamp(2.35rem, 13vw, 3.45rem) !important;
+  }
+
+  html body .members-archive .archive-calendar-toolbar {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  html body .members-archive .archive-calendar-hint {
+    margin: 0 !important;
+    text-align: left !important;
+  }
+
+  html body .members-archive .archive-calendar-grid {
+    min-width: 42rem !important;
+  }
+
+  html body .members-archive .habit-week-strip {
+    overflow-x: auto !important;
+    grid-template-columns: repeat(7, minmax(4.35rem, 1fr)) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  html body .members-archive .archive-sidebar {
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr) !important;
+    padding: 0.5rem !important;
+  }
+
+  html body .members-archive .archive-sigil,
+  html body .members-archive .archive-public-return {
+    min-height: 4.7rem !important;
+    padding: 0.55rem !important;
+  }
+
+  html body .members-archive .archive-sigil span {
+    font-size: clamp(1.3rem, 9vw, 1.75rem) !important;
+  }
+
+  html body .members-archive .archive-public-return span[lang="en"] {
+    font-size: clamp(0.95rem, 7vw, 1.3rem) !important;
+  }
+
+  html body .members-archive .archive-public-return small[lang="ko"] {
+    font-size: 0.62rem !important;
+  }
+
+  html body .members-archive .archive-cabinet {
+    display: none !important;
+  }
+
+  html body .members-archive .archive-cabinet-note {
+    padding: 0.6rem 0.7rem !important;
+  }
+
+  html body .members-archive .archive-godmode-link {
+    min-height: 3.8rem !important;
+    padding: 0.5rem 0.65rem !important;
+  }
+
+  html body .members-archive .archive-godmode-link span[lang="en"] {
+    font-size: 1.05rem !important;
+  }
+
+  html body .members-archive .archive-godmode-link small[lang="ko"] {
+    font-size: 0.66rem !important;
+  }
+
+  html body .members-archive .archive-topbar {
+    min-height: 8.7rem !important;
+    gap: 0.45rem !important;
+  }
+
+  html body .members-archive .archive-topbar h1[lang="en"] {
+    font-size: clamp(2.05rem, 16vw, 2.85rem) !important;
+  }
+
+  html body .members-archive .archive-topbar-actions button {
+    min-width: 3.9rem !important;
+    padding: 0.34rem 0.42rem !important;
+  }
+}

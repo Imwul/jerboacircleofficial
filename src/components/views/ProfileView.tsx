@@ -63,7 +63,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
     <div className="flex flex-col h-full bg-stone-50 p-6 space-y-8 overflow-y-auto">
       {uploadError && <div className="archive-notice" role="alert" lang="ko">{uploadError}</div>}
       <div className="flex flex-col items-center space-y-4">
-        <div 
+        <button
+          type="button"
+          aria-label="회원 표식 수정"
           className="member-seal member-seal--large group cursor-pointer"
           style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
           onClick={() => setIsEditingAvatar(true)}
@@ -76,7 +78,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </div>
-        </div>
+        </button>
         <div className="text-center">
           <h2 className="text-2xl font-black text-stone-900">{user.name}</h2>
           <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold mt-1 ${TIER_COLORS[user.tier]}`}>

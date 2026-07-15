@@ -46,14 +46,21 @@ import {
   validateArchiveRecordForm as validateDetailForm,
   type ArchiveRecordFormState as DetailFormState,
 } from '../utils/archiveRecordForm';
+import {
+  applyArchiveReferenceDrafts,
+  readArchiveReferenceDrafts,
+  writeArchiveReferenceDrafts,
+  type ArchiveReferenceDraftMap,
+} from '../utils/archiveReferenceDrafts';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
-  schemaVersion?: 1;
+  schemaVersion?: 1 | 2;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
+  references?: ArchiveReferenceDraftMap;
 }
 
 function detailRootHref() {
@@ -67,12 +74,14 @@ function detailTextLang(text: string) {
 function DetailKeeperPanel({
   event,
   archiveEvents,
+  referenceRecords,
   onSaved,
   serverSavedAt,
   onServerSavedAt,
 }: {
   event: ArchiveEvent;
   archiveEvents: ArchiveEvent[];
+  referenceRecords: ArchiveReference[];
   onSaved: () => void;
   serverSavedAt: string | null;
   onServerSavedAt: (savedAt: string | null) => void;
@@ -98,12 +107,13 @@ function DetailKeeperPanel({
 
   function createDetailArchivePayload(nextDraft: ArchiveEventDraft) {
     return {
-      schemaVersion: 1 as const,
+      schemaVersion: 2 as const,
       drafts: {
         ...readArchiveDrafts(),
         [event.id]: nextDraft,
       },
       siteText: getSiteText(),
+      references: readArchiveReferenceDrafts(),
     };
   }
 
@@ -156,7 +166,7 @@ function DetailKeeperPanel({
 
   function saveLocal(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
-    const validation = validateDetailForm(form, archiveEvents);
+    const validation = validateDetailForm(form, archiveEvents, referenceRecords);
     if (validation) {
       setStatus(`입력 확인 / ${validation}`);
       return;
@@ -168,7 +178,7 @@ function DetailKeeperPanel({
 
   async function publishToServer() {
     try {
-      const validation = validateDetailForm(form, archiveEvents);
+      const validation = validateDetailForm(form, archiveEvents, referenceRecords);
       if (validation) {
         setStatus(`입력 확인 / ${validation}`);
         return;
@@ -329,7 +339,7 @@ function DetailKeeperPanel({
             <RelationshipPicker
               label="참고자료와 문화 노드"
               description="선택한 자료로 공개 읽기 목록이 자동 생성됩니다."
-              options={archiveReferences.map((reference) => ({ id: reference.id, title: reference.title, meta: reference.attribution ?? reference.kind }))}
+              options={referenceRecords.map((reference) => ({ id: reference.id, title: reference.title, meta: reference.attribution ?? reference.kind }))}
               selectedIds={splitDetailList(form.referenceIdsText)}
               onChange={(ids) => updateField('referenceIdsText', ids.join(' / '))}
             />
@@ -393,6 +403,7 @@ function ArchiveReferenceIndex({
 function EventDetail({
   event,
   archiveEvents,
+  referenceRecords,
   siteText,
   onSaved,
   serverSavedAt,
@@ -400,6 +411,7 @@ function EventDetail({
 }: {
   event: ArchiveEvent;
   archiveEvents: ArchiveEvent[];
+  referenceRecords: ArchiveReference[];
   siteText: SiteText;
   onSaved: () => void;
   serverSavedAt: string | null;
@@ -410,8 +422,8 @@ function EventDetail({
   const relationRecords = archiveEvents.filter((record) => (
     record.visibility !== 'private' && record.workflowStatus !== 'archived'
   ));
-  const references: ArchiveReference[] = getArchiveReferencesForEvent(event);
-  const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords);
+  const references: ArchiveReference[] = getArchiveReferencesForEvent(event, referenceRecords);
+  const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords, referenceRecords);
 
   return (
     <div className="public-home detail-home">
@@ -529,6 +541,7 @@ function EventDetail({
         <DetailKeeperPanel
           event={event}
           archiveEvents={archiveEvents}
+          referenceRecords={referenceRecords}
           onSaved={onSaved}
           onServerSavedAt={onServerSavedAt}
           serverSavedAt={serverSavedAt}
@@ -544,6 +557,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
   const [archiveSyncState, setArchiveSyncState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
+  const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const knownRecord = useMemo(() => archiveEvents.find((archiveEvent) => archiveEvent.id === id), [archiveEvents, id]);
   const event = useMemo(
     () => archiveEvents.find((archiveEvent) => (
@@ -582,6 +596,11 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
         if (result.saved.data.siteText) {
           writeSiteTextDraft(result.saved.data.siteText);
           setSiteText(getSiteText());
+        }
+
+
+        if (result.saved.data.references) {
+          writeArchiveReferenceDrafts(result.saved.data.references);
         }
 
         setServerSavedAt(result.saved.savedAt);
@@ -663,6 +682,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   return (
     <EventDetail
       archiveEvents={archiveEvents}
+      referenceRecords={referenceRecords}
       event={event}
       onSaved={() => setVersion((current) => current + 1)}
       onServerSavedAt={setServerSavedAt}

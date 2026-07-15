@@ -10,11 +10,10 @@ import { trackProductEvent } from '../../utils/productAnalytics';
 interface HabitTrackingViewProps {
   user: User;
   onUpdateUser: (updates: Partial<User>) => void;
-  onLogout: () => void;
   isAdmin?: boolean;
 }
 
-export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUpdateUser, onLogout, isAdmin = false }) => {
+export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUpdateUser, isAdmin = false }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [tempGoal, setTempGoal] = useState(user.habitGoal || '');
@@ -186,12 +185,11 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
   return (
     <div className="flex flex-col h-full bg-stone-50 overflow-y-auto pb-20">
       <div className="p-6 bg-white border-b border-stone-100 space-y-6">
-        <div className="flex justify-between items-start">
+        <div className="habit-register-heading flex justify-between items-start">
           <div className="space-y-1">
             <h2 className="text-2xl font-black tracking-tighter text-stone-900">습관 트래킹</h2>
             <p className="text-[10px] font-bold text-stone-400 tracking-widest">익일 새벽 2시까지 인증 가능</p>
           </div>
-          {!isAdmin && <button onClick={onLogout} className="member-text-action text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest">로그아웃</button>}
         </div>
 
         <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100 space-y-3">
@@ -215,7 +213,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
           )}
         </div>
 
-        <div className="flex justify-between items-center relative gap-0">
+        <div className="habit-week-strip flex justify-between items-center relative gap-0">
           {weekDays.map((day, idx) => {
             const dateKey = format(day, 'yyyy-MM-dd');
             const isSelected = isSameDay(day, selectedDate);

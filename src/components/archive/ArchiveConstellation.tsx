@@ -5,10 +5,12 @@ import {
   getArchiveConnections,
   getArchiveReferencesForEvent,
   type ArchiveProgrammeConnection,
+  type ArchiveReference,
 } from '../../data/archiveKnowledge';
 
 interface ArchiveConstellationProps {
   records: ArchiveEvent[];
+  references?: ArchiveReference[];
 }
 
 interface NodePosition {
@@ -52,12 +54,12 @@ function positionRecords(records: ArchiveEvent[]) {
   return positions;
 }
 
-function buildLinks(records: ArchiveEvent[]) {
+function buildLinks(records: ArchiveEvent[], references?: ArchiveReference[]) {
   const visibleIds = new Set(records.map((record) => record.id));
   const links = new Map<string, ConstellationLink>();
 
   records.forEach((record) => {
-    getArchiveConnections(record, records).forEach((connection) => {
+    getArchiveConnections(record, records, references).forEach((connection) => {
       if (!visibleIds.has(connection.event.id)) return;
       const pair = [record.id, connection.event.id].sort();
       const key = pair.join('::');
@@ -107,15 +109,15 @@ function drawConstellation(
   context.setLineDash([]);
 }
 
-export default function ArchiveConstellation({ records }: ArchiveConstellationProps) {
+export default function ArchiveConstellation({ records, references: referenceRecords }: ArchiveConstellationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const current = records.find((record) => record.status === 'current') ?? records[0];
   const [selectedId, setSelectedId] = useState(current?.id ?? '');
   const positions = useMemo(() => positionRecords(records), [records]);
-  const links = useMemo(() => buildLinks(records), [records]);
+  const links = useMemo(() => buildLinks(records, referenceRecords), [records, referenceRecords]);
   const selected = records.find((record) => record.id === selectedId) ?? current;
-  const references = selected ? getArchiveReferencesForEvent(selected) : [];
-  const selectedConnections = selected ? getArchiveConnections(selected, records) : [];
+  const references = selected ? getArchiveReferencesForEvent(selected, referenceRecords) : [];
+  const selectedConnections = selected ? getArchiveConnections(selected, records, referenceRecords) : [];
 
   useEffect(() => {
     if (!records.some((record) => record.id === selectedId)) setSelectedId(current?.id ?? '');

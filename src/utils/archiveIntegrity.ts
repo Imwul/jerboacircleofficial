@@ -6,6 +6,7 @@ import {
 import {
   archiveProgrammeRelations,
   archiveReferences,
+  type ArchiveReference,
 } from '../data/archiveKnowledge';
 
 export type ArchiveIntegritySeverity = 'error' | 'warning';
@@ -17,12 +18,15 @@ export interface ArchiveIntegrityIssue {
   message: string;
 }
 
-export function inspectArchiveIntegrity(records: ArchiveEvent[]): ArchiveIntegrityIssue[] {
+export function inspectArchiveIntegrity(
+  records: ArchiveEvent[],
+  references: ArchiveReference[] = archiveReferences,
+): ArchiveIntegrityIssue[] {
   const issues: ArchiveIntegrityIssue[] = [];
   const recordIds = new Set(records.map((record) => record.id));
   const seasonIds = new Set(archiveSeasons.map((season) => season.id));
   const collectionIds = new Set(archiveCollections.map((collection) => collection.id));
-  const referenceIds = new Set(archiveReferences.map((reference) => reference.id));
+  const referenceIds = new Set(references.map((reference) => reference.id));
 
   records.forEach((record, index) => {
     if (records.findIndex((candidate) => candidate.id === record.id) !== index) {
@@ -58,9 +62,39 @@ export function inspectArchiveIntegrity(records: ArchiveEvent[]): ArchiveIntegri
     });
   });
 
-  archiveReferences.forEach((reference) => {
+  references.forEach((reference, index) => {
+    if (references.findIndex((candidate) => candidate.id === reference.id) !== index) {
+      issues.push({ id: `duplicate-reference-${reference.id}`, severity: 'error', message: `중복 자료 ID: ${reference.id}` });
+    }
     if (reference.parentId && !referenceIds.has(reference.parentId)) {
       issues.push({ id: `reference-parent-${reference.id}`, severity: 'error', message: `참조 노드 ${reference.id}의 상위 노드 ${reference.parentId}가 없습니다.` });
+    }
+    if (reference.parentId === reference.id) {
+      issues.push({ id: `reference-self-parent-${reference.id}`, severity: 'error', message: `자료 ${reference.id}가 자기 자신을 상위 원전으로 가리킵니다.` });
+    }
+    if (reference.parentId && reference.parentId !== reference.id) {
+      const visited = new Set([reference.id]);
+      let nextId: string | undefined = reference.parentId;
+      while (nextId && referenceIds.has(nextId)) {
+        if (visited.has(nextId)) {
+          issues.push({ id: `reference-cycle-${reference.id}`, severity: 'error', message: `자료 ${reference.title}의 상위 원전 연결이 순환합니다.` });
+          break;
+        }
+        visited.add(nextId);
+        nextId = references.find((candidate) => candidate.id === nextId)?.parentId;
+      }
+    }
+    if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.sourceUrl) {
+      issues.push({ id: `reference-source-${reference.id}`, severity: 'warning', message: `${reference.title}: 원문 출처 URL이 없습니다.` });
+    }
+    if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.rights) {
+      issues.push({ id: `reference-rights-${reference.id}`, severity: 'warning', message: `${reference.title}: 권리와 재사용 조건이 없습니다.` });
+    }
+    if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.altText) {
+      issues.push({ id: `reference-alt-${reference.id}`, severity: 'warning', message: `${reference.title}: 이미지 대체 텍스트가 없습니다.` });
+    }
+    if (reference.kind === 'quotation' && !reference.parentId) {
+      issues.push({ id: `reference-quotation-parent-${reference.id}`, severity: 'warning', message: `${reference.title}: 인용문의 상위 원전이 연결되지 않았습니다.` });
     }
   });
 

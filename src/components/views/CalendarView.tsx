@@ -18,7 +18,6 @@ interface CalendarViewProps {
   onPasteEvent?: (date: Date) => void;
   onClearClipboard?: () => void;
   copiedEventTitle?: string;
-  onLogout: () => void;
 }
 
 function parseEventDate(value?: string) {
@@ -80,7 +79,7 @@ function downloadEventCalendar(event: CalendarEvent) {
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ 
-  events, user, users, isAdmin, onJoinEvent, onCancelEvent, onAddEvent, onEditEvent, onDeleteEvent, onCopyEvent, onPasteEvent, onClearClipboard, copiedEventTitle, onLogout 
+  events, user, users, isAdmin, onJoinEvent, onCancelEvent, onAddEvent, onEditEvent, onDeleteEvent, onCopyEvent, onPasteEvent, onClearClipboard, copiedEventTitle
 }) => {
   const initialDate = defaultCalendarDate(events);
   const [currentMonth, setCurrentMonth] = useState(initialDate);
@@ -143,56 +142,58 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
-      <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <button aria-label="이전 달" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
+      <div className="archive-calendar-toolbar p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
+        <div className="archive-calendar-period flex items-center gap-2">
+          <button aria-label="이전 달" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="archive-calendar-nav p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <h2 className="text-xl font-black text-stone-800">
+          <h2 className="archive-calendar-month text-xl font-black text-stone-800">
             {format(currentMonth, 'yyyy MM')} 장부
           </h2>
-          <button aria-label="다음 달" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1 hover:bg-stone-50 rounded-full text-stone-400">
+          <button aria-label="다음 달" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="archive-calendar-nav p-1 hover:bg-stone-50 rounded-full text-stone-400">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600 tracking-widest"><span className="archive-ko-label">장부 닫기</span></button>
+        <p className="archive-calendar-hint" lang="ko">날짜를 선택하면 그날의 프로그램을 펼칩니다</p>
       </div>
 
-      <div className="archive-calendar-grid grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
-        {weekLabels.map((d, i) => (
-          <div key={d} className={`archive-weekday bg-white py-3 text-center text-[10px] font-black ${i === 6 ? 'is-sunday' : i === 5 ? 'is-saturday' : ''}`} lang="en">{d}</div>
-        ))}
-        {days.map(day => {
-          const dateEvents = getEventsForDate(day);
-          const isCurrentMonth = isSameMonth(day, currentMonth);
-          
-          return (
-            <button
-              type="button"
-              key={day.toString()} 
-              onClick={() => setSelectedDate(day)}
-              aria-label={`${format(day, 'yyyy-MM-dd')} 프로그램 ${dateEvents.length}개`}
-              aria-pressed={isSameDay(day, selectedDate)}
-              className={`archive-calendar-day bg-white min-h-[70px] p-1.5 cursor-pointer transition-colors relative text-left ${!isCurrentMonth ? 'opacity-30' : ''} ${isSameDay(day, selectedDate) ? 'is-selected' : ''}`}
-            >
-              <div className="flex flex-col h-full justify-between">
-                <div className="flex justify-between items-start">
-                  <span className="calendar-date-mark text-[11px] font-black w-6 h-6 flex items-center justify-center transition-colors">
-                    {format(day, 'd')}
-                  </span>
-                </div>
-                {dateEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-0.5 mt-1">
-                    {dateEvents.slice(0, 4).map(e => (
-                      <div key={e.id} className={`w-1.5 h-1.5 rounded-full ${THEME_CONFIG[e.theme].bg} ring-1 ring-white shadow-sm`} />
-                    ))}
-                    {dateEvents.length > 4 && <div className="text-[8px] font-bold text-stone-300">+{dateEvents.length - 4}</div>}
+      <div className="archive-calendar-scroll">
+        <div className="archive-calendar-grid grid grid-cols-7 gap-px bg-stone-100 border-b border-stone-100">
+          {weekLabels.map((d, i) => (
+            <div key={d} className={`archive-weekday bg-white py-3 text-center text-[10px] font-black ${i === 6 ? 'is-sunday' : i === 5 ? 'is-saturday' : ''}`} lang="en">{d}</div>
+          ))}
+          {days.map(day => {
+            const dateEvents = getEventsForDate(day);
+            const isCurrentMonth = isSameMonth(day, currentMonth);
+
+            return (
+              <button
+                type="button"
+                key={day.toString()}
+                onClick={() => setSelectedDate(day)}
+                aria-label={`${format(day, 'yyyy-MM-dd')} 프로그램 ${dateEvents.length}개`}
+                aria-pressed={isSameDay(day, selectedDate)}
+                className={`archive-calendar-day bg-white min-h-[70px] p-1.5 cursor-pointer transition-colors relative text-left ${!isCurrentMonth ? 'opacity-30' : ''} ${isSameDay(day, selectedDate) ? 'is-selected' : ''}`}
+              >
+                <div className="flex flex-col h-full justify-between">
+                  <div className="flex justify-between items-start">
+                    <span className="calendar-date-mark text-[11px] font-black w-6 h-6 flex items-center justify-center transition-colors">
+                      {format(day, 'd')}
+                    </span>
                   </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
+                  {dateEvents.length > 0 && (
+                    <div className="flex flex-wrap gap-0.5 mt-1">
+                      {dateEvents.slice(0, 4).map(e => (
+                        <div key={e.id} className={`w-1.5 h-1.5 rounded-full ${THEME_CONFIG[e.theme].bg} ring-1 ring-white shadow-sm`} />
+                      ))}
+                      {dateEvents.length > 4 && <div className="text-[8px] font-bold text-stone-300">+{dateEvents.length - 4}</div>}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

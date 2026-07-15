@@ -1,4 +1,6 @@
 import type { ArchiveDraftMap, ArchiveEventDraft } from './archiveDrafts';
+import type { ArchiveReference, ArchiveReferenceKind } from '../data/archiveKnowledge';
+import type { ArchiveReferenceDraftMap } from './archiveReferenceDrafts';
 
 const stringFields = new Set<keyof ArchiveEventDraft>([
   'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage',
@@ -38,10 +40,44 @@ function readDraftCandidate(payload: unknown) {
     );
   }
   if (payload.type === 'jerboa-sync-recovery') assert(payload.scope === 'archive', '회원 장부 복구 파일은 아카이브에 적용할 수 없습니다.');
-  if (isRecord(payload.drafts)) return payload.drafts;
-  if (isRecord(payload.data) && isRecord(payload.data.drafts)) return payload.data.drafts;
-  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) return payload;
+  if (isRecord(payload.drafts)) return { drafts: payload.drafts, references: isRecord(payload.references) ? payload.references : {} };
+  if (isRecord(payload.data) && isRecord(payload.data.drafts)) {
+    return { drafts: payload.data.drafts, references: isRecord(payload.data.references) ? payload.data.references : {} };
+  }
+  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) return { drafts: payload, references: {} };
   throw new Error('파일에서 아카이브 초안을 찾을 수 없습니다.');
+}
+
+const referenceKinds = new Set<ArchiveReferenceKind>(['book', 'artwork', 'quotation', 'image', 'place', 'theme']);
+const referenceOptionalFields: Array<keyof ArchiveReference> = [
+  'attribution', 'creator', 'date', 'edition', 'locator', 'sourceUrl', 'rights', 'language', 'citationNote', 'altText', 'parentId',
+];
+const referenceFields = new Set<keyof ArchiveReference>([
+  'id', 'kind', 'title', 'description', ...referenceOptionalFields,
+]);
+
+function validateReferences(candidate: Record<string, unknown>) {
+  const entries = Object.entries(candidate);
+  assert(entries.length <= 5_000, '자료 기록이 5,000개를 넘어 적용할 수 없습니다.');
+  const references: ArchiveReferenceDraftMap = {};
+  entries.forEach(([id, value]) => {
+    assert(id.length > 0 && id.length <= 120, '자료 ID 길이가 올바르지 않습니다.');
+    assert(!['__proto__', 'prototype', 'constructor'].includes(id), '사용할 수 없는 자료 ID가 포함되어 있습니다.');
+    assert(isRecord(value), `${id}: 자료 내용이 객체 형식이 아닙니다.`);
+    Object.keys(value).forEach((field) => {
+      assert(referenceFields.has(field as keyof ArchiveReference), `${id}: 지원하지 않는 자료 필드 “${field}”가 있습니다.`);
+    });
+    assert(value.id === id, `${id}: 자료 객체의 ID가 장부 키와 다릅니다.`);
+    assert(typeof value.kind === 'string' && referenceKinds.has(value.kind as ArchiveReferenceKind), `${id}: 자료 종류가 올바르지 않습니다.`);
+    assert(typeof value.title === 'string' && value.title.length > 0 && value.title.length <= 5_000, `${id}: 자료 제목이 올바르지 않습니다.`);
+    assert(typeof value.description === 'string' && value.description.length > 0 && value.description.length <= 25_000, `${id}: 자료 설명이 올바르지 않습니다.`);
+    referenceOptionalFields.forEach((field) => {
+      const fieldValue = value[field];
+      assert(fieldValue === undefined || (typeof fieldValue === 'string' && fieldValue.length <= 25_000), `${id}: ${field} 값이 올바르지 않습니다.`);
+    });
+    references[id] = value as unknown as ArchiveReference;
+  });
+  return references;
 }
 
 function validateDraft(id: string, value: unknown) {
@@ -68,8 +104,9 @@ function validateDraft(id: string, value: unknown) {
 
 export function parseArchiveDraftImport(payload: unknown) {
   const candidate = readDraftCandidate(payload);
-  const entries = Object.entries(candidate);
-  assert(entries.length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
+  const entries = Object.entries(candidate.drafts);
+  const references = validateReferences(candidate.references);
+  assert(entries.length > 0 || Object.keys(references).length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
   assert(entries.length <= 1_000, '초안 기록이 1,000개를 넘어 적용할 수 없습니다.');
 
   const drafts: ArchiveDraftMap = {};
@@ -82,5 +119,5 @@ export function parseArchiveDraftImport(payload: unknown) {
     fieldCount += Object.keys(draft).length;
   });
 
-  return { drafts, recordCount: entries.length, fieldCount };
+  return { drafts, references, recordCount: entries.length, referenceCount: Object.keys(references).length, fieldCount };
 }

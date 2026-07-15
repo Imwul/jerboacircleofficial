@@ -7,6 +7,11 @@ import {
   type ArchiveReferenceKind,
 } from '../data/archiveKnowledge';
 import { applyArchiveDrafts, writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import {
+  applyArchiveReferenceDrafts,
+  writeArchiveReferenceDrafts,
+  type ArchiveReferenceDraftMap,
+} from '../utils/archiveReferenceDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { loadServerSync } from '../utils/serverSync';
 import './HomePage.css';
@@ -14,6 +19,17 @@ import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 const kinds: Array<ArchiveReferenceKind | 'all'> = ['all', 'book', 'artwork', 'quotation', 'image', 'place', 'theme'];
+
+function readCatalogueQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedKind = params.get('kind');
+  return {
+    query: params.get('q') ?? '',
+    kind: kinds.includes(requestedKind as ArchiveReferenceKind | 'all')
+      ? requestedKind as ArchiveReferenceKind | 'all'
+      : 'all',
+  };
+}
 
 function textLanguage(text: string) {
   return /[가-힣]/.test(text) ? 'ko' : 'en';
@@ -60,16 +76,18 @@ function CatalogueHeader() {
 
 export default function CataloguePage({ id }: { id?: string }) {
   const [version, setVersion] = useState(0);
-  const [query, setQuery] = useState('');
-  const [kind, setKind] = useState<ArchiveReferenceKind | 'all'>('all');
+  const initialQuery = useMemo(readCatalogueQueryState, []);
+  const [query, setQuery] = useState(initialQuery.query);
+  const [kind, setKind] = useState<ArchiveReferenceKind | 'all'>(initialQuery.kind);
   const [copyStatus, setCopyStatus] = useState('');
   const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
-  const selected = getArchiveReference(id);
+  const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
+  const selected = getArchiveReference(id, references);
   const usedBy = selected ? publicEvents.filter((event) => event.referenceIds.includes(selected.id)) : [];
-  const parent = selected?.parentId ? getArchiveReference(selected.parentId) : undefined;
-  const children = selected ? archiveReferences.filter((reference) => reference.parentId === selected.id) : [];
+  const parent = selected?.parentId ? getArchiveReference(selected.parentId, references) : undefined;
+  const children = selected ? references.filter((reference) => reference.parentId === selected.id) : [];
   const metadata = selected ? referenceMetadata(selected) : [];
-  const visibleReferences = archiveReferences.filter((reference) => {
+  const visibleReferences = references.filter((reference) => {
     const kindMatches = kind === 'all' || reference.kind === kind;
     const text = [
       reference.title,
@@ -115,15 +133,24 @@ export default function CataloguePage({ id }: { id?: string }) {
 
   useEffect(() => {
     let ignore = false;
-    void loadServerSync<{ drafts?: ArchiveDraftMap }>('archive').then((result) => {
-      if (ignore || !result.exists || !result.saved?.data.drafts) return;
-      writeArchiveDrafts(result.saved.data.drafts);
+    void loadServerSync<{ drafts?: ArchiveDraftMap; references?: ArchiveReferenceDraftMap }>('archive').then((result) => {
+      if (ignore || !result.exists || !result.saved?.data) return;
+      if (result.saved.data.drafts) writeArchiveDrafts(result.saved.data.drafts);
+      if (result.saved.data.references) writeArchiveReferenceDrafts(result.saved.data.references);
       setVersion((current) => current + 1);
     }).catch((error) => {
       if (!(error instanceof Error) || error.message !== 'sync_unavailable') console.warn('Catalogue sync skipped:', error);
     });
     return () => { ignore = true; };
   }, []);
+
+  useEffect(() => {
+    if (id) return;
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (kind !== 'all') params.set('kind', kind);
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+  }, [id, query, kind]);
 
   if (id && !selected) {
     return (

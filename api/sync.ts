@@ -102,7 +102,13 @@ function validateSyncData(scope: SyncScope, data: unknown) {
 
   const hasDrafts = data.drafts === undefined || isPlainObject(data.drafts);
   const hasSiteText = data.siteText === undefined || isPlainObject(data.siteText);
-  if (!hasDrafts || !hasSiteText || (data.drafts === undefined && data.siteText === undefined)) {
+  const hasReferences = data.references === undefined || isPlainObject(data.references);
+  if (
+    !hasDrafts
+    || !hasSiteText
+    || !hasReferences
+    || (data.drafts === undefined && data.siteText === undefined && data.references === undefined)
+  ) {
     throw new SyncError(400, 'invalid_archive_payload');
   }
 }
@@ -130,9 +136,12 @@ function publicArchiveSnapshot(saved: any) {
   return {
     ...saved,
     data: {
-      ...(saved.data.schemaVersion === 1 ? { schemaVersion: 1 } : {}),
+      ...(saved.data.schemaVersion === 1 || saved.data.schemaVersion === 2
+        ? { schemaVersion: saved.data.schemaVersion }
+        : {}),
       drafts: publicDrafts,
       ...(isPlainObject(saved.data.siteText) ? { siteText: saved.data.siteText } : {}),
+      ...(isPlainObject(saved.data.references) ? { references: saved.data.references } : {}),
     },
   };
 }

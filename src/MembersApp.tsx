@@ -21,8 +21,10 @@ import ConnectivityNotice from './components/ui/ConnectivityNotice';
 import ConfirmDialog from './components/ui/ConfirmDialog';
 import { parseMembersImport, type MembersSyncPayload } from './utils/membersImport';
 import { useDialogFocus } from './utils/useDialogFocus';
+import { memberScribePlate } from './data/manuscriptPlates';
 import './MembersArchive.css';
 import './MembersStability.css';
+import './MembersLayoutFinal.css';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -182,11 +184,16 @@ function App() {
   const [hasServerConflict, setHasServerConflict] = useState(false);
   const [hasMemberRecovery, setHasMemberRecovery] = useState(() => Boolean(readSyncRecovery<MembersSyncPayload>('members')));
   const [pendingMembersImport, setPendingMembersImport] = useState<{ data: MembersSyncPayload; source: 'code' | 'file' } | null>(null);
-  const [memberSyncKey, setMemberSyncKey] = useState(() => (
-    localStorage.getItem('jerboa_members_sync_key')
-    || localStorage.getItem('jerboa_keeper_sync_key')
-    || ''
-  ));
+  const [memberSyncKey, setMemberSyncKey] = useState(() => {
+    const legacyKey = localStorage.getItem('jerboa_members_sync_key')
+      || localStorage.getItem('jerboa_keeper_sync_key')
+      || '';
+    const sessionKey = sessionStorage.getItem('jerboa_members_sync_key') || legacyKey;
+    localStorage.removeItem('jerboa_members_sync_key');
+    localStorage.removeItem('jerboa_keeper_sync_key');
+    if (sessionKey) sessionStorage.setItem('jerboa_members_sync_key', sessionKey);
+    return sessionKey;
+  });
   const hasServerHydrated = useRef(false);
   const localNoticeArmed = useRef(false);
   const skipNextLocalNotice = useRef(false);
@@ -224,7 +231,8 @@ function App() {
 
   const updateMemberSyncKey = (value: string) => {
     setMemberSyncKey(value);
-    localStorage.setItem('jerboa_members_sync_key', value);
+    if (value) sessionStorage.setItem('jerboa_members_sync_key', value);
+    else sessionStorage.removeItem('jerboa_members_sync_key');
   };
 
   const saveMembersToServer = async (source = '자동 저장') => {
@@ -704,6 +712,15 @@ function App() {
             <span lang="en"><i aria-hidden="true">⚜</i> Keeper Desk</span>
             <small lang="ko">보관자 문구실</small>
           </a>
+          <figure className="archive-source-plate">
+            <img src={memberScribePlate.src} alt={memberScribePlate.alt} loading="lazy" decoding="async" />
+            <figcaption>
+              <a href={memberScribePlate.sourceUrl} target="_blank" rel="noreferrer">
+                <span lang="en">St Luke, c. 1275–1325</span>
+                <small>{memberScribePlate.repository} · {memberScribePlate.rights}</small>
+              </a>
+            </figcaption>
+          </figure>
         </aside>
 
         <div className="archive-workbench">
@@ -729,7 +746,7 @@ function App() {
           )}
           
           <header className="archive-topbar">
-            <div>
+            <div className="archive-topbar-copy">
               <p lang="en">Jerboa Circle / private room</p>
               <h1 lang="en">{archiveSectionTitle}</h1>
               <span lang="ko">{archiveSectionNote}</span>
@@ -819,7 +836,6 @@ function App() {
                   onDeleteEvent={handleDeleteEvent} onCopyEvent={handleCopyEvent}
                   onPasteEvent={handlePasteEvent} onClearClipboard={handleClearClipboard}
                   copiedEventTitle={clipboard?.title}
-                  onLogout={handleLogout}
                 />
               ) : (
                 <AdminView 
@@ -842,12 +858,11 @@ function App() {
                 />
               )
             ) : activeTab === 'calendar' ? (
-              <CalendarView events={events} user={activeUserData} users={users} onJoinEvent={joinEvent} onCancelEvent={cancelEvent} isAdmin={false} onLogout={handleLogout} />
+              <CalendarView events={events} user={activeUserData} users={users} onJoinEvent={joinEvent} onCancelEvent={cancelEvent} isAdmin={false} />
             ) : activeTab === 'habit' ? (
               <HabitTrackingView 
                 user={activeUserData!} 
                 onUpdateUser={handleUpdateUser} 
-                onLogout={handleLogout}
                 isAdmin={false}
               />
             ) : (

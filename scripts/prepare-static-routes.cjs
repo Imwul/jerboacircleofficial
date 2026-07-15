@@ -144,7 +144,7 @@ async function main() {
   ].join('\n'));
 
   fs.writeFileSync(path.join(distDir, 'archive.json'), JSON.stringify({
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     programmes: publicRecords.map(({ posterImage, ...record }) => ({
       ...record,

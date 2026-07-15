@@ -35,7 +35,21 @@ import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
-import { archiveReferences } from '../data/archiveKnowledge';
+import {
+  archiveReferenceKindLabel,
+  archiveReferences,
+  type ArchiveReference,
+  type ArchiveReferenceKind,
+} from '../data/archiveKnowledge';
+import {
+  applyArchiveReferenceDrafts,
+  clearAllArchiveReferenceDrafts,
+  clearArchiveReferenceDraft,
+  readArchiveReferenceDrafts,
+  writeArchiveReferenceDraft,
+  writeArchiveReferenceDrafts,
+  type ArchiveReferenceDraftMap,
+} from '../utils/archiveReferenceDrafts';
 import { inspectArchiveIntegrity } from '../utils/archiveIntegrity';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
@@ -53,13 +67,40 @@ import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
-  schemaVersion?: 1;
+  schemaVersion?: 1 | 2;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
+  references?: ArchiveReferenceDraftMap;
+}
+
+type ReferenceFormState = Omit<ArchiveReference, 'id'> & { id: string };
+
+function toReferenceForm(reference: ArchiveReference): ReferenceFormState {
+  return { ...reference };
+}
+
+function validateReferenceForm(form: ReferenceFormState, references: ArchiveReference[]) {
+  if (!form.id.trim()) return '자료 ID를 입력하세요';
+  if (!/^[a-z0-9가-힣-]+$/.test(form.id)) return '자료 ID는 영문 소문자, 숫자, 한글과 하이픈만 사용할 수 있습니다';
+  if (!form.title.trim()) return '자료 제목을 입력하세요';
+  if (!form.description.trim()) return '자료 설명을 입력하세요';
+  if (form.parentId && !references.some((reference) => reference.id === form.parentId)) return `없는 상위 자료 ID입니다: ${form.parentId}`;
+  if (form.parentId === form.id) return '자료가 자기 자신을 상위 원전으로 가리킬 수 없습니다';
+  if (form.parentId) {
+    const parentById = new Map(references.map((reference) => [reference.id, reference]));
+    const visited = new Set([form.id]);
+    let nextId: string | undefined = form.parentId;
+    while (nextId) {
+      if (visited.has(nextId)) return '상위 원전 연결이 순환 구조를 만듭니다';
+      visited.add(nextId);
+      nextId = parentById.get(nextId)?.parentId;
+    }
+  }
+  return '';
 }
 
 type KeeperPendingAction =
-  | { kind: 'import'; drafts: ArchiveDraftMap; recordCount: number; fieldCount: number }
+  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; recordCount: number; referenceCount: number; fieldCount: number }
   | { kind: 'clear' }
   | { kind: 'restore'; revisionId: string; title: string }
   | null;
@@ -171,30 +212,45 @@ function validateSiteTextForm(siteText: SiteText) {
 }
 
 export default function KeeperPage() {
-  const [mode, setMode] = useState<'events' | 'text'>(() => (
+  const [mode, setMode] = useState<'events' | 'references' | 'text'>(() => (
     window.location.pathname.replace(/\/+$/, '').endsWith('/godmode') ? 'text' : 'events'
   ));
   const [version, setVersion] = useState(0);
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
+  const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const [selectedId, setSelectedId] = useState(archiveEvents[0].id);
   const selectedEvent = archiveEvents.find((event) => event.id === selectedId) ?? archiveEvents[0];
   const [form, setForm] = useState(() => toFormState(selectedEvent));
+  const [selectedReferenceId, setSelectedReferenceId] = useState(referenceRecords[0].id);
+  const selectedReference = referenceRecords.find((reference) => reference.id === selectedReferenceId) ?? referenceRecords[0];
+  const [referenceForm, setReferenceForm] = useState<ReferenceFormState>(() => toReferenceForm(selectedReference));
   const [siteTextForm, setSiteTextForm] = useState<SiteText>(() => getSiteText());
   const draftCount = useMemo(() => Object.keys(readArchiveDrafts()).length, [version]);
-  const [serverKey, setServerKey] = useState(() => localStorage.getItem('jerboa_keeper_sync_key') || '');
+  const [serverKey, setServerKey] = useState(() => {
+    const legacyKey = localStorage.getItem('jerboa_keeper_sync_key') || '';
+    const sessionKey = sessionStorage.getItem('jerboa_keeper_sync_key') || legacyKey;
+    localStorage.removeItem('jerboa_keeper_sync_key');
+    if (sessionKey) sessionStorage.setItem('jerboa_keeper_sync_key', sessionKey);
+    return sessionKey;
+  });
   const [syncStatus, setSyncStatus] = useState('공동 장부 대기');
   const [archiveSavedAt, setArchiveSavedAt] = useState<string | null>(null);
   const [hasArchiveConflict, setHasArchiveConflict] = useState(false);
   const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
   const [pendingAction, setPendingAction] = useState<KeeperPendingAction>(null);
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
+  const isReferenceDirty = JSON.stringify(referenceForm) !== JSON.stringify(toReferenceForm(selectedReference));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
-  const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents), [archiveEvents]);
+  const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents, referenceRecords), [archiveEvents, referenceRecords]);
   const selectedIntegrityIssues = integrityIssues.filter((issue) => !issue.recordId || issue.recordId === selectedEvent.id);
 
   usePageMetadata({
-    title: mode === 'text' ? 'Text Register | Jerboa Circle Keeper' : 'Register of Passages | Jerboa Circle Keeper',
+    title: mode === 'text'
+      ? 'Text Register | Jerboa Circle Keeper'
+      : mode === 'references'
+        ? 'Reference Register | Jerboa Circle Keeper'
+        : 'Register of Passages | Jerboa Circle Keeper',
     description: 'Jerboa Circle keeper desk for archive records, site text, drafts, and shared publication.',
     canonicalPath: mode === 'text' ? '/godmode/' : '/keeper/',
     noIndex: true,
@@ -203,6 +259,53 @@ export default function KeeperPage() {
   function selectEvent(event: ArchiveEvent) {
     setSelectedId(event.id);
     setForm(toFormState(event));
+  }
+
+  function selectReference(reference: ArchiveReference) {
+    setSelectedReferenceId(reference.id);
+    setReferenceForm(toReferenceForm(reference));
+  }
+
+  function updateReferenceField<Key extends keyof ReferenceFormState>(key: Key, value: ReferenceFormState[Key]) {
+    setReferenceForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function saveReferenceDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const validation = validateReferenceForm(referenceForm, referenceRecords);
+    if (validation) {
+      setSyncStatus(`입력 확인 / ${validation}`);
+      return;
+    }
+    writeArchiveReferenceDraft(referenceForm);
+    setSelectedReferenceId(referenceForm.id);
+    setVersion((current) => current + 1);
+    setSyncStatus(`자료 초안 봉인됨 / ${timeLabel()}`);
+  }
+
+  function createNewReference() {
+    const nextId = makeRecordId('new-reference');
+    const nextReference: ArchiveReference = {
+      id: nextId,
+      kind: 'book',
+      title: '아직 이름 붙지 않은 자료',
+      description: '이 자료가 프로그램과 어떻게 연결되는지 기록하세요.',
+    };
+    writeArchiveReferenceDraft(nextReference);
+    setSelectedReferenceId(nextId);
+    setReferenceForm(toReferenceForm(nextReference));
+    setVersion((current) => current + 1);
+    setSyncStatus('새 자료 초안 생성됨');
+  }
+
+  function resetReferenceDraft() {
+    clearArchiveReferenceDraft(selectedReference.id);
+    const baseReference = archiveReferences.find((reference) => reference.id === selectedReference.id);
+    const nextReference = baseReference ?? applyArchiveReferenceDrafts(archiveReferences)[0];
+    setSelectedReferenceId(nextReference.id);
+    setReferenceForm(toReferenceForm(nextReference));
+    setVersion((current) => current + 1);
+    setSyncStatus('선택 자료 원본 복원됨');
   }
 
   function updateField<Key extends keyof KeeperFormState>(key: Key, value: KeeperFormState[Key]) {
@@ -215,7 +318,7 @@ export default function KeeperPage() {
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validation = validateKeeperForm(form, archiveEvents);
+    const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
     if (validation) {
       setSyncStatus(`입력 확인 / ${validation}`);
       return;
@@ -297,7 +400,8 @@ export default function KeeperPage() {
 
   function updateServerKey(value: string) {
     setServerKey(value);
-    localStorage.setItem('jerboa_keeper_sync_key', value);
+    if (value) sessionStorage.setItem('jerboa_keeper_sync_key', value);
+    else sessionStorage.removeItem('jerboa_keeper_sync_key');
   }
 
   async function resolveArchiveAuth() {
@@ -328,9 +432,13 @@ export default function KeeperPage() {
       ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
     };
     return {
-      schemaVersion: 1 as const,
+      schemaVersion: 2 as const,
       drafts,
       siteText: siteTextForm,
+      references: {
+        ...readArchiveReferenceDrafts(),
+        ...(isReferenceDirty ? { [referenceForm.id]: referenceForm } : {}),
+      },
     };
   }
 
@@ -345,7 +453,7 @@ export default function KeeperPage() {
 
   async function saveArchiveToServer() {
     try {
-      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents) : '';
+      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents, referenceRecords) : '';
       if (archiveValidation) {
         setSyncStatus(`입력 확인 / ${archiveValidation}`);
         return;
@@ -355,12 +463,22 @@ export default function KeeperPage() {
         setSyncStatus(`입력 확인 / ${textValidation}`);
         return;
       }
+      const referenceValidation = mode === 'references' || isReferenceDirty
+        ? validateReferenceForm(referenceForm, referenceRecords)
+        : '';
+      if (referenceValidation) {
+        setSyncStatus(`입력 확인 / ${referenceValidation}`);
+        return;
+      }
       if (isDirty) {
         writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
       }
       setSyncStatus('공동 장부에 봉인 중');
       if (mode === 'text' || isTextDirty) {
         writeSiteTextDraft(siteTextForm);
+      }
+      if (mode === 'references' || isReferenceDirty) {
+        writeArchiveReferenceDraft(referenceForm);
       }
 
       const auth = await resolveArchiveAuth();
@@ -407,9 +525,16 @@ export default function KeeperPage() {
           writeSiteTextDraft(nextSiteText);
           setSiteTextForm(nextSiteText);
         }
+        if (result.saved.data.references) {
+          writeArchiveReferenceDrafts(result.saved.data.references);
+        }
         const nextEvents = applyArchiveDrafts(events);
         const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
         setForm(toFormState(nextSelected));
+        const nextReferences = applyArchiveReferenceDrafts(archiveReferences);
+        const nextReference = nextReferences.find((reference) => reference.id === selectedReferenceId) ?? nextReferences[0];
+        setSelectedReferenceId(nextReference.id);
+        setReferenceForm(toReferenceForm(nextReference));
         setArchiveSavedAt(result.saved.savedAt);
         setVersion((current) => current + 1);
         setSyncStatus(`공동 장부 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
@@ -429,6 +554,7 @@ export default function KeeperPage() {
       version: 1,
       exportedAt: new Date().toISOString(),
       drafts: readArchiveDrafts(),
+      references: readArchiveReferenceDrafts(),
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
@@ -445,7 +571,7 @@ export default function KeeperPage() {
       if (file.size > 6_000_000) throw new Error('파일이 6MB를 넘어 안전하게 확인할 수 없습니다.');
       const parsed = parseArchiveDraftImport(JSON.parse(await file.text()));
       setPendingAction({ kind: 'import', ...parsed });
-      setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 필드 ${parsed.fieldCount}개`);
+      setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 자료 ${parsed.referenceCount}개`);
     } catch (error) {
       console.error('Archive draft import failed:', error);
       setSyncStatus(error instanceof Error ? `초안 파일 적용 보류 / ${error.message}` : '초안 파일을 읽을 수 없음');
@@ -458,9 +584,12 @@ export default function KeeperPage() {
 
   function performClearEveryDraft() {
     clearAllArchiveDrafts();
+    clearAllArchiveReferenceDrafts();
     const baseEvent = events.find((event) => event.id === selectedId) ?? events[0];
     setSelectedId(baseEvent.id);
     setForm(toFormState(baseEvent));
+    setSelectedReferenceId(archiveReferences[0].id);
+    setReferenceForm(toReferenceForm(archiveReferences[0]));
     setVersion((current) => current + 1);
     setSyncStatus('모든 로컬 초안 삭제됨');
   }
@@ -485,11 +614,12 @@ export default function KeeperPage() {
     if (!pendingAction) return;
     if (pendingAction.kind === 'import') {
       writeArchiveDrafts(pendingAction.drafts);
+      writeArchiveReferenceDrafts(pendingAction.references);
       const nextEvents = applyArchiveDrafts(events);
       const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
       setForm(toFormState(nextSelected));
       setVersion((current) => current + 1);
-      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개`);
+      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개 · 자료 ${pendingAction.referenceCount}개`);
     } else if (pendingAction.kind === 'clear') {
       performClearEveryDraft();
     } else {
@@ -541,15 +671,25 @@ export default function KeeperPage() {
           </p>
           <ul className="keeper-purpose-list">
             <li><span lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</span></li>
+            <li><span lang="ko">자료 장부는 책, 작품, 인용, 도판과 출처를 한 번 기록해 여러 장에서 다시 씁니다</span></li>
             <li><span lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</span></li>
             <li><span lang="ko">공동 장부에 봉인하면 여러 사람에게 같은 판본을 보여줍니다</span></li>
           </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
               ? isTextDirty ? '저장되지 않은 문구실 수정 있음' : '문구실 준비됨'
-              : isDirty ? '저장되지 않은 수정 있음' : `저장된 초안 ${draftCount}`}
+              : mode === 'references'
+                ? isReferenceDirty ? '저장되지 않은 자료 수정 있음' : `자료 노드 ${referenceRecords.length}개`
+                : isDirty ? '저장되지 않은 수정 있음' : `저장된 초안 ${draftCount}`}
           </p>
           <div className="keeper-mode-switch" aria-label="Keeper mode">
+            <button
+              className={mode === 'references' ? 'is-active' : ''}
+              onClick={() => setMode('references')}
+              type="button"
+            >
+              <span lang="ko">자료 장부</span>
+            </button>
             <button
               className={mode === 'events' ? 'is-active' : ''}
               onClick={() => setMode('events')}
@@ -568,6 +708,11 @@ export default function KeeperPage() {
           {mode === 'events' && (
             <button className="keeper-new-record" type="button" onClick={createNewRecord}>
               <span lang="ko">아직 필사되지 않은 장 추가</span>
+            </button>
+          )}
+          {mode === 'references' && (
+            <button className="keeper-new-record" type="button" onClick={createNewReference}>
+              <span lang="ko">새 자료 노드 추가</span>
             </button>
           )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
@@ -614,7 +759,7 @@ export default function KeeperPage() {
             <strong lang="ko">아카이브 연결 검사</strong>
             <small lang="ko">
               {integrityIssues.length === 0
-                ? `기록 ${archiveEvents.length}개 / 끊어진 연결 없음`
+                ? `기록 ${archiveEvents.length}개 · 자료 ${referenceRecords.length}개 / 끊어진 연결 없음`
                 : `확인할 연결 ${integrityIssues.length}개`}
             </small>
             {selectedIntegrityIssues.length > 0 && (
@@ -637,6 +782,21 @@ export default function KeeperPage() {
                   <span>{event.edition}</span>
                   <strong>{event.title}</strong>
                   <small>{event.workflowStatus} / {event.visibility}</small>
+                </button>
+              ))}
+            </div>
+          ) : mode === 'references' ? (
+            <div className="keeper-list">
+              {referenceRecords.map((reference) => (
+                <button
+                  className={reference.id === selectedReferenceId ? 'is-selected' : ''}
+                  key={reference.id}
+                  onClick={() => selectReference(reference)}
+                  type="button"
+                >
+                  <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
+                  <strong>{reference.title}</strong>
+                  <small>{reference.creator ?? reference.attribution ?? reference.id}</small>
                 </button>
               ))}
             </div>
@@ -692,6 +852,120 @@ export default function KeeperPage() {
                 <button className="archive-cta inverse" onClick={resetSiteTextDraft} type="button"><span className="archive-cta-label" lang="ko">문구 원본 복원</span></button>
                 <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
                 <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
+              </div>
+            </form>
+          </section>
+        ) : mode === 'references' ? (
+          <section className="keeper-editor" aria-label="Selected reference editor">
+            <div className="keeper-preview godmode-preview">
+              <div>
+                <span lang="ko">{archiveReferenceKindLabel(referenceForm.kind)}</span>
+                <h2>{referenceForm.title}</h2>
+                <p lang="ko">{referenceForm.description}</p>
+              </div>
+            </div>
+
+            <form className="keeper-form" onSubmit={saveReferenceDraft}>
+              <div className="keeper-editor-heading">
+                <p className="section-kicker"><span lang="en">Reference node</span> / <span lang="ko">자료 편집 중</span></p>
+                <h2>{referenceForm.title}</h2>
+              </div>
+
+              <div className="keeper-field-grid">
+                <label className="keeper-field">
+                  <span lang="ko">자료 ID</span>
+                  <input value={referenceForm.id} readOnly />
+                </label>
+                <label className="keeper-field">
+                  <span lang="ko">종류</span>
+                  <select value={referenceForm.kind} onChange={(event) => updateReferenceField('kind', event.target.value as ArchiveReferenceKind)}>
+                    <option value="book">book</option>
+                    <option value="artwork">artwork</option>
+                    <option value="quotation">quotation</option>
+                    <option value="image">image</option>
+                    <option value="place">place</option>
+                    <option value="theme">theme</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="keeper-field">
+                <span lang="ko">제목</span>
+                <input value={referenceForm.title} onChange={(event) => updateReferenceField('title', event.target.value)} />
+              </label>
+
+              <label className="keeper-field">
+                <span lang="ko">설명</span>
+                <textarea rows={4} value={referenceForm.description} onChange={(event) => updateReferenceField('description', event.target.value)} />
+              </label>
+
+              <div className="keeper-field-grid">
+                <label className="keeper-field">
+                  <span lang="ko">만든 이</span>
+                  <input value={referenceForm.creator ?? ''} onChange={(event) => updateReferenceField('creator', event.target.value || undefined)} />
+                </label>
+                <label className="keeper-field">
+                  <span lang="ko">귀속 표기</span>
+                  <input value={referenceForm.attribution ?? ''} onChange={(event) => updateReferenceField('attribution', event.target.value || undefined)} />
+                </label>
+              </div>
+
+              <div className="keeper-field-grid">
+                <label className="keeper-field">
+                  <span lang="ko">연도</span>
+                  <input value={referenceForm.date ?? ''} onChange={(event) => updateReferenceField('date', event.target.value || undefined)} />
+                </label>
+                <label className="keeper-field">
+                  <span lang="ko">판본</span>
+                  <input value={referenceForm.edition ?? ''} onChange={(event) => updateReferenceField('edition', event.target.value || undefined)} />
+                </label>
+                <label className="keeper-field">
+                  <span lang="ko">쪽·행·위치</span>
+                  <input value={referenceForm.locator ?? ''} onChange={(event) => updateReferenceField('locator', event.target.value || undefined)} />
+                </label>
+                <label className="keeper-field">
+                  <span lang="ko">언어</span>
+                  <input value={referenceForm.language ?? ''} onChange={(event) => updateReferenceField('language', event.target.value || undefined)} />
+                </label>
+              </div>
+
+              <label className="keeper-field">
+                <span lang="ko">원문 출처 URL</span>
+                <input type="url" value={referenceForm.sourceUrl ?? ''} onChange={(event) => updateReferenceField('sourceUrl', event.target.value || undefined)} />
+              </label>
+
+              <label className="keeper-field">
+                <span lang="ko">권리와 재사용 조건</span>
+                <input value={referenceForm.rights ?? ''} onChange={(event) => updateReferenceField('rights', event.target.value || undefined)} />
+              </label>
+
+              <label className="keeper-field">
+                <span lang="ko">인용 표기</span>
+                <textarea rows={3} value={referenceForm.citationNote ?? ''} onChange={(event) => updateReferenceField('citationNote', event.target.value || undefined)} />
+              </label>
+
+              <label className="keeper-field">
+                <span lang="ko">이미지 대체 텍스트</span>
+                <textarea rows={3} value={referenceForm.altText ?? ''} onChange={(event) => updateReferenceField('altText', event.target.value || undefined)} />
+              </label>
+
+              <RelationshipPicker
+                label="상위 원전"
+                description="인용문이나 도판이 어느 책·작품에서 파생되었는지 연결합니다."
+                options={referenceRecords.filter((reference) => reference.id !== referenceForm.id).map((reference) => ({
+                  id: reference.id,
+                  title: reference.title,
+                  meta: archiveReferenceKindLabel(reference.kind),
+                }))}
+                selectedIds={referenceForm.parentId ? [referenceForm.parentId] : []}
+                onChange={(ids) => updateReferenceField('parentId', ids.at(-1) || undefined)}
+              />
+
+              <div className="keeper-actions">
+                <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">자료 초안 봉인</span></button>
+                <button className="archive-cta inverse" onClick={resetReferenceDraft} type="button"><span className="archive-cta-label" lang="ko">자료 원본 복원</span></button>
+                <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
+                <a className="archive-cta" href={`/catalogue/${referenceForm.id}/`}><span className="archive-cta-label" lang="ko">공개 자료 보기</span></a>
               </div>
             </form>
           </section>
@@ -869,7 +1143,7 @@ export default function KeeperPage() {
             <RelationshipPicker
               label="참고자료와 문화 노드"
               description="책, 작품, 인용, 도판, 장소를 검색해 선택합니다. 선택한 자료로 공개 읽기 목록이 자동 생성됩니다."
-              options={archiveReferences.map((reference) => ({
+              options={referenceRecords.map((reference) => ({
                 id: reference.id,
                 title: reference.title,
                 meta: reference.attribution ?? reference.kind,
@@ -948,7 +1222,7 @@ export default function KeeperPage() {
             ? '모든 로컬 초안을 지울까요?'
             : '이전 초안으로 되돌릴까요?'}
         description={pendingAction?.kind === 'import'
-          ? `기록 ${pendingAction.recordCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
+          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
           : pendingAction?.kind === 'clear'
             ? '공개 원본은 유지되지만, 이 기기에 저장된 모든 수정 초안이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
             : `“${pendingAction?.kind === 'restore' ? pendingAction.title : ''}” 저장본으로 되돌립니다. 현재 초안은 새 이력으로 남습니다.`}

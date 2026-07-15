@@ -277,15 +277,13 @@ export const archiveProgrammeRelations: ArchiveProgrammeRelation[] = [
   },
 ];
 
-const referenceById = new Map(archiveReferences.map((reference) => [reference.id, reference]));
-
-export function getArchiveReference(id: string | undefined) {
-  return id ? referenceById.get(id) : undefined;
+export function getArchiveReference(id: string | undefined, references: ArchiveReference[] = archiveReferences) {
+  return id ? references.find((reference) => reference.id === id) : undefined;
 }
 
-export function getArchiveReferencesForEvent(event: ArchiveEvent) {
+export function getArchiveReferencesForEvent(event: ArchiveEvent, references: ArchiveReference[] = archiveReferences) {
   return event.referenceIds
-    .map((id) => getArchiveReference(id))
+    .map((id) => getArchiveReference(id, references))
     .filter((reference): reference is ArchiveReference => Boolean(reference));
 }
 
@@ -305,7 +303,7 @@ function sharedThemeLabels(a: ArchiveEvent, b: ArchiveEvent) {
   return a.themes.filter((theme) => bThemes.has(theme.toLowerCase()));
 }
 
-export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent[]) {
+export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent[], references: ArchiveReference[] = archiveReferences) {
   const recordsById = new Map(records.map((record) => [record.id, record]));
   const connections = new Map<string, ArchiveProgrammeConnection>();
 
@@ -321,7 +319,7 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
       direction: compareDirection(event, related),
       note: relation.note,
       references: (relation.referenceIds ?? [])
-        .map((id) => getArchiveReference(id))
+        .map((id) => getArchiveReference(id, references))
         .filter((reference): reference is ArchiveReference => Boolean(reference)),
       sharedThemes: relation.themeLabels ?? [],
     });
@@ -332,7 +330,7 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
     const related = recordsById.get(relatedId);
     if (!related) return;
     const references = sharedReferenceIds(event, related)
-      .map((id) => getArchiveReference(id))
+      .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
     const themes = sharedThemeLabels(event, related);
 
@@ -351,7 +349,7 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
   records.forEach((related) => {
     if (connections.has(related.id) || !related.relatedEventIds.includes(event.id)) return;
     const references = sharedReferenceIds(event, related)
-      .map((id) => getArchiveReference(id))
+      .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
     const themes = sharedThemeLabels(event, related);
 
@@ -395,7 +393,7 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
     const themes = sharedThemeLabels(event, related);
     if (referenceIds.length === 0 && themes.length === 0) return;
     const references = referenceIds
-      .map((id) => getArchiveReference(id))
+      .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
 
     connections.set(related.id, {
@@ -417,9 +415,9 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
   });
 }
 
-export function archiveKnowledgeSearchText(event: ArchiveEvent, records: ArchiveEvent[]) {
-  const references = getArchiveReferencesForEvent(event);
-  const connections = getArchiveConnections(event, records);
+export function archiveKnowledgeSearchText(event: ArchiveEvent, records: ArchiveEvent[], referenceRecords: ArchiveReference[] = archiveReferences) {
+  const references = getArchiveReferencesForEvent(event, referenceRecords);
+  const connections = getArchiveConnections(event, records, referenceRecords);
   return [
     ...references.flatMap((reference) => [
       reference.kind,
