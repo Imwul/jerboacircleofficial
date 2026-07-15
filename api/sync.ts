@@ -88,7 +88,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function validateSyncData(scope: SyncScope, data: unknown) {
+function validateSyncData(scope: SyncScope, data: unknown): asserts data is Record<string, unknown> {
   if (!isPlainObject(data)) {
     throw new SyncError(400, 'invalid_payload');
   }
