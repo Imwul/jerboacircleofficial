@@ -57,21 +57,33 @@ import ConnectivityNotice from '../components/ui/ConnectivityNotice';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { parseArchiveDraftImport } from '../utils/archiveImport';
 import {
+  archiveEventFromForm,
   splitArchiveFormList as splitDraftList,
   toArchiveEventDraft as toDraft,
   toArchiveRecordForm as toFormState,
   validateArchiveRecordForm as validateKeeperForm,
   type ArchiveRecordFormState as KeeperFormState,
 } from '../utils/archiveRecordForm';
+import {
+  comparePublicationManifest,
+  createPublicationManifest,
+  draftFromPublication,
+  inspectPublicationReadiness,
+  publicationsWithManifest,
+  readArchivePublications,
+  writeArchivePublications,
+  type ArchivePublicationMap,
+} from '../utils/publicationLedger';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
-  schemaVersion?: 1 | 2;
+  schemaVersion?: 1 | 2 | 3;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;
+  publications?: ArchivePublicationMap;
 }
 
 type ReferenceFormState = Omit<ArchiveReference, 'id'> & { id: string };
@@ -110,9 +122,11 @@ function validateReferenceForm(form: ReferenceFormState, references: ArchiveRefe
 }
 
 type KeeperPendingAction =
-  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; recordCount: number; referenceCount: number; fieldCount: number }
+  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; publications: ArchivePublicationMap; recordCount: number; referenceCount: number; publicationCount: number; fieldCount: number }
   | { kind: 'clear' }
   | { kind: 'restore'; revisionId: string; title: string }
+  | { kind: 'restore-publication'; publicationId: string; title: string; contentHash: string }
+  | { kind: 'publish'; title: string; warningCount: number }
   | null;
 
 const siteTextFields: Array<{
@@ -252,7 +266,24 @@ export default function KeeperPage() {
   const isReferenceDirty = JSON.stringify(referenceForm) !== JSON.stringify(toReferenceForm(selectedReference));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
+  const selectedPublications = useMemo(() => readArchivePublications()[selectedEvent.id] ?? [], [selectedEvent.id, version]);
   const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents, referenceRecords), [archiveEvents, referenceRecords]);
+  const publicationCandidate = useMemo(() => archiveEventFromForm(
+    selectedEvent.id,
+    form,
+    selectedEvent,
+    selectedEvent.publishedAt || new Date().toISOString().slice(0, 10),
+  ), [form, selectedEvent]);
+  const publicationIssues = useMemo(
+    () => inspectPublicationReadiness(publicationCandidate, archiveEvents, referenceRecords),
+    [publicationCandidate, archiveEvents, referenceRecords],
+  );
+  const publicationErrorCount = publicationIssues.filter((issue) => issue.severity === 'error').length;
+  const publicationWarningCount = publicationIssues.filter((issue) => issue.severity === 'warning').length;
+  const publicationComparison = useMemo(
+    () => comparePublicationManifest(publicationCandidate, referenceRecords, selectedPublications[0]),
+    [publicationCandidate, referenceRecords, selectedPublications],
+  );
   const selectedIntegrityIssues = integrityIssues.filter((issue) => {
     if (mode === 'references') return !issue.referenceId || issue.referenceId === selectedReference.id;
     return !issue.recordId || issue.recordId === selectedEvent.id;
@@ -439,24 +470,25 @@ export default function KeeperPage() {
     }
   }
 
-  function createArchiveSyncPayload() {
-    const drafts = {
+  function createArchiveSyncPayload(overrides: { drafts?: ArchiveDraftMap; publications?: ArchivePublicationMap } = {}) {
+    const drafts = overrides.drafts ?? {
       ...readArchiveDrafts(),
       ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
     };
     return {
-      schemaVersion: 2 as const,
+      schemaVersion: 3 as const,
       drafts,
       siteText: siteTextForm,
       references: {
         ...readArchiveReferenceDrafts(),
         ...(isReferenceDirty ? { [referenceForm.id]: referenceForm } : {}),
       },
+      publications: overrides.publications ?? readArchivePublications(),
     };
   }
 
-  function captureArchiveRecovery(reason: string, remoteSavedAt?: string | null) {
-    writeSyncRecovery('archive', createArchiveSyncPayload(), {
+  function captureArchiveRecovery(reason: string, remoteSavedAt?: string | null, payload = createArchiveSyncPayload()) {
+    writeSyncRecovery('archive', payload, {
       baseSavedAt: archiveSavedAt,
       remoteSavedAt,
       reason,
@@ -541,6 +573,9 @@ export default function KeeperPage() {
         if (result.saved.data.references) {
           writeArchiveReferenceDrafts(result.saved.data.references);
         }
+        if (result.saved.data.publications) {
+          writeArchivePublications(result.saved.data.publications);
+        }
         const nextEvents = applyArchiveDrafts(events);
         const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
         setForm(toFormState(nextSelected));
@@ -564,10 +599,11 @@ export default function KeeperPage() {
   function downloadArchiveDrafts() {
     const payload = {
       type: 'jerboa-archive-drafts',
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       drafts: readArchiveDrafts(),
       references: readArchiveReferenceDrafts(),
+      publications: readArchivePublications(),
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
@@ -584,7 +620,7 @@ export default function KeeperPage() {
       if (file.size > 6_000_000) throw new Error('파일이 6MB를 넘어 안전하게 확인할 수 없습니다.');
       const parsed = parseArchiveDraftImport(JSON.parse(await file.text()));
       setPendingAction({ kind: 'import', ...parsed });
-      setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 자료 ${parsed.referenceCount}개`);
+      setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 자료 ${parsed.referenceCount}개 · 발행본 ${parsed.publicationCount}개`);
     } catch (error) {
       console.error('Archive draft import failed:', error);
       setSyncStatus(error instanceof Error ? `초안 파일 적용 보류 / ${error.message}` : '초안 파일을 읽을 수 없음');
@@ -623,18 +659,125 @@ export default function KeeperPage() {
     setSyncStatus('선택한 초안 이력으로 되돌림 / 확인 후 공동 장부에 봉인하세요');
   }
 
-  function confirmPendingAction() {
+  function restorePublication(publicationId: string, title: string, contentHash: string) {
+    setPendingAction({ kind: 'restore-publication', publicationId, title, contentHash });
+  }
+
+  function performRestorePublication(publicationId: string) {
+    const publication = selectedPublications.find((item) => item.id === publicationId);
+    if (!publication) {
+      setSyncStatus('복구할 발행본을 찾을 수 없음');
+      return;
+    }
+
+    const restoredDraft = draftFromPublication(publication, selectedEvent.posterImage);
+    writeArchiveDraft(selectedEvent.id, restoredDraft, { label: `publication recovery / ${publication.contentHash}` });
+    const restoredEvent: ArchiveEvent = {
+      ...selectedEvent,
+      ...restoredDraft,
+      collectionIds: restoredDraft.collectionIds ?? selectedEvent.collectionIds,
+      passage: restoredDraft.passage ?? selectedEvent.passage,
+      materials: restoredDraft.materials ?? selectedEvent.materials,
+      themes: restoredDraft.themes ?? selectedEvent.themes,
+      referenceIds: restoredDraft.referenceIds ?? selectedEvent.referenceIds,
+      relatedEventIds: restoredDraft.relatedEventIds ?? selectedEvent.relatedEventIds,
+    };
+    setForm(toFormState(restoredEvent));
+    setVersion((current) => current + 1);
+    setSyncStatus(`발행본 ${publication.contentHash}에서 복구 초안을 만들었습니다 / 비공개 미리보기 상태로 검토 후 다시 발행하세요`);
+  }
+
+  function requestPublication() {
+    if (publicationErrorCount > 0) {
+      setSyncStatus(`발행 보류 / 필수 확인 ${publicationErrorCount}개를 먼저 고치세요`);
+      return;
+    }
+    const candidateManifest = createPublicationManifest(publicationCandidate, referenceRecords);
+    if (selectedPublications.some((publication) => publication.contentHash === candidateManifest.contentHash)) {
+      setSyncStatus(`동일 판본이 이미 발행되어 있습니다 / ${candidateManifest.contentHash}`);
+      return;
+    }
+    setPendingAction({ kind: 'publish', title: publicationCandidate.title, warningCount: publicationWarningCount });
+  }
+
+  async function performPublication() {
+    const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
+    if (validation) {
+      setSyncStatus(`발행 보류 / ${validation}`);
+      return;
+    }
+    const issues = inspectPublicationReadiness(publicationCandidate, archiveEvents, referenceRecords);
+    const errors = issues.filter((issue) => issue.severity === 'error');
+    if (errors.length > 0) {
+      setSyncStatus(`발행 보류 / ${errors[0].message}`);
+      return;
+    }
+
+    const auth = await resolveArchiveAuth();
+    if (!auth.syncKey && !auth.authSession) {
+      setSyncStatus('판본 발행에는 공동 장부 또는 아카이브 편집자 열쇠가 필요합니다');
+      return;
+    }
+
+    const manifest = createPublicationManifest(publicationCandidate, referenceRecords);
+    if ((readArchivePublications()[selectedEvent.id] ?? []).some((publication) => publication.contentHash === manifest.contentHash)) {
+      setSyncStatus(`동일 판본이 이미 발행되어 있습니다 / ${manifest.contentHash}`);
+      return;
+    }
+    const nextPublications = publicationsWithManifest(readArchivePublications(), manifest);
+    const publishedDraft: ArchiveEventDraft = {
+      ...toDraft(form),
+      visibility: 'public',
+      workflowStatus: 'published',
+      publishedAt: publicationCandidate.publishedAt,
+      updatedAt: new Date().toISOString().slice(0, 10),
+    };
+    const nextDrafts = { ...readArchiveDrafts(), [selectedEvent.id]: publishedDraft };
+    const payload = createArchiveSyncPayload({ drafts: nextDrafts, publications: nextPublications });
+
+    try {
+      setSyncStatus('발행본 검증과 공동 장부 봉인 중');
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', payload, auth.syncKey, {
+        baseSavedAt: archiveSavedAt,
+        authSession: auth.authSession,
+      });
+      writeArchiveDraft(selectedEvent.id, publishedDraft, { label: `published / ${manifest.contentHash}` });
+      writeArchivePublications(nextPublications);
+      setArchiveSavedAt(result.savedAt || archiveSavedAt);
+      setHasArchiveConflict(false);
+      setForm(toFormState(publicationCandidate));
+      setVersion((current) => current + 1);
+      setSyncStatus(`판본 발행 완료 / ${manifest.contentHash} / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
+    } catch (error) {
+      if (error instanceof ServerSyncError && (error.message === 'sync_conflict' || error.message === 'publication_history_conflict')) {
+        captureArchiveRecovery('publication_conflict', error.savedAt, payload);
+        setArchiveSavedAt(error.savedAt || archiveSavedAt);
+        setHasArchiveConflict(true);
+        setSyncStatus('발행 보류 / 공동 장부 이력을 먼저 열람하세요');
+        return;
+      }
+      console.error('Archive publication failed:', error);
+      setSyncStatus('판본 발행 실패 / 열쇠 또는 연결을 확인하세요');
+    }
+  }
+
+  async function confirmPendingAction() {
     if (!pendingAction) return;
     if (pendingAction.kind === 'import') {
       writeArchiveDrafts(pendingAction.drafts);
       writeArchiveReferenceDrafts(pendingAction.references);
+      writeArchivePublications(pendingAction.publications);
       const nextEvents = applyArchiveDrafts(events);
       const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
       setForm(toFormState(nextSelected));
       setVersion((current) => current + 1);
-      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개 · 자료 ${pendingAction.referenceCount}개`);
+      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개 · 자료 ${pendingAction.referenceCount}개 · 발행본 ${pendingAction.publicationCount}개`);
     } else if (pendingAction.kind === 'clear') {
       performClearEveryDraft();
+    } else if (pendingAction.kind === 'publish') {
+      await performPublication();
+    } else if (pendingAction.kind === 'restore-publication') {
+      performRestorePublication(pendingAction.publicationId);
     } else {
       performRestoreRevision(pendingAction.revisionId);
     }
@@ -1203,6 +1346,62 @@ export default function KeeperPage() {
               <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
             </div>
 
+            <aside className="keeper-publication-panel" aria-label="Publication preflight">
+              <div>
+                <span lang="en">Publication preflight</span>
+                <strong lang="ko">
+                  {publicationErrorCount > 0
+                    ? `발행 보류 ${publicationErrorCount}건${publicationWarningCount > 0 ? ` · 경고 ${publicationWarningCount}건` : ''}`
+                    : `발행 가능${publicationWarningCount > 0 ? ` · 경고 ${publicationWarningCount}건` : ''}`}
+                </strong>
+              </div>
+              <p lang="ko">
+                일반 봉인은 초안을 저장합니다. 판본 발행은 공개 상태·자료 관계·도판 권리를 다시 검사하고 변경할 수 없는 발행 지문을 남깁니다.
+              </p>
+              {publicationIssues.length > 0 ? (
+                <ul className="keeper-integrity-list">
+                  {publicationIssues.slice(0, 6).map((issue) => (
+                    <li data-severity={issue.severity} key={issue.id}>{issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <small lang="ko">필수 필드와 모든 연결을 확인했습니다.</small>
+              )}
+              <div className="keeper-publication-diff" aria-live="polite">
+                <strong lang="ko">
+                  {publicationComparison.isFirstPublication
+                    ? '첫 발행본으로 기록됩니다'
+                    : publicationComparison.changes.length > 0
+                      ? `직전 발행본 대비 ${publicationComparison.changes.length}개 변경`
+                      : '직전 발행본과 내용이 같습니다'}
+                </strong>
+                {publicationComparison.changes.length > 0 && (
+                  <ul>
+                    {publicationComparison.changes.slice(0, 8).map((change) => (
+                      <li key={change.id} data-kind={change.kind}>
+                        <span lang="ko">
+                          {change.kind === 'reference-added'
+                            ? `자료 추가 · ${change.label}`
+                            : change.kind === 'reference-removed'
+                              ? `자료 제외 · ${change.label}`
+                              : change.kind === 'reference-updated'
+                                ? `자료 정보 수정 · ${change.label}`
+                              : change.label}
+                        </span>
+                        {change.kind === 'field' && <small>{change.before} → {change.after}</small>}
+                      </li>
+                    ))}
+                    {publicationComparison.changes.length > 8 && (
+                      <li lang="ko">그 밖의 변경 {publicationComparison.changes.length - 8}개</li>
+                    )}
+                  </ul>
+                )}
+              </div>
+              <button type="button" disabled={publicationErrorCount > 0} onClick={requestPublication}>
+                <span lang="ko">검사 후 판본 발행</span>
+              </button>
+            </aside>
+
             <aside className="keeper-record-preview" aria-label="Public archive record preview">
               <span>{form.edition}</span>
               <h3>{form.title}</h3>
@@ -1230,6 +1429,31 @@ export default function KeeperPage() {
                 <p lang="ko">아직 되돌릴 수 있는 초안 이력이 없습니다.</p>
               )}
             </aside>
+
+            <aside className="keeper-revision-history keeper-publication-history" aria-label="Published edition history">
+              <div>
+                <span lang="en">Published editions</span>
+                <strong lang="ko">{selectedPublications.length}개 발행본</strong>
+              </div>
+              {selectedPublications.length > 0 ? (
+                <ol>
+                  {selectedPublications.slice(0, 6).map((publication) => (
+                    <li key={publication.id}>
+                      <span>{new Date(publication.createdAt).toLocaleString('ko-KR')}</span>
+                      <small>{publication.edition} / {publication.contentHash} / 자료 {publication.references.length}개</small>
+                      <button
+                        type="button"
+                        onClick={() => restorePublication(publication.id, publication.title, publication.contentHash)}
+                      >
+                        <span lang="ko">복구 초안 만들기</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p lang="ko">아직 발행 지문이 없습니다. 기존 공개 기록은 다음 발행부터 이곳에 쌓입니다.</p>
+              )}
+            </aside>
           </form>
           </section>
         )}
@@ -1240,16 +1464,24 @@ export default function KeeperPage() {
           ? '검증된 초안 파일을 적용할까요?'
           : pendingAction?.kind === 'clear'
             ? '모든 로컬 초안을 지울까요?'
-            : '이전 초안으로 되돌릴까요?'}
+            : pendingAction?.kind === 'publish'
+              ? '이 판본을 공개 발행할까요?'
+              : pendingAction?.kind === 'restore-publication'
+                ? '이 발행본에서 복구 초안을 만들까요?'
+              : '이전 초안으로 되돌릴까요?'}
         description={pendingAction?.kind === 'import'
-          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
+          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
           : pendingAction?.kind === 'clear'
             ? '공개 원본은 유지되지만, 이 기기에 저장된 모든 수정 초안이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
-            : `“${pendingAction?.kind === 'restore' ? pendingAction.title : ''}” 저장본으로 되돌립니다. 현재 초안은 새 이력으로 남습니다.`}
-        confirmLabel={pendingAction?.kind === 'import' ? '검증 파일 적용' : pendingAction?.kind === 'clear' ? '로컬 초안 삭제' : '이 버전 복원'}
+            : pendingAction?.kind === 'publish'
+              ? `“${pendingAction.title}”을 공동 장부에 공개하고 발행 지문을 보존합니다.${pendingAction.warningCount > 0 ? ` 경고 ${pendingAction.warningCount}건은 확인 후에도 남습니다.` : ''}`
+              : pendingAction?.kind === 'restore-publication'
+                ? `“${pendingAction.title}”의 발행본 ${pendingAction.contentHash}에서 새 초안을 만듭니다. 발행 이력은 바뀌지 않으며, 초안은 안전하게 미리보기·비목록 상태로 시작합니다.`
+              : `“${pendingAction?.kind === 'restore' ? pendingAction.title : ''}” 저장본으로 되돌립니다. 현재 초안은 새 이력으로 남습니다.`}
+        confirmLabel={pendingAction?.kind === 'import' ? '검증 파일 적용' : pendingAction?.kind === 'clear' ? '로컬 초안 삭제' : pendingAction?.kind === 'publish' ? '판본 발행' : pendingAction?.kind === 'restore-publication' ? '복구 초안 만들기' : '이 버전 복원'}
         tone={pendingAction?.kind === 'clear' ? 'danger' : 'default'}
         onCancel={() => setPendingAction(null)}
-        onConfirm={confirmPendingAction}
+        onConfirm={() => { void confirmPendingAction(); }}
       />
     </div>
   );

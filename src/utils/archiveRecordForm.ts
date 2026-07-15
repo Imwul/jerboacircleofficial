@@ -94,6 +94,29 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
   };
 }
 
+export function archiveEventFromForm(
+  id: string,
+  form: ArchiveRecordFormState,
+  fallback: ArchiveEvent,
+  publishedAt = fallback.publishedAt || new Date().toISOString().slice(0, 10),
+): ArchiveEvent {
+  const draft = toArchiveEventDraft(form, fallback);
+  return {
+    ...fallback,
+    ...draft,
+    id,
+    collectionIds: draft.collectionIds ?? [],
+    passage: draft.passage ?? [],
+    materials: draft.materials ?? [],
+    themes: draft.themes ?? [],
+    referenceIds: draft.referenceIds ?? [],
+    relatedEventIds: draft.relatedEventIds ?? [],
+    ctaHref: draft.ctaHref || fallback.ctaHref || `./archive/${id}/`,
+    publishedAt,
+    updatedAt: new Date().toISOString().slice(0, 10),
+  };
+}
+
 export function validateArchiveRecordForm(
   form: ArchiveRecordFormState,
   records: ArchiveEvent[],

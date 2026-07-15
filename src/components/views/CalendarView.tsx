@@ -352,13 +352,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       )}
                     </div>
                     {event.archiveRecordId && (
-                      <a
-                        href={`/archive/${event.archiveRecordId}/`}
-                        onClick={(clickEvent) => clickEvent.stopPropagation()}
-                        className="inline-flex text-[10px] font-black underline underline-offset-4 opacity-80 hover:opacity-100"
-                      >
-                        <span lang="ko">공개 프로그램 기록과 읽기 자료 보기</span>
-                      </a>
+                      <div className="flex flex-wrap items-center gap-2 text-[10px] font-black">
+                        <span className="border border-white/30 px-2 py-1 opacity-80" lang="ko">
+                          {event.inheritArchiveContent ? '공개 판본 자동 반영' : '회차별 문구 유지'}
+                        </span>
+                        <a
+                          href={`/archive/${event.archiveRecordId}/`}
+                          onClick={(clickEvent) => clickEvent.stopPropagation()}
+                          className="inline-flex underline underline-offset-4 opacity-80 hover:opacity-100"
+                        >
+                          <span lang="ko">공개 프로그램 기록과 읽기 자료 보기</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </article>

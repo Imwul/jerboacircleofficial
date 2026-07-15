@@ -190,8 +190,7 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
   };
 }
 
-export function applyArchiveDrafts(baseEvents: ArchiveEvent[]) {
-  const drafts = readArchiveDrafts();
+export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: ArchiveDraftMap) {
   const baseIds = new Set(baseEvents.map((event) => event.id));
   const fallback = baseEvents[0];
 
@@ -216,4 +215,8 @@ export function applyArchiveDrafts(baseEvents: ArchiveEvent[]) {
     .sort((a, b) => (a.edition < b.edition ? 1 : -1));
 
   return [...editedBaseEvents, ...customEvents];
+}
+
+export function applyArchiveDrafts(baseEvents: ArchiveEvent[]) {
+  return applyArchiveDraftMap(baseEvents, readArchiveDrafts());
 }

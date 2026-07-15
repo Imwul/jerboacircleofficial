@@ -74,6 +74,7 @@ export interface CalendarEvent {
   maxParticipants?: number;
   recurringGroupId?: string;
   archiveRecordId?: string;
+  inheritArchiveContent?: boolean;
 }
 
 export const TIER_COLORS = {

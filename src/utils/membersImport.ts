@@ -1,7 +1,7 @@
 import { ThemeColor, Tier, type CalendarEvent, type User } from '../types';
 
 export interface MembersSyncPayload {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   users: User[];
   events: CalendarEvent[];
   themeNames: Record<ThemeColor, string>;
@@ -41,6 +41,8 @@ function validateEvent(value: unknown, index: number) {
   assert(Object.values(ThemeColor).includes(value.theme as ThemeColor), `프로그램 ${index + 1}의 주제 색상이 올바르지 않습니다.`);
   assert(typeof value.cost === 'number' && Number.isFinite(value.cost), `프로그램 ${index + 1}의 비용이 올바르지 않습니다.`);
   assert(typeof value.isReward === 'boolean', `프로그램 ${index + 1}의 보상 설정이 올바르지 않습니다.`);
+  if (value.archiveRecordId !== undefined) assert(typeof value.archiveRecordId === 'string' && value.archiveRecordId.length <= 120, `프로그램 ${index + 1}의 공개 기록 연결이 올바르지 않습니다.`);
+  if (value.inheritArchiveContent !== undefined) assert(typeof value.inheritArchiveContent === 'boolean', `프로그램 ${index + 1}의 공개 기록 자동 반영 설정이 올바르지 않습니다.`);
   return value as unknown as CalendarEvent;
 }
 
@@ -53,7 +55,7 @@ export function parseMembersImport(payload: unknown): MembersSyncPayload {
   if (payload.type === 'jerboa-sync-recovery') assert(payload.scope === 'members', '아카이브 복구 파일은 회원 장부에 적용할 수 없습니다.');
 
   const data = isRecord(payload.data) ? payload.data : payload;
-  if (typeof data.schemaVersion === 'number') assert(data.schemaVersion === 1, '지원하지 않는 회원 장부 데이터 버전입니다.');
+  if (typeof data.schemaVersion === 'number') assert(data.schemaVersion === 1 || data.schemaVersion === 2, '지원하지 않는 회원 장부 데이터 버전입니다.');
   assert(Array.isArray(data.users) && data.users.length <= 10_000, '회원 목록이 올바르지 않습니다.');
   assert(Array.isArray(data.events) && data.events.length <= 10_000, '프로그램 목록이 올바르지 않습니다.');
   assert(isRecord(data.themeNames), '주제 이름 목록이 올바르지 않습니다.');
@@ -65,7 +67,7 @@ export function parseMembersImport(payload: unknown): MembersSyncPayload {
   });
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     users: data.users.map(validateUser),
     events: data.events.map(validateEvent),
     themeNames,

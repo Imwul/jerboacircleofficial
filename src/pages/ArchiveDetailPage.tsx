@@ -57,7 +57,7 @@ import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
-  schemaVersion?: 1 | 2;
+  schemaVersion?: 1 | 2 | 3;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;

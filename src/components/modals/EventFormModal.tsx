@@ -17,7 +17,14 @@ interface EventFormModalProps {
   onSave: (event: CalendarEvent, recurrence?: EventRecurrence) => void;
   onClose: () => void;
   themeNames: Record<ThemeColor, string>;
-  archiveRecords: Array<{ id: string; title: string; edition: string }>;
+  archiveRecords: Array<{
+    id: string;
+    title: string;
+    edition: string;
+    shortDescription: string;
+    longDescription: string;
+    themes: string[];
+  }>;
 }
 
 export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, initialDate, onSave, onClose, themeNames, archiveRecords }) => {
@@ -37,6 +44,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
   });
   const [maxParticipants, setMaxParticipants] = useState(event?.maxParticipants || 0);
   const [archiveRecordId, setArchiveRecordId] = useState(event?.archiveRecordId || '');
+  const [inheritArchiveContent, setInheritArchiveContent] = useState(Boolean(event?.inheritArchiveContent));
   
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState<'count' | 'date'>('count');
@@ -63,6 +71,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
       
       setMaxParticipants(event?.maxParticipants || 0);
       setArchiveRecordId(event?.archiveRecordId || '');
+      setInheritArchiveContent(Boolean(event?.inheritArchiveContent));
       setIsRecurring(false);
       setRecurrenceType('count');
       setRecurrenceValue(4);
@@ -76,8 +85,18 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     setThemeName(themeNames[newTheme]);
   };
 
+  const applyArchiveRecord = (recordId: string) => {
+    const record = archiveRecords.find((candidate) => candidate.id === recordId);
+    if (!record) return;
+    setTitle(record.title);
+    setDescription(record.shortDescription);
+    setDetailedDescription(record.longDescription);
+    setThemeName(record.themes.slice(0, 3).join(' / ') || themeNames[theme]);
+  };
+
   const validationMessage = useMemo(() => {
     if (!title.trim()) return '프로그램 제목을 입력하세요.';
+    if (inheritArchiveContent && !archiveRecordId) return '자동 반영할 공개 프로그램 기록을 선택하세요.';
 
     const startDate = parseISO(date);
     if (!isValid(startDate)) return '날짜와 시간을 확인하세요.';
@@ -96,7 +115,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     }
 
     return '';
-  }, [date, duration, isRecurring, recurrenceType, recurrenceValue, selectedDays.length, title]);
+  }, [archiveRecordId, date, duration, inheritArchiveContent, isRecurring, recurrenceType, recurrenceValue, selectedDays.length, title]);
 
   const handleSave = () => {
     if (validationMessage) return;
@@ -118,6 +137,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
       maxParticipants: maxParticipants || undefined,
       recurringGroupId: event?.recurringGroupId,
       archiveRecordId: archiveRecordId || undefined,
+      inheritArchiveContent: archiveRecordId ? inheritArchiveContent : false,
     };
 
     const recurrence = isRecurring ? {
@@ -159,13 +179,45 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
             <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Public folio</span> / <span lang="ko">연결할 공개 프로그램 기록</span></label>
             <select
               value={archiveRecordId}
-              onChange={(event) => setArchiveRecordId(event.target.value)}
+              onChange={(event) => {
+                const nextId = event.target.value;
+                setArchiveRecordId(nextId);
+                if (!nextId) {
+                  setInheritArchiveContent(false);
+                  return;
+                }
+                if (!archiveRecordId || inheritArchiveContent) {
+                  setInheritArchiveContent(true);
+                  applyArchiveRecord(nextId);
+                }
+              }}
               className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-stone-200"
             >
               <option value="">연결하지 않음</option>
+              {archiveRecordId && !archiveRecords.some((record) => record.id === archiveRecordId) && (
+                <option value={archiveRecordId}>연결 기록을 찾을 수 없음 / {archiveRecordId}</option>
+              )}
               {archiveRecords.map((record) => <option value={record.id} key={record.id}>{record.edition} / {record.title}</option>)}
             </select>
-            <p className="text-[10px] text-stone-400" lang="ko">같은 소개, 읽기 자료와 아카이브 계보를 다시 입력하지 않고 회원 일정에서 바로 연결합니다.</p>
+            {archiveRecordId && (
+              <label className="flex items-start gap-2 border border-stone-200 bg-stone-50 p-3 text-[11px] font-bold text-stone-600">
+                <input
+                  type="checkbox"
+                  checked={inheritArchiveContent}
+                  onChange={(event) => {
+                    setInheritArchiveContent(event.target.checked);
+                    if (event.target.checked) applyArchiveRecord(archiveRecordId);
+                  }}
+                  className="mt-0.5"
+                />
+                <span lang="ko">공개 기록이 바뀌면 이 일정의 제목·소개·주제도 자동으로 갱신합니다.</span>
+              </label>
+            )}
+            <p className="text-[10px] text-stone-400" lang="ko">
+              {inheritArchiveContent
+                ? '일시·정원·신청 조건만 이 일정에서 관리합니다. 소개 문장은 공개 판본을 따릅니다.'
+                : '회차별 제목과 설명을 따로 유지합니다. 읽기 자료와 아카이브 계보만 공개 기록으로 연결합니다.'}
+            </p>
           </div>
 
           <div className="space-y-2">

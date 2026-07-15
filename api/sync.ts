@@ -103,14 +103,59 @@ function validateSyncData(scope: SyncScope, data: unknown) {
   const hasDrafts = data.drafts === undefined || isPlainObject(data.drafts);
   const hasSiteText = data.siteText === undefined || isPlainObject(data.siteText);
   const hasReferences = data.references === undefined || isPlainObject(data.references);
+  const hasPublications = data.publications === undefined || isPlainObject(data.publications);
   if (
     !hasDrafts
     || !hasSiteText
     || !hasReferences
+    || !hasPublications
     || (data.drafts === undefined && data.siteText === undefined && data.references === undefined)
   ) {
     throw new SyncError(400, 'invalid_archive_payload');
   }
+
+  if (isPlainObject(data.publications)) {
+    const publicationGroups = Object.entries(data.publications);
+    if (publicationGroups.length > 1_000) throw new SyncError(400, 'invalid_publication_history');
+    publicationGroups.forEach(([recordId, manifests]) => {
+      if (!recordId || recordId.length > 120 || !Array.isArray(manifests) || manifests.length > 200) {
+        throw new SyncError(400, 'invalid_publication_history');
+      }
+      manifests.forEach((manifest) => {
+        if (
+          !isPlainObject(manifest)
+          || manifest.recordId !== recordId
+          || typeof manifest.id !== 'string'
+          || typeof manifest.contentHash !== 'string'
+          || typeof manifest.createdAt !== 'string'
+          || !isPlainObject(manifest.event)
+          || !isPlainObject(manifest.poster)
+          || !Array.isArray(manifest.references)
+        ) {
+          throw new SyncError(400, 'invalid_publication_history');
+        }
+      });
+    });
+  }
+}
+
+function assertPublicationHistoryPreserved(existing: any, nextData: Record<string, unknown>) {
+  const previous = isPlainObject(existing?.data?.publications) ? existing.data.publications : {};
+  if (Object.keys(previous).length === 0) return;
+  const next = isPlainObject(nextData.publications) ? nextData.publications : {};
+  Object.entries(previous).forEach(([recordId, manifests]) => {
+    if (!Array.isArray(manifests)) return;
+    const nextManifests = Array.isArray(next[recordId]) ? next[recordId] as unknown[] : [];
+    manifests.forEach((manifest) => {
+      if (!isPlainObject(manifest)) return;
+      const preserved = nextManifests.some((candidate) => (
+        isPlainObject(candidate)
+        && candidate.id === manifest.id
+        && candidate.contentHash === manifest.contentHash
+      ));
+      if (!preserved) throw new SyncError(409, 'publication_history_conflict');
+    });
+  });
 }
 
 function savedAtFromBody(body: Record<string, unknown>) {
@@ -136,7 +181,7 @@ function publicArchiveSnapshot(saved: any) {
   return {
     ...saved,
     data: {
-      ...(saved.data.schemaVersion === 1 || saved.data.schemaVersion === 2
+      ...(saved.data.schemaVersion === 1 || saved.data.schemaVersion === 2 || saved.data.schemaVersion === 3
         ? { schemaVersion: saved.data.schemaVersion }
         : {}),
       drafts: publicDrafts,
@@ -198,6 +243,8 @@ export default async function handler(request: any, response: any) {
           savedAt: existing.savedAt,
         });
       }
+
+      if (scope === 'archive') assertPublicationHistoryPreserved(existing, data);
 
       const saved = {
         scope,

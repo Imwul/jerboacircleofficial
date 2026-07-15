@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, Component } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Component } from 'react';
 import { INITIAL_USERS, INITIAL_EVENTS } from './constants';
 import { User, CalendarEvent, ThemeColor } from './types';
 import { LoginView } from './components/views/LoginView';
@@ -17,6 +17,8 @@ import { roleSessionToken } from './utils/roleAuth';
 import { deriveParticipantJourney, stampParticipantActivity } from './utils/participantJourney';
 import { trackProductEvent } from './utils/productAnalytics';
 import { events as archiveRecords, getPublicArchiveEvents } from './data/events';
+import { applyArchiveDraftMap, applyArchiveDrafts, type ArchiveDraftMap } from './utils/archiveDrafts';
+import { inspectMemberSchedule, resolveMemberProgrammeEvents } from './utils/memberProgrammeSchedule';
 import ConnectivityNotice from './components/ui/ConnectivityNotice';
 import ConfirmDialog from './components/ui/ConfirmDialog';
 import { parseMembersImport, type MembersSyncPayload } from './utils/membersImport';
@@ -161,6 +163,8 @@ function App() {
       return INITIAL_EVENTS;
     }
   });
+  const [publicArchiveRecords, setPublicArchiveRecords] = useState(() => getPublicArchiveEvents(applyArchiveDrafts(archiveRecords)));
+  const [programmeLinkStatus, setProgrammeLinkStatus] = useState('공개 프로그램 기록 확인 중');
 
   const [themeNames, setThemeNames] = useState<Record<ThemeColor, string>>(() => {
     try {
@@ -206,7 +210,7 @@ function App() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const createMembersSyncPayload = (): MembersSyncPayload => ({
-    schemaVersion: 1,
+    schemaVersion: 2,
     users,
     events,
     themeNames,
@@ -305,6 +309,25 @@ function App() {
 
   useEffect(() => {
     void loadMembersFromServer();
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    void loadServerSync<{ schemaVersion?: 1 | 2 | 3; drafts?: ArchiveDraftMap }>('archive').then((result) => {
+      if (ignore) return;
+      const nextRecords = result.exists && result.saved?.data?.drafts
+        ? getPublicArchiveEvents(applyArchiveDraftMap(archiveRecords, result.saved.data.drafts))
+        : getPublicArchiveEvents(applyArchiveDrafts(archiveRecords));
+      setPublicArchiveRecords(nextRecords);
+      setProgrammeLinkStatus(`공개 프로그램 ${nextRecords.length}개 연결됨`);
+    }).catch((error) => {
+      if (ignore) return;
+      const fallbackRecords = getPublicArchiveEvents(applyArchiveDrafts(archiveRecords));
+      setPublicArchiveRecords(fallbackRecords);
+      setProgrammeLinkStatus(`공개 프로그램 ${fallbackRecords.length}개 / 기본 장부 사용 중`);
+      if (!(error instanceof Error) || error.message !== 'sync_unavailable') console.warn('Public programme sync skipped:', error);
+    });
+    return () => { ignore = true; };
   }, []);
 
   useEffect(() => {
@@ -565,6 +588,7 @@ function App() {
       endDate: eventData.endDate!,
       maxParticipants: eventData.maxParticipants,
       archiveRecordId: eventData.archiveRecordId,
+      inheritArchiveContent: eventData.inheritArchiveContent,
     };
 
     if (editingEvent) {
@@ -635,9 +659,12 @@ function App() {
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
+  const resolvedEvents = useMemo(() => resolveMemberProgrammeEvents(events, publicArchiveRecords), [events, publicArchiveRecords]);
+  const scheduleIssues = useMemo(() => inspectMemberSchedule(events, publicArchiveRecords), [events, publicArchiveRecords]);
+  const scheduleErrorCount = scheduleIssues.filter((issue) => issue.severity === 'error').length;
   const todayKeyForArchive = format(new Date(), 'yyyy-MM-dd');
   const nextMemberProgramme = activeUserData
-    ? events
+    ? resolvedEvents
       .filter((event) => activeUserData.enrolledEventIds.includes(event.id) && parseISO(event.endDate || event.date).getTime() >= Date.now())
       .sort((a, b) => a.date.localeCompare(b.date))[0]
     : undefined;
@@ -769,7 +796,7 @@ function App() {
               <div>
                 <span lang="en">Programme folios</span>
                 <small lang="ko">등록된 장</small>
-                <strong>{events.length}</strong>
+                <strong>{resolvedEvents.length}</strong>
               </div>
               <div>
                 <span lang="en">Filed attendances</span>
@@ -786,6 +813,21 @@ function App() {
                 <small lang="ko">{lapsedParticipants > 0 ? `쉬는 중 ${lapsedParticipants}명` : '오늘 주석을 남긴 회원'}</small>
                 <strong>{completedToday}</strong>
               </div>
+            </section>
+          )}
+
+          {currentUser === 'admin' && (
+            <section className="member-schedule-integrity" data-state={scheduleErrorCount > 0 ? 'error' : scheduleIssues.length > 0 ? 'warning' : 'ready'} aria-label="Programme schedule integrity">
+              <div>
+                <span lang="en">Programme source</span>
+                <strong lang="ko">{scheduleErrorCount > 0 ? `일정 연결 오류 ${scheduleErrorCount}건` : scheduleIssues.length > 0 ? `별도 회차 문구 ${scheduleIssues.length}건` : '공개 기록과 일정이 연결됨'}</strong>
+                <small lang="ko">{programmeLinkStatus}</small>
+              </div>
+              {scheduleIssues.length > 0 && (
+                <ul>
+                  {scheduleIssues.slice(0, 4).map((issue) => <li data-severity={issue.severity} key={issue.id}>{issue.message}</li>)}
+                </ul>
+              )}
             </section>
           )}
 
@@ -830,7 +872,7 @@ function App() {
             ) : currentUser === 'admin' ? (
               activeTab === 'calendar' ? (
                 <CalendarView 
-                  events={events} user="admin" users={users} isAdmin={true}
+                  events={resolvedEvents} user="admin" users={users} isAdmin={true}
                   onJoinEvent={() => {}} onCancelEvent={() => {}} 
                   onAddEvent={openAddEventModal} onEditEvent={openEditEventModal}
                   onDeleteEvent={handleDeleteEvent} onCopyEvent={handleCopyEvent}
@@ -840,7 +882,7 @@ function App() {
               ) : (
                 <AdminView 
                   users={users} 
-                  events={events}
+                  events={resolvedEvents}
                   onUpdateUser={(user) => setUsers(prev => prev.map(u => u.id === user.id ? user : u))}
                   onAddUser={(user) => setUsers(prev => [...prev, user])}
                   onDeleteUser={handleDeleteUser}
@@ -858,7 +900,7 @@ function App() {
                 />
               )
             ) : activeTab === 'calendar' ? (
-              <CalendarView events={events} user={activeUserData} users={users} onJoinEvent={joinEvent} onCancelEvent={cancelEvent} isAdmin={false} />
+              <CalendarView events={resolvedEvents} user={activeUserData} users={users} onJoinEvent={joinEvent} onCancelEvent={cancelEvent} isAdmin={false} />
             ) : activeTab === 'habit' ? (
               <HabitTrackingView 
                 user={activeUserData!} 
@@ -898,7 +940,7 @@ function App() {
             initialDate={selectedDateForNewEvent} 
             event={editingEvent} 
             themeNames={themeNames}
-            archiveRecords={getPublicArchiveEvents(archiveRecords).map(({ id, title, edition }) => ({ id, title, edition }))}
+            archiveRecords={publicArchiveRecords.map(({ id, title, edition, shortDescription, longDescription, themes }) => ({ id, title, edition, shortDescription, longDescription, themes }))}
           />
           <ConfirmDialog
             open={Boolean(pendingMembersImport)}

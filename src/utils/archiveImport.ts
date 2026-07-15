@@ -1,6 +1,7 @@
 import type { ArchiveDraftMap, ArchiveEventDraft } from './archiveDrafts';
 import type { ArchiveReference, ArchiveReferenceKind } from '../data/archiveKnowledge';
 import type { ArchiveReferenceDraftMap } from './archiveReferenceDrafts';
+import type { ArchivePublicationManifest, ArchivePublicationMap } from './publicationLedger';
 
 const stringFields = new Set<keyof ArchiveEventDraft>([
   'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage',
@@ -32,7 +33,7 @@ function assert(condition: unknown, message: string): asserts condition {
 
 function readDraftCandidate(payload: unknown) {
   assert(isRecord(payload), '파일의 최상위 구조가 올바르지 않습니다.');
-  if (typeof payload.version === 'number') assert(payload.version === 1, '지원하지 않는 백업 파일 버전입니다.');
+  if (typeof payload.version === 'number') assert(payload.version === 1 || payload.version === 2, '지원하지 않는 백업 파일 버전입니다.');
   if (typeof payload.type === 'string') {
     assert(
       payload.type === 'jerboa-archive-drafts' || payload.type === 'jerboa-sync-recovery',
@@ -40,11 +41,19 @@ function readDraftCandidate(payload: unknown) {
     );
   }
   if (payload.type === 'jerboa-sync-recovery') assert(payload.scope === 'archive', '회원 장부 복구 파일은 아카이브에 적용할 수 없습니다.');
-  if (isRecord(payload.drafts)) return { drafts: payload.drafts, references: isRecord(payload.references) ? payload.references : {} };
+  if (isRecord(payload.drafts)) return {
+    drafts: payload.drafts,
+    references: isRecord(payload.references) ? payload.references : {},
+    publications: isRecord(payload.publications) ? payload.publications : {},
+  };
   if (isRecord(payload.data) && isRecord(payload.data.drafts)) {
-    return { drafts: payload.data.drafts, references: isRecord(payload.data.references) ? payload.data.references : {} };
+    return {
+      drafts: payload.data.drafts,
+      references: isRecord(payload.data.references) ? payload.data.references : {},
+      publications: isRecord(payload.data.publications) ? payload.data.publications : {},
+    };
   }
-  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) return { drafts: payload, references: {} };
+  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) return { drafts: payload, references: {}, publications: {} };
   throw new Error('파일에서 아카이브 초안을 찾을 수 없습니다.');
 }
 
@@ -102,11 +111,36 @@ function validateDraft(id: string, value: unknown) {
   return draft as ArchiveEventDraft;
 }
 
+function validatePublications(candidate: Record<string, unknown>) {
+  const entries = Object.entries(candidate);
+  assert(entries.length <= 1_000, '발행 이력이 1,000개 기록을 넘어 적용할 수 없습니다.');
+  const publications: ArchivePublicationMap = {};
+  let publicationCount = 0;
+  entries.forEach(([recordId, value]) => {
+    assert(recordId.length > 0 && recordId.length <= 120, '발행 기록 ID 길이가 올바르지 않습니다.');
+    assert(Array.isArray(value) && value.length <= 200, `${recordId}: 발행 이력이 목록 형식이 아닙니다.`);
+    publications[recordId] = value.map((manifest) => {
+      assert(isRecord(manifest), `${recordId}: 발행본 정보가 객체 형식이 아닙니다.`);
+      assert(manifest.recordId === recordId, `${recordId}: 발행본의 기록 ID가 장부 키와 다릅니다.`);
+      ['id', 'recordId', 'title', 'edition', 'publishedAt', 'createdAt', 'contentHash'].forEach((field) => {
+        assert(typeof manifest[field] === 'string' && manifest[field].length > 0 && manifest[field].length <= 5_000, `${recordId}: 발행본 ${field} 값이 올바르지 않습니다.`);
+      });
+      assert(isRecord(manifest.event), `${recordId}: 발행본 프로그램 기록이 없습니다.`);
+      assert(isRecord(manifest.poster), `${recordId}: 발행본 포스터 지문이 없습니다.`);
+      assert(Array.isArray(manifest.references), `${recordId}: 발행본 자료 목록이 없습니다.`);
+      publicationCount += 1;
+      return manifest as unknown as ArchivePublicationManifest;
+    });
+  });
+  return { publications, publicationCount };
+}
+
 export function parseArchiveDraftImport(payload: unknown) {
   const candidate = readDraftCandidate(payload);
   const entries = Object.entries(candidate.drafts);
   const references = validateReferences(candidate.references);
-  assert(entries.length > 0 || Object.keys(references).length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
+  const { publications, publicationCount } = validatePublications(candidate.publications);
+  assert(entries.length > 0 || Object.keys(references).length > 0 || publicationCount > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
   assert(entries.length <= 1_000, '초안 기록이 1,000개를 넘어 적용할 수 없습니다.');
 
   const drafts: ArchiveDraftMap = {};
@@ -119,5 +153,5 @@ export function parseArchiveDraftImport(payload: unknown) {
     fieldCount += Object.keys(draft).length;
   });
 
-  return { drafts, references, recordCount: entries.length, referenceCount: Object.keys(references).length, fieldCount };
+  return { drafts, references, publications, recordCount: entries.length, referenceCount: Object.keys(references).length, publicationCount, fieldCount };
 }

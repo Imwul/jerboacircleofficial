@@ -1962,6 +1962,85 @@
   flex: 0 1 auto;
 }
 
+.keeper-publication-panel {
+  display: grid;
+  gap: 0.75rem;
+  border: 2px solid var(--ink);
+  padding: 0.9rem;
+  background: rgba(214, 164, 58, 0.2);
+  font-family: var(--font-ko);
+}
+
+.keeper-publication-panel > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 0.8rem;
+}
+
+.keeper-publication-panel p,
+.keeper-publication-panel small {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.keeper-publication-panel > button {
+  justify-self: start;
+  min-height: 2.8rem;
+  border: 2px solid var(--ink);
+  padding: 0.45rem 0.8rem;
+  background: var(--signal-gold);
+  font-family: var(--font-ko);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.keeper-publication-panel > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.keeper-publication-diff {
+  display: grid !important;
+  justify-content: stretch !important;
+  gap: 0.45rem !important;
+  border-top: 1px solid var(--ink);
+  padding-top: 0.65rem;
+}
+
+.keeper-publication-diff ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keeper-publication-diff li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.45fr) minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: baseline;
+}
+
+.keeper-publication-diff li[data-kind='reference-added'] span::before {
+  content: '+ ';
+}
+
+.keeper-publication-diff li[data-kind='reference-removed'] span::before {
+  content: '− ';
+}
+
+.keeper-publication-diff li[data-kind='reference-updated'] span::before {
+  content: '△ ';
+}
+
+.keeper-publication-diff li small {
+  overflow-wrap: anywhere;
+}
+
 .keeper-revision-history {
   display: grid;
   gap: 0.8rem;
@@ -2280,7 +2359,7 @@
 
 .keeper-mode-switch {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 2px solid var(--ink);
 }
 
@@ -2302,6 +2381,21 @@
 
 .keeper-mode-switch button.is-active {
   background: var(--signal-blue, #979bc8);
+}
+
+@media (max-width: 420px) {
+  .keeper-mode-switch {
+    grid-template-columns: 1fr;
+  }
+
+  .keeper-mode-switch button {
+    border-right: 0;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .keeper-mode-switch button:last-child {
+    border-bottom: 0;
+  }
 }
 
 .godmode-editor {
@@ -5296,7 +5390,7 @@ html body .public-home.detail-home .archive-connection-index li > a:focus-visibl
 }
 
 /* Editorial type roles: display navigation and major titles keep Deigrat;
-   compact English records and body copy use Deutsch Gothic. */
+   compact English records and body copy use Gotica Prime. */
 .public-home .archive-body-en,
 .public-home .catalogue-index .archive-body-en,
 .public-home .catalogue-relations .archive-body-en,

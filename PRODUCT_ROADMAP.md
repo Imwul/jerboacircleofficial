@@ -129,3 +129,42 @@ This pass deliberately implements only improvements that strengthen the existing
 - generated catalogue provenance, institutional source links, rights links, credits, and alt text for every current editorial plate.
 
 The next implementation phase should begin with the Critical infrastructure decisions above, not with additional public-facing features.
+
+## Second implementation checkpoint
+
+The publication workflow now separates routine draft synchronization from an intentional public release:
+
+- a programme must pass required-field, relationship, visibility, reference, image-source, rights, and alt-text checks before release;
+- warnings remain visible but only blocking errors disable publication;
+- publication requires an authenticated archive role or shared ledger key and a final confirmation;
+- each successful release records an append-only manifest with the exact programme metadata, connected reference metadata, poster checksum, timestamp, and content fingerprint;
+- the server rejects synchronization that removes or mutates an existing publication manifest;
+- backups, recovery files, and shared synchronization now carry publication history under schema version 3 while retaining compatibility with versions 1 and 2.
+
+This is a safe bridge to the future transactional database: it establishes publication semantics and immutable edition identity now, without pretending browser storage is the final institutional repository.
+
+## Third implementation checkpoint
+
+Public programme editions and private-room schedule occurrences now share one editorial source without collapsing their different responsibilities:
+
+- a member schedule occurrence can inherit its title, summary, full description, and themes from a published programme record;
+- date, duration, capacity, participation cost/reward, recurrence, and enrolment remain occurrence-level operational fields;
+- existing workshops with a distinct session title remain in “session copy” mode and keep their wording intentionally;
+- editors can switch a linked occurrence to automatic programme copy with one control instead of re-entering four text fields;
+- the private room reads the current public archive projection without overwriting keeper drafts in browser storage;
+- schedule integrity checks surface missing programme links, duplicate occurrence IDs, invalid time ranges, and intentional copy overrides;
+- member backup schema version 2 preserves the inheritance choice while continuing to accept version 1 files.
+
+This reduces editorial drift for first-time visitors moving from a member invitation to the public record, while long-term members receive consistent programme context even when a curator improves the canonical description later.
+
+## Fourth implementation checkpoint
+
+Published editions can now be compared and recovered without weakening the append-only archive:
+
+- the keeper sees whether a record is being published for the first time or how many fields changed from the latest edition;
+- changed metadata, poster fingerprints, and added or removed reference records are summarized before the final publication action;
+- a previous published edition can be copied into a new recovery draft without deleting or rewriting any publication manifest;
+- recovery drafts deliberately begin as `preview` and `unlisted`, preventing an old edition from silently replacing the current public record;
+- embedded poster binaries are never reconstructed from a checksum; when no durable source URL exists, recovery preserves the current poster and requires visual review.
+
+For first-time visitors this reduces accidental incomplete or contradictory releases. For long-term members and future keepers it preserves a legible editorial chain while making recovery practical instead of destructive.

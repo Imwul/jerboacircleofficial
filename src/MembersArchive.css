@@ -2025,3 +2025,54 @@
   font: inherit;
   cursor: pointer;
 }
+
+.members-archive .member-schedule-integrity {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.65fr) minmax(0, 1.35fr);
+  gap: 0.8rem 1.2rem;
+  border-bottom: 2px solid var(--register-ink);
+  padding: 0.8rem 1rem;
+  background: var(--register-green);
+  font-family: var(--font-ko);
+}
+
+.members-archive .member-schedule-integrity[data-state="error"] {
+  background: var(--register-red);
+}
+
+.members-archive .member-schedule-integrity[data-state="warning"] {
+  background: var(--register-action);
+}
+
+.members-archive .member-schedule-integrity > div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.members-archive .member-schedule-integrity span,
+.members-archive .member-schedule-integrity strong,
+.members-archive .member-schedule-integrity small {
+  line-height: 1.25;
+}
+
+.members-archive .member-schedule-integrity ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.members-archive .member-schedule-integrity li {
+  border-left: 3px solid var(--register-ink);
+  padding-left: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  .members-archive .member-schedule-integrity {
+    grid-template-columns: 1fr;
+  }
+}
