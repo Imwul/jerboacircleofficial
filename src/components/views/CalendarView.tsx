@@ -154,7 +154,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        <p className="archive-calendar-hint" lang="ko">날짜를 선택하면 그날의 프로그램을 펼칩니다</p>
       </div>
 
       <div className="archive-calendar-scroll">
@@ -199,7 +198,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
-            <span lang="en">Itinerary</span> / <span lang="ko">{format(selectedDate, 'MM dd')} 프로그램</span>
+            <span lang="ko">{format(selectedDate, 'MM dd')} 프로그램</span>
           </h3>
           {isAdmin && (
             <div className="flex gap-2">
@@ -223,8 +222,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
         {selectedEvents.length === 0 ? (
           <div className="py-12 text-center space-y-2">
-            <div className="archive-empty-mark" aria-hidden="true">⚜</div>
-            <p className="text-xs font-bold text-stone-300 tracking-widest">이 날짜에 등록된 프로그램이 없습니다</p>
+            <p className="text-xs font-bold text-stone-300 tracking-widest">이 날짜에는 프로그램이 없습니다.</p>
             {nextAvailableDate && (
               <button
                 type="button"

@@ -142,7 +142,6 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
         </div>
       </div>
       <div className="masthead-index">
-        <p className="gate-label" lang="en">Gate</p>
         <p lang="en">{siteText.mastheadIntroEn}</p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
         <EditorialPlate
@@ -197,14 +196,6 @@ function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteTex
         <dd lang={textLang(event.edition)}>{event.edition}</dd>
       </div>
       <div>
-        <dt lang={textLang(siteText.metaDate)}>{siteText.metaDate}</dt>
-        <dd lang={textLang(event.date)}>{event.date}</dd>
-      </div>
-      <div>
-        <dt lang={textLang(siteText.metaStatus)}>{siteText.metaStatus}</dt>
-        <dd lang={textLang(statusLabel(event.status, siteText))}>{statusLabel(event.status, siteText)}</dd>
-      </div>
-      <div>
         <dt lang={textLang(siteText.metaFormat)}>{siteText.metaFormat}</dt>
         <dd lang={textLang(event.location)}>{event.location}</dd>
       </div>
@@ -244,9 +235,6 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
         <h1 lang={textLang(featuredEvent.title)}>{featuredEvent.title}</h1>
-        <p className="korean-annotation" lang="ko">
-          {siteText.featuredAnnotation}
-        </p>
         <p className="event-subtitle" lang={textLang(featuredEvent.subtitle)}>{featuredEvent.subtitle}</p>
         <p className="latin-line" lang={textLang(featuredEvent.latinQuote)}>{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
@@ -308,9 +296,6 @@ function PosterTile({
   isBookmarked: boolean;
   onToggleBookmark: (id: string) => void;
 }) {
-  const season = getSeasonById(event.seasonId);
-  const collections = getCollectionsForEvent(event);
-
   return (
     <article className="poster-tile section-reveal">
       <button
@@ -329,11 +314,8 @@ function PosterTile({
         <div className="poster-caption">
           <span>{event.edition}</span>
           <h2 lang={textLang(event.title)}>{event.title}</h2>
-          <small>{season ? `${season.label} / ${collections[0]?.title ?? event.kind}` : event.kind}</small>
-          <small>{event.latinQuote}</small>
           <p lang="ko">{event.shortDescription}</p>
-          <em lang="ko">{event.marginalia}</em>
-          <ThemeList themes={event.themes} />
+          <ThemeList themes={event.themes.slice(0, 3)} />
         </div>
         <span className="poster-open-tab" aria-hidden="true">Open <i>🜍</i></span>
       </a>
@@ -446,7 +428,6 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
         </div>
         <div className="archive-discovery">
           <label className="archive-search">
-            <span lang="en">Find</span>
             <span className="archive-search-control">
               <input
                 type="search"
@@ -506,12 +487,11 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
               ))}
             </select>
           </label>
-          <p className="archive-results-count">
-            <span lang="ko">
-              {visibleEvents.length}개의 기록
-              {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
-            </span>
-          </p>
+          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || filedOnly) && (
+            <p className="archive-results-count">
+              <span lang="ko">기록 {visibleEvents.length}개</span>
+            </p>
+          )}
           {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || filedOnly) && (
             <button
               className="archive-filter-reset"
@@ -524,36 +504,24 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
                 setFiledOnly(false);
               }}
             >
-              <span lang="ko">검색과 필터 지우기</span>
+              <span lang="ko">필터 지우기</span>
             </button>
           )}
         </div>
       </div>
       {archiveView === 'chronology' ? (
-        <>
-          <div className="archive-ledger" aria-label="Programme index">
+        orderedVisibleEvents.length > 0 ? (
+          <div className="poster-grid">
             {orderedVisibleEvents.map((event) => (
-              <a href={event.ctaHref} key={event.id}>
-                <span>{event.edition}</span>
-                <strong lang={textLang(event.title)}>{event.title}</strong>
-                <em>{getSeasonById(event.seasonId)?.label ?? event.date}</em>
-                <small lang="ko">{event.marginalia}</small>
-              </a>
+              <PosterTile
+                event={event}
+                isBookmarked={bookmarkedIds.includes(event.id)}
+                key={event.id}
+                onToggleBookmark={toggleBookmark}
+              />
             ))}
           </div>
-          {orderedVisibleEvents.length > 0 && (
-            <div className="poster-grid">
-              {orderedVisibleEvents.map((event) => (
-                <PosterTile
-                  event={event}
-                  isBookmarked={bookmarkedIds.includes(event.id)}
-                  key={event.id}
-                  onToggleBookmark={toggleBookmark}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        ) : null
       ) : orderedVisibleEvents.length > 0 ? <ArchiveConstellation records={orderedVisibleEvents} references={references} /> : null}
       {orderedVisibleEvents.length === 0 && (
         <div className="archive-empty-state" role="status" lang="ko">

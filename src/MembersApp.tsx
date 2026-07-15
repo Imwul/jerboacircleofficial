@@ -729,12 +729,7 @@ function App() {
                 </button>
               )}
             </nav>
-          ) : (
-            <div className="archive-cabinet-note">
-              <span lang="en">Choose a register</span>
-              <small lang="ko">이름을 선택하면 개인 장부가 열립니다</small>
-            </div>
-          )}
+          ) : null}
           <a className="archive-godmode-link" href="/godmode/">
             <span lang="en"><i aria-hidden="true">⚜</i> Keeper Desk</span>
             <small lang="ko">보관자 문구실</small>
@@ -752,7 +747,7 @@ function App() {
 
         <div className="archive-workbench">
           <ConnectivityNotice context="비공개 장부" />
-          {lastSaved && (
+          {currentUser && lastSaved && (
             <div className="archive-save-notice">
               로컬 초안 보관 중 / {lastSaved}
             </div>
@@ -776,7 +771,7 @@ function App() {
             <div className="archive-topbar-copy">
               <p lang="en">Jerboa Circle / private room</p>
               <h1 lang="en">{archiveSectionTitle}</h1>
-              <span lang="ko">{archiveSectionNote}</span>
+              {currentUser === 'admin' && <span lang="ko">{archiveSectionNote}</span>}
               <RegisterSyncStatus status={serverSyncStatus} />
             </div>
             <div className="archive-topbar-actions">
@@ -791,7 +786,7 @@ function App() {
             </div>
           </header>
 
-          {currentUser && (
+          {currentUser === 'admin' && (
             <section className="archive-context" aria-label="Archive summary">
               <div>
                 <span lang="en">Programme folios</span>
@@ -834,11 +829,10 @@ function App() {
           {activeUserData && (
             <section className="member-next-actions" aria-labelledby="member-next-actions-title">
               <div>
-                <span lang="en">Next folio</span>
-                <h2 id="member-next-actions-title" lang="ko">지금 이어서 할 일</h2>
+                <h2 id="member-next-actions-title" lang="ko">다음</h2>
               </div>
               <article>
-                <small lang="ko">다음 참여 프로그램</small>
+                <small lang="ko">프로그램</small>
                 {nextMemberProgramme ? (
                   <>
                     <strong>{nextMemberProgramme.title}</strong>
@@ -853,7 +847,7 @@ function App() {
                 )}
               </article>
               <article>
-                <small lang="ko">오늘의 개인 기록</small>
+                <small lang="ko">개인 기록</small>
                 <strong lang="ko">{todayReflectionComplete ? '오늘의 주석을 남겼습니다.' : '아직 끝내지 않은 주석이 있습니다.'}</strong>
                 <button type="button" onClick={() => setActiveTab('habit')}><span lang="ko">{todayReflectionComplete ? '기록 다시 보기' : '이어서 기록하기'}</span></button>
               </article>

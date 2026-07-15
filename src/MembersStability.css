@@ -1648,3 +1648,60 @@ html body .members-archive .member-login-intent > ol > li:last-child {
     border-bottom: 1px solid #050505;
   }
 }
+
+/* Editorial refinement: the member's next decision is the focal point. */
+html body .members-archive .member-login-intent {
+  display: block !important;
+  width: min(32rem, 100%) !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  display: block !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  font-size: clamp(0.85rem, 1vw, 0.98rem) !important;
+  line-height: 1.65 !important;
+  text-align: center !important;
+  transform: none !important;
+}
+
+html body .members-archive .member-next-actions {
+  grid-template-columns: minmax(6rem, 0.24fr) repeat(2, minmax(0, 1fr)) !important;
+  gap: clamp(1rem, 2vw, 2rem) !important;
+  border-top: 1px solid rgba(5, 5, 5, 0.55) !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.55) !important;
+  padding: clamp(1rem, 2vw, 1.5rem) !important;
+  background: #f7efdd !important;
+}
+
+html body .members-archive .member-next-actions > * {
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+html body .members-archive .member-next-actions h2 {
+  font-size: clamp(1.15rem, 1.7vw, 1.55rem) !important;
+}
+
+@media (max-width: 800px) {
+  html body .members-archive .member-next-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .members-archive .member-next-actions > * {
+    padding-bottom: 1rem !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.2) !important;
+  }
+
+  html body .members-archive .member-next-actions > :last-child {
+    border-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}

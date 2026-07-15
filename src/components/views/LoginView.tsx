@@ -56,7 +56,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
     <div className="member-login flex flex-col items-center justify-center min-h-full p-6 space-y-8 bg-white relative">
       <div className="flex flex-col items-center space-y-4 text-center">
         <div className="space-y-1">
-          <p className="italic text-stone-400 text-sm font-medium"><span lang="en">Antecamera</span> / <span lang="ko">회원 입장 화면</span></p>
           <h1 className="text-4xl font-black text-stone-900" lang="en">
             Reader folios
           </h1>
@@ -65,19 +64,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           <img src={entryImage} alt="" aria-hidden="true" />
         </figure>
         <div className="member-login-intent">
-          <span lang="en">Private archive room</span>
-          <p lang="ko"><span lang="ko">회원실은 프로그램 신청, 오늘의 기록, 개인 장부를 남기는 비공개 공간입니다.</span></p>
-          <ol>
-            <li lang="ko"><span lang="ko">이름 선택</span></li>
-            <li lang="ko"><span lang="ko">일정 확인</span></li>
-            <li lang="ko"><span lang="ko">기록 남기기</span></li>
-          </ol>
+          <p lang="ko"><span lang="ko">이름을 선택해 일정과 개인 기록으로 들어갑니다.</span></p>
         </div>
       </div>
 
       <div className="w-full space-y-4">
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400" lang="ko">회원 이름을 선택하면 개인 장부로 들어갑니다 / {users.length}명</p>
+          <p className="text-[10px] font-black text-stone-400" lang="ko">개인 장부 {users.length}개</p>
           <div className="h-px flex-1 bg-stone-100 ml-4" />
         </div>
         <div className="grid grid-cols-1 gap-3">

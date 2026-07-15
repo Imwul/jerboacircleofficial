@@ -5389,31 +5389,6 @@ html body .public-home.detail-home .archive-connection-index li > a:focus-visibl
   line-height: 1;
 }
 
-/* Editorial type roles: display navigation and major titles keep Deigrat;
-   compact English records and body copy use Gotica Prime. */
-.public-home .archive-body-en,
-.public-home .catalogue-index .archive-body-en,
-.public-home .catalogue-relations .archive-body-en,
-.public-home .catalogue-programmes .archive-body-en,
-.public-home .event-subtitle[lang="en"],
-.public-home .latin-line[lang="en"],
-.public-home .theme-tags li[lang="en"],
-.public-home .text-index li span[lang="en"],
-.public-home .archive-ledger strong[lang="en"],
-.public-home .archive-connection-index strong[lang="en"],
-.public-home .constellation-node strong[lang="en"] {
-  font-family: var(--font-body-en);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-}
-
-.public-home .catalogue-index strong.archive-body-en,
-.public-home .catalogue-relations strong.archive-body-en,
-.public-home .catalogue-programmes strong.archive-body-en,
-.public-home .constellation-node strong[lang="en"] {
-  line-height: 1.18;
-}
-
 .catalogue-detail .bilingual-divider {
   font-family: var(--font-display);
 }

@@ -162,12 +162,10 @@ const siteTextFields: Array<{
   { key: 'ritualFour', label: '의식 4' },
   { key: 'featuredKickerEn', label: '현재 프로그램 영어 표제' },
   { key: 'featuredKickerKo', label: '현재 프로그램 한글 표제' },
-  { key: 'featuredAnnotation', label: '현재 프로그램 한글 주석', area: true },
   { key: 'journeyLabel', label: '여정 표 제목' },
   { key: 'materialsLabel', label: '자료 표 제목' },
   { key: 'metaEdition', label: '메타 / 판본' },
   { key: 'metaDate', label: '메타 / 일자' },
-  { key: 'metaStatus', label: '메타 / 상태' },
   { key: 'metaFormat', label: '메타 / 형식' },
   { key: 'statusCurrent', label: '상태 / 현재' },
   { key: 'statusUpcoming', label: '상태 / 예정' },
@@ -189,8 +187,6 @@ const siteTextFields: Array<{
   { key: 'detailNavArchiveKo', label: '상세 / 기록벽 한글' },
   { key: 'detailNavMembersEn', label: '상세 / 회원실 영어' },
   { key: 'detailNavMembersKo', label: '상세 / 회원실 한글' },
-  { key: 'detailKickerKo', label: '상세 / 표제 한글' },
-  { key: 'detailThemeLabel', label: '상세 / 주제 라벨' },
   { key: 'detailBackLabel', label: '상세 / 돌아가기 버튼' },
   { key: 'missingKicker', label: '없는 기록 / 표제' },
   { key: 'missingTitle', label: '없는 기록 / 제목' },
@@ -823,14 +819,8 @@ export default function KeeperPage() {
           <p className="section-kicker">Keeper desk / marginal edition room</p>
           <h1>Register of passages</h1>
           <p lang="ko">
-            포스터, 문구, 여정, 자료 묶음을 고쳐 서클의 보이는 기억에 반영합니다
+            프로그램, 자료, 문구를 고쳐 공개 장부에 반영합니다.
           </p>
-          <ul className="keeper-purpose-list">
-            <li><span lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</span></li>
-            <li><span lang="ko">자료 장부는 책, 작품, 인용, 도판과 출처를 한 번 기록해 여러 장에서 다시 씁니다</span></li>
-            <li><span lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</span></li>
-            <li><span lang="ko">공동 장부에 봉인하면 여러 사람에게 같은 판본을 보여줍니다</span></li>
-          </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
               ? isTextDirty ? '저장되지 않은 문구실 수정 있음' : '문구실 준비됨'

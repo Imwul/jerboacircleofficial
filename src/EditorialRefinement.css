@@ -1,0 +1,162 @@
+/* Editorial refinement
+   Keep the poster wall and institutional frames; let whitespace organize the
+   information inside each record. */
+
+html body #root .public-home .featured-copy > :is(
+  .event-subtitle,
+  .latin-line,
+  .marginal-note,
+  .event-description
+) {
+  width: auto !important;
+  margin-inline: 0 !important;
+  border: 0 !important;
+  padding-inline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .featured-copy > .event-subtitle {
+  margin-top: 0.35rem !important;
+}
+
+html body #root .public-home .featured-copy > .latin-line,
+html body #root .public-home .featured-copy > .marginal-note {
+  margin-top: 0.65rem !important;
+}
+
+html body #root .public-home .featured-copy > .event-description {
+  margin-top: clamp(1rem, 2vw, 1.6rem) !important;
+}
+
+html body #root .public-home .event-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: clamp(1rem, 3vw, 2.4rem) !important;
+  margin-top: clamp(1.4rem, 3vw, 2.4rem) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(5, 5, 5, 0.45) !important;
+  padding-top: 0.8rem !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .event-meta > div {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .archive-section-title {
+  border-width: 2px 0 !important;
+}
+
+html body #root .public-home .archive-section-title .section-kicker {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.5) !important;
+}
+
+html body #root .public-home .archive-section-title h2[lang="ko"] {
+  border: 0 !important;
+  padding-top: clamp(2rem, 4vw, 3.5rem) !important;
+  padding-bottom: clamp(2rem, 4vw, 3.5rem) !important;
+}
+
+html body #root .public-home .archive-section-title .editorial-plate--archive {
+  border-width: 0 0 0 2px !important;
+}
+
+html body #root .public-home .poster-caption {
+  gap: 0.55rem !important;
+  padding: clamp(0.9rem, 1.6vw, 1.35rem) !important;
+}
+
+html body #root .public-home .poster-caption > :is(span, h2, p, em, small, ul),
+html body #root .public-home .poster-caption .theme-tags,
+html body #root .public-home .poster-caption .theme-tags li {
+  margin: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .poster-caption .theme-tags {
+  gap: 0.35rem !important;
+  margin-top: 0.35rem !important;
+}
+
+html body #root .public-home .poster-caption .theme-tags li {
+  border-bottom: 1px solid rgba(5, 5, 5, 0.38) !important;
+  padding: 0.15rem 0 !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > :is(
+  .event-subtitle,
+  .latin-line,
+  .marginal-note,
+  .detail-long
+) {
+  border: 0 !important;
+  padding-inline: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context > .section-kicker {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.45) !important;
+  padding-inline: 0 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.35) !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid .text-index {
+  border-right-width: 1px !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid .text-index:last-child {
+  border-right: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-provenance dl {
+  border-top: 0 !important;
+  column-gap: clamp(1rem, 3vw, 2.5rem) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-provenance dl > div {
+  border-bottom-color: rgba(5, 5, 5, 0.18) !important;
+}
+
+html body #root .public-home.catalogue-home :is(.catalogue-relations, .catalogue-programmes) h2 {
+  border-bottom: 0 !important;
+  padding-bottom: 0.45rem !important;
+}
+
+html body #root .public-home.catalogue-home :is(.catalogue-relations, .catalogue-programmes) > a {
+  border-bottom-color: rgba(5, 5, 5, 0.18) !important;
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home .archive-section-title .editorial-plate--archive {
+    border-width: 1px 0 0 !important;
+  }
+
+  html body #root .public-home .event-meta,
+  html body #root .public-home.detail-home .detail-meta {
+    grid-template-columns: 1fr !important;
+    gap: 0.8rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-provenance dl {
+    grid-template-columns: 1fr !important;
+  }
+}

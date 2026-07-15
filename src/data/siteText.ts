@@ -102,7 +102,7 @@ export const defaultSiteText: SiteText = {
   statusPast: '보존됨',
   archiveKickerEn: 'The Visible Memory',
   archiveKickerKo: '지난 프로그램 기록',
-  archiveHeading: '끝난 프로그램은 사라지지 않습니다. 포스터와 문장은 다음 독자를 기다립니다.',
+  archiveHeading: '포스터와 문장은 다음 독자를 기다립니다.',
   manifestoKickerEn: 'Fragments toward a Circle',
   manifestoKickerKo: '저보아 서클 소개',
   manifestoBody:

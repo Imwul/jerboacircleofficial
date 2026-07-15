@@ -376,7 +376,7 @@ function ArchiveReferenceIndex({
 }) {
   return (
     <div className="text-index archive-reference-index">
-      <span className="text-index-title"><span lang="ko">자동 읽기 목록 · 원전 · 인용 · 도판 · 장소</span></span>
+      <span className="text-index-title"><span lang="ko">자료</span></span>
       <ol>
         {references.map((reference) => (
           <li key={reference.id}>
@@ -386,10 +386,7 @@ function ArchiveReferenceIndex({
               <small lang="ko">
                 {[
                   reference.attribution,
-                  reference.edition,
                   reference.locator,
-                  reference.language,
-                  reference.citationNote,
                 ].filter(Boolean).join(' · ')}
               </small>
             </a>
@@ -446,8 +443,6 @@ function EventDetail({
         <article className="detail-copy">
           <p className="section-kicker">
             <span className="kicker-en" lang="en">{event.edition}</span>
-            <span className="kicker-divider" aria-hidden="true"> / </span>
-            <span className="kicker-ko" lang="ko">{siteText.detailKickerKo}</span>
           </p>
           <h1>{event.title}</h1>
           <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
@@ -478,9 +473,9 @@ function EventDetail({
           {(references.length > 0 || connections.length > 0) && (
             <section className="detail-archive-context" aria-labelledby="archive-relations-title">
               <p className="section-kicker" id="archive-relations-title">
-                <span className="kicker-en" lang="en">Archive relations</span>
+                <span className="kicker-en" lang="en">Relations</span>
                 <span className="kicker-divider" aria-hidden="true"> / </span>
-                <span className="kicker-ko" lang="ko">자료와 판본의 연결 계보</span>
+                <span className="kicker-ko" lang="ko">연결</span>
               </p>
               <div className="constellation-grid archive-knowledge-grid">
                 <ArchiveReferenceIndex
@@ -508,10 +503,6 @@ function EventDetail({
           )}
           <dl className="event-meta detail-meta">
             <div>
-              <dt lang={detailTextLang(siteText.metaEdition)}>{siteText.metaEdition}</dt>
-              <dd lang={detailTextLang(event.edition)}>{event.edition}</dd>
-            </div>
-            <div>
               <dt lang={detailTextLang(siteText.metaDate)}>{siteText.metaDate}</dt>
               <dd lang={detailTextLang(event.date)}>{event.date}</dd>
             </div>
@@ -526,10 +517,6 @@ function EventDetail({
             <div>
               <dt lang="ko">컬렉션</dt>
               <dd>{collections.map((collection) => collection.title).join(' / ') || event.collectionIds.join(' / ')}</dd>
-            </div>
-            <div>
-              <dt lang={detailTextLang(siteText.detailThemeLabel)}>{siteText.detailThemeLabel}</dt>
-              <dd lang={detailTextLang(event.themes.join(' / '))}>{event.themes.join(' / ')}</dd>
             </div>
           </dl>
           <a className="archive-cta" href={detailRootHref()}>

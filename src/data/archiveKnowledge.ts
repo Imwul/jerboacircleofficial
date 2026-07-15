@@ -438,9 +438,8 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
   });
 }
 
-export function archiveKnowledgeSearchText(event: ArchiveEvent, records: ArchiveEvent[], referenceRecords: ArchiveReference[] = archiveReferences) {
+export function archiveKnowledgeSearchText(event: ArchiveEvent, _records: ArchiveEvent[], referenceRecords: ArchiveReference[] = archiveReferences) {
   const references = getArchiveReferencesForEvent(event, referenceRecords);
-  const connections = getArchiveConnections(event, records, referenceRecords);
   return [
     ...references.flatMap((reference) => [
       reference.kind,
@@ -455,12 +454,6 @@ export function archiveKnowledgeSearchText(event: ArchiveEvent, records: Archive
       reference.citationNote,
       reference.altText,
       reference.description,
-    ]),
-    ...connections.flatMap((connection) => [
-      connection.event.edition,
-      connection.event.title,
-      connection.note,
-      ...connection.sharedThemes,
     ]),
   ].filter(Boolean).join(' ');
 }
