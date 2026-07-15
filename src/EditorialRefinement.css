@@ -160,3 +160,103 @@ html body #root .public-home.catalogue-home :is(.catalogue-relations, .catalogue
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Readability pass
+   Supporting copy should remain quiet, but never require leaning toward the
+   screen. Display titles and navigation keep their existing scale. */
+html body #root .public-home .orientation-ledger strong[lang="ko"] {
+  font-size: clamp(1rem, 1.05vw, 1.12rem) !important;
+  line-height: 1.58 !important;
+}
+
+html body #root .public-home .orientation-routes small[lang="ko"] {
+  font-size: clamp(0.9rem, 0.92vw, 1rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home .event-meta dt,
+html body #root .public-home .detail-meta dt {
+  font-size: clamp(0.86rem, 0.78vw, 0.94rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home .event-meta dd,
+html body #root .public-home .detail-meta dd {
+  font-size: clamp(0.98rem, 0.9vw, 1.06rem) !important;
+  line-height: 1.55 !important;
+}
+
+html body #root .public-home .poster-caption p[lang="ko"] {
+  font-size: clamp(0.98rem, 0.92vw, 1.06rem) !important;
+  line-height: 1.58 !important;
+}
+
+html body #root .public-home .poster-caption > span {
+  font-size: clamp(0.84rem, 0.76vw, 0.92rem) !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .public-home .poster-caption .theme-tags li {
+  font-size: clamp(0.84rem, 0.76vw, 0.92rem) !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home .archive-search-placeholder,
+html body #root .public-home .archive-filter-label,
+html body #root .public-home .archive-select > span,
+html body #root .public-home .archive-results-count,
+html body #root .public-home .archive-filter-reset {
+  font-size: clamp(0.88rem, 0.8vw, 0.96rem) !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home .text-index li {
+  font-size: clamp(0.92rem, 0.84vw, 1rem) !important;
+  line-height: 1.55 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid .archive-knowledge-kind {
+  font-size: clamp(0.82rem, 0.74vw, 0.9rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid strong {
+  font-size: clamp(0.98rem, 0.9vw, 1.08rem) !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid small {
+  font-size: clamp(0.88rem, 0.8vw, 0.96rem) !important;
+  line-height: 1.6 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail > .detail-long {
+  font-size: clamp(1rem, 0.95vw, 1.1rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-media-asset figcaption {
+  font-size: clamp(0.84rem, 0.76vw, 0.92rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-provenance :is(dt, dd, p, a) {
+  font-size: clamp(0.92rem, 0.84vw, 1rem) !important;
+  line-height: 1.62 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-export-actions button {
+  font-size: clamp(0.88rem, 0.8vw, 0.96rem) !important;
+}
+
+html body #root .public-home.catalogue-home :is(.catalogue-index, .catalogue-relations, .catalogue-programmes) :is(span, small, em) {
+  font-size: clamp(0.84rem, 0.76vw, 0.92rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-register > p[lang="ko"],
+html body #root .public-home.keeper-home .keeper-draft-count,
+html body #root .public-home.keeper-home :is(.keeper-field, .godmode-field) > span[lang="ko"] {
+  font-size: clamp(0.94rem, 0.86vw, 1.02rem) !important;
+  line-height: 1.55 !important;
+}

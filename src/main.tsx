@@ -5,6 +5,7 @@ import './index.css';
 import './JerboaFinalRepair.css';
 import './JerboaPolishFinal.css';
 import './EditorialRefinement.css';
+import './WorkroomLayout.css';
 
 const container = document.getElementById('root');
 if (container) {

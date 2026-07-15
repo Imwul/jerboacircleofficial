@@ -1,0 +1,1242 @@
+/*
+ * Workroom-informed layout system
+ *
+ * The existing type, colours, posters and manuscript atmosphere remain the
+ * identity. This final layer changes only composition: wider editorial
+ * spreads, shorter lead sections, fewer boxed divisions and denser indexes.
+ */
+
+:root {
+  --jerboa-layout-gutter: clamp(1rem, 2.1vw, 2.25rem);
+  --jerboa-layout-gap: clamp(0.8rem, 1.4vw, 1.5rem);
+  --jerboa-layout-rule: rgba(5, 5, 5, 0.58);
+}
+
+/* Public masthead and navigation ----------------------------------------- */
+
+html body #root .public-home {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  border: 0 !important;
+  overflow-x: clip !important;
+}
+
+html body #root .public-home .archive-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 80 !important;
+  display: grid !important;
+  grid-template-columns: clamp(10.5rem, 14vw, 14rem) minmax(0, 1fr) !important;
+  width: 100% !important;
+  min-height: 4.75rem !important;
+  height: auto !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  background: rgba(247, 239, 221, 0.97) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+html body #root .public-home .archive-header::after {
+  display: none !important;
+}
+
+html body #root .public-home .archive-wordmark {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 4.75rem !important;
+  height: auto !important;
+  padding: 0.55rem 1rem !important;
+  border: 0 !important;
+  border-right: 1px solid var(--jerboa-layout-rule) !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  font-size: clamp(1.55rem, 2.25vw, 2.35rem) !important;
+  line-height: 0.7 !important;
+}
+
+html body #root .public-home .archive-wordmark small {
+  margin-top: 0.22rem !important;
+  font-size: clamp(0.66rem, 0.72vw, 0.78rem) !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .archive-nav {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(8.5rem, 1fr) !important;
+  grid-template-columns: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 4.75rem !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin !important;
+}
+
+html body #root .public-home .archive-nav > a {
+  min-width: 0 !important;
+  min-height: 4.75rem !important;
+  padding: 0.7rem clamp(0.7rem, 1.2vw, 1.25rem) !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(5, 5, 5, 0.18) !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 0.16rem !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .archive-nav > a:last-child {
+  border-right: 0 !important;
+}
+
+html body #root .public-home .archive-nav > a:hover,
+html body #root .public-home .archive-nav > a:focus-visible {
+  background: rgba(214, 167, 64, 0.2) !important;
+}
+
+html body #root .public-home .archive-nav > .archive-private-door {
+  background: rgba(159, 193, 208, 0.74) !important;
+}
+
+html body #root .public-home .archive-nav .nav-en {
+  font-size: clamp(1.15rem, 1.45vw, 1.7rem) !important;
+  line-height: 0.92 !important;
+}
+
+html body #root .public-home .archive-nav small[lang="ko"] {
+  font-size: clamp(0.78rem, 0.7vw, 0.88rem) !important;
+  line-height: 1.3 !important;
+}
+
+/* Homepage: each screen behaves as an editorial spread ------------------ */
+
+html body #root .public-home:not(.detail-home) > main {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+
+html body #root .public-home:not(.detail-home) > main > .publication-masthead,
+html body #root .public-home:not(.detail-home) > main > .featured-event,
+html body #root .public-home:not(.detail-home) > main > .poster-archive {
+  grid-column: 1 / -1 !important;
+}
+
+html body #root .public-home .publication-masthead {
+  display: grid !important;
+  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr) !important;
+  width: 100% !important;
+  min-height: clamp(29rem, 42vw, 35rem) !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home .masthead-mark {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: clamp(29rem, 42vw, 35rem) !important;
+  padding: clamp(1.25rem, 2.5vw, 2.6rem) !important;
+  border: 0 !important;
+  border-right: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home .masthead-logo {
+  width: min(54%, 15rem) !important;
+  height: auto !important;
+}
+
+html body #root .public-home .masthead-ring {
+  width: min(86%, 27rem) !important;
+  height: min(86%, 27rem) !important;
+}
+
+html body #root .public-home .masthead-seal-caption {
+  right: clamp(1rem, 2vw, 2rem) !important;
+  bottom: clamp(1rem, 2vw, 2rem) !important;
+  width: min(14rem, 52%) !important;
+}
+
+html body #root .public-home .masthead-index {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.12fr) minmax(13rem, 0.88fr) !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  align-content: stretch !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home .masthead-index > p:first-child {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: auto !important;
+  margin: 0 !important;
+  font-size: clamp(3rem, 4.9vw, 5.45rem) !important;
+  line-height: 0.84 !important;
+}
+
+html body #root .public-home .masthead-index > p:nth-child(2) {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  width: auto !important;
+  max-width: 33rem !important;
+  margin: 0 !important;
+  font-size: clamp(1rem, 1.15vw, 1.22rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home .masthead-index .editorial-plate--masthead {
+  grid-column: 2 !important;
+  grid-row: 1 / 3 !important;
+  width: 100% !important;
+  height: clamp(17rem, 26vw, 22rem) !important;
+  min-height: 0 !important;
+  max-height: 22rem !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .masthead-index .editorial-plate--masthead img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+html body #root .public-home .orientation-ledger {
+  grid-column: 1 / -1 !important;
+  grid-row: 3 !important;
+  align-self: end !important;
+  display: grid !important;
+  grid-template-columns: minmax(9rem, 0.45fr) minmax(0, 1.55fr) !important;
+  gap: 0.55rem var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: clamp(0.85rem, 1.4vw, 1.25rem) 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--jerboa-layout-rule) !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .orientation-ledger .orientation-kicker {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .orientation-ledger > strong {
+  grid-column: 2 !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .orientation-routes {
+  grid-column: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.55rem !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .orientation-routes > a {
+  min-height: 3.7rem !important;
+  padding: 0.55rem 0.7rem !important;
+  border: 0 !important;
+  background: rgba(214, 167, 64, 0.18) !important;
+}
+
+html body #root .public-home .featured-event {
+  display: grid !important;
+  grid-template-columns: minmax(20rem, 0.72fr) minmax(0, 1.28fr) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  background: #050505 !important;
+  align-items: start !important;
+}
+
+html body #root .public-home .featured-event::before,
+html body #root .public-home .featured-event::after {
+  display: none !important;
+}
+
+html body #root .public-home .featured-poster-wrap {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .featured-poster-wrap img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: min(76rem, calc(100vh - 8rem)) !important;
+  object-fit: contain !important;
+  object-position: top center !important;
+}
+
+html body #root .public-home .featured-copy {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.1fr) minmax(15rem, 0.9fr) !important;
+  grid-auto-rows: max-content !important;
+  gap: 0.8rem var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100% !important;
+  padding: clamp(1.15rem, 2.1vw, 2.1rem) !important;
+  border: 0 !important;
+  align-content: start !important;
+}
+
+html body #root .public-home .featured-copy > :is(.section-kicker, h1, .event-subtitle, .latin-line, .marginal-note) {
+  grid-column: 1 / -1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+html body #root .public-home .featured-copy h1 {
+  font-size: clamp(3.8rem, 6vw, 7.1rem) !important;
+  line-height: 0.78 !important;
+}
+
+html body #root .public-home .featured-copy .editorial-plate--featured {
+  grid-column: 1 !important;
+  width: 100% !important;
+  height: clamp(8rem, 11vw, 11rem) !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .featured-copy .event-description {
+  grid-column: 2 !important;
+  align-self: end !important;
+  margin: 0 !important;
+  font-size: clamp(1rem, 1.1vw, 1.2rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home .featured-copy .constellation-grid {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: var(--jerboa-layout-gap) !important;
+}
+
+html body #root .public-home .featured-copy .event-meta {
+  grid-column: 1 !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .featured-copy > .archive-cta {
+  grid-column: 2 !important;
+  align-self: end !important;
+  justify-self: stretch !important;
+  margin: 0 !important;
+}
+
+/* Archive index: compact tools, poster-led cards, more records per view. */
+html body #root .public-home .poster-archive {
+  width: 100% !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: var(--paper, #f7efdd) !important;
+}
+
+html body #root .public-home .poster-archive::before,
+html body #root .public-home .archive-section-title::before,
+html body #root .public-home .archive-section-title::after {
+  display: none !important;
+}
+
+html body #root .public-home .archive-section-title {
+  display: grid !important;
+  grid-template-columns: minmax(11rem, 0.55fr) minmax(0, 1.15fr) minmax(12rem, 0.3fr) !important;
+  align-items: center !important;
+  gap: var(--jerboa-layout-gap) !important;
+  min-height: 9rem !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2, figure) {
+  margin: 0 !important;
+}
+
+html body #root .public-home .archive-section-title > .section-kicker {
+  grid-column: 1 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .archive-section-title > h2 {
+  grid-column: 2 !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+html body #root .public-home .archive-section-title > .editorial-plate--archive {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+}
+
+html body #root .public-home .archive-section-title h2 {
+  font-size: clamp(2.15rem, 3.4vw, 4rem) !important;
+  line-height: 0.95 !important;
+}
+
+html body #root .public-home .archive-section-title .editorial-plate--archive {
+  width: 100% !important;
+  height: 6rem !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .archive-tools {
+  display: grid !important;
+  grid-template-columns: minmax(21rem, 0.72fr) minmax(0, 1.28fr) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  height: auto !important;
+  padding: clamp(0.8rem, 1.4vw, 1.25rem) var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+html body #root .public-home .archive-view-switch {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.4rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  grid-column: auto !important;
+  width: 100% !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) {
+  min-height: 3.8rem !important;
+  padding: 0.5rem 0.65rem !important;
+  border: 0 !important;
+  background: rgba(5, 5, 5, 0.06) !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a).is-active,
+html body #root .public-home .archive-view-switch > button[aria-pressed="true"] {
+  background: #050505 !important;
+  color: #f7efdd !important;
+}
+
+html body #root .public-home .archive-discovery {
+  display: grid !important;
+  grid-template-columns: minmax(13rem, 1.35fr) minmax(16rem, 1.5fr) repeat(2, minmax(8rem, 0.75fr)) auto !important;
+  gap: 0.45rem !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  border: 0 !important;
+  grid-column: auto !important;
+  width: 100% !important;
+}
+
+html body #root .public-home .archive-search,
+html body #root .public-home .archive-filter-set,
+html body #root .public-home .archive-select {
+  min-height: 3.8rem !important;
+  border: 0 !important;
+  background: rgba(5, 5, 5, 0.055) !important;
+}
+
+html body #root .public-home .poster-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: clamp(0.85rem, 1.25vw, 1.35rem) !important;
+  width: 100% !important;
+  height: auto !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home .poster-tile {
+  min-width: 0 !important;
+  padding: 0 0 1rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .poster-tile::before,
+html body #root .public-home .poster-tile::after {
+  display: none !important;
+}
+
+html body #root .public-home .poster-frame {
+  border: 0 !important;
+  background: rgba(5, 5, 5, 0.04) !important;
+}
+
+html body #root .public-home .poster-caption {
+  padding: 0.75rem 0 0 !important;
+}
+
+html body #root .public-home .poster-caption h2 {
+  font-size: clamp(2rem, 3.1vw, 3.8rem) !important;
+  line-height: 0.88 !important;
+}
+
+/* Institutional notes become a balanced closing spread. */
+html body #root .public-home:not(.detail-home) > main > .manifesto-block {
+  grid-column: 1 / 7 !important;
+}
+
+html body #root .public-home:not(.detail-home) > main > .join-block {
+  grid-column: 7 / -1 !important;
+}
+
+html body #root .public-home .manifesto-block,
+html body #root .public-home .join-block {
+  display: grid !important;
+  grid-template-columns: minmax(10rem, 0.72fr) minmax(0, 1.28fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 0.8rem var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 20rem !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--jerboa-layout-rule) !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home .manifesto-block {
+  border-right: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home .manifesto-block::before,
+html body #root .public-home .manifesto-block::after,
+html body #root .public-home .join-block::before,
+html body #root .public-home .join-block::after {
+  display: none !important;
+}
+
+html body #root .public-home .manifesto-block .section-kicker,
+html body #root .public-home .join-block .section-kicker {
+  grid-column: 1 / -1 !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .manifesto-block .editorial-plate--manifesto,
+html body #root .public-home .join-block .editorial-plate--join {
+  grid-column: 1 !important;
+  width: 100% !important;
+  height: 12rem !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home .manifesto-block > p.ko-display,
+html body #root .public-home .join-block h2.ko-display {
+  grid-column: 2 !important;
+  margin: 0 !important;
+  align-self: start !important;
+  font-size: clamp(1.05rem, 1.35vw, 1.45rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home .join-block > div {
+  display: contents !important;
+}
+
+html body #root .public-home .join-block > .archive-cta {
+  grid-column: 2 !important;
+  align-self: end !important;
+  justify-self: start !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .archive-footer {
+  min-height: 3.8rem !important;
+  padding: 0.8rem var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+/* Programme detail: a real poster column instead of an empty black field. */
+html body #root .public-home.detail-home .detail-record {
+  display: grid !important;
+  grid-template-columns: minmax(19rem, 0.72fr) minmax(0, 1.28fr) !important;
+  align-items: start !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: calc(100vh - 4.75rem) !important;
+  border: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-poster {
+  position: sticky !important;
+  top: 4.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: calc(100vh - 4.75rem) !important;
+  min-height: 0 !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  background: #050505 !important;
+}
+
+html body #root .public-home.detail-home .detail-poster img {
+  position: static !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 34rem !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+html body #root .public-home.detail-home .detail-copy {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: calc(100vh - 4.75rem) !important;
+  padding: clamp(1.4rem, 2.7vw, 3rem) !important;
+  border: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > h1 {
+  max-width: 10ch !important;
+  margin: 0.5rem 0 1rem !important;
+  font-size: clamp(4rem, 8vw, 9rem) !important;
+  line-height: 0.78 !important;
+}
+
+html body #root .public-home.detail-home .detail-manuscript-plate {
+  float: right !important;
+  width: min(46%, 25rem) !important;
+  height: clamp(9rem, 15vw, 15rem) !important;
+  margin: 0 0 1.25rem var(--jerboa-layout-gap) !important;
+  border: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-long {
+  max-width: 66ch !important;
+  margin: 1.5rem 0 !important;
+  font-size: clamp(1.02rem, 1.1vw, 1.22rem) !important;
+  line-height: 1.72 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context {
+  clear: both !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 2rem 0 0 !important;
+  padding: 1.2rem 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: var(--jerboa-layout-gap) !important;
+  height: auto !important;
+  margin-bottom: 0 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid > .text-index {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid ol {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+html body #root .public-home.detail-home .archive-reference-index ol {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 var(--jerboa-layout-gap) !important;
+}
+
+html body #root .public-home.detail-home .archive-connection-index ol {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 var(--jerboa-layout-gap) !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid li {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home.detail-home .archive-knowledge-grid :is(.text-index, .archive-reference-index) li > a {
+  display: grid !important;
+  grid-auto-rows: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0.75rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.22) !important;
+}
+
+html body #root .public-home.detail-home .detail-meta {
+  clear: both !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  height: auto !important;
+  margin-top: 1.5rem !important;
+  overflow: visible !important;
+}
+
+/* Catalogue: the index begins earlier and uses the width like a publication. */
+html body #root .public-home.catalogue-home .catalogue-room {
+  width: 100% !important;
+  max-width: none !important;
+  padding: var(--jerboa-layout-gutter) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-intro {
+  display: grid !important;
+  grid-template-columns: minmax(13rem, 0.45fr) minmax(0, 1.2fr) minmax(16rem, 0.55fr) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  align-items: end !important;
+  width: 100% !important;
+  min-height: 16rem !important;
+  height: auto !important;
+  padding: 0 0 var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-intro > :is(.section-kicker, h1, p) {
+  margin: 0 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-intro h1 {
+  font-size: clamp(3.2rem, 6vw, 7rem) !important;
+  line-height: 0.82 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+  font-size: clamp(1rem, 1.1vw, 1.2rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools {
+  display: grid !important;
+  grid-template-columns: minmax(16rem, 0.55fr) minmax(0, 1.45fr) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  padding: 0.9rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools > label,
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set {
+  min-height: 3.5rem !important;
+  border: 0 !important;
+  background: rgba(5, 5, 5, 0.055) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-index {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 var(--jerboa-layout-gap) !important;
+  width: 100% !important;
+  padding-top: 0.5rem !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-index > a {
+  min-height: 10.5rem !important;
+  padding: 1rem 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail {
+  display: grid !important;
+  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr) !important;
+  gap: 0 var(--jerboa-layout-gutter) !important;
+  align-items: start !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail > :not(.catalogue-media-asset) {
+  grid-column: 2 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail > .catalogue-media-asset {
+  grid-column: 1 !important;
+  grid-row: 1 / span 10 !important;
+  position: sticky !important;
+  top: calc(4.75rem + var(--jerboa-layout-gutter)) !important;
+  width: 100% !important;
+  max-height: calc(100vh - 7rem) !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail > .catalogue-media-asset img {
+  width: 100% !important;
+  max-height: calc(100vh - 10rem) !important;
+  object-fit: contain !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-detail > h1 {
+  font-size: clamp(3.4rem, 6.4vw, 7.4rem) !important;
+  line-height: 0.83 !important;
+}
+
+/* Member room: compact rail, dominant work surface. ---------------------- */
+html body #root .members-archive {
+  display: grid !important;
+  grid-template-columns: clamp(12.5rem, 15vw, 14.5rem) minmax(0, 1fr) !important;
+  width: 100% !important;
+  min-height: 100dvh !important;
+  overflow-x: clip !important;
+}
+
+html body #root .members-archive .archive-sidebar {
+  position: sticky !important;
+  top: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.55rem !important;
+  width: 100% !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  padding: 0.75rem !important;
+  border: 0 !important;
+  border-right: 1px solid var(--jerboa-layout-rule) !important;
+  overflow-y: auto !important;
+}
+
+html body #root .members-archive .archive-sigil {
+  min-height: 5.25rem !important;
+  height: auto !important;
+  padding: 0.65rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  font-size: clamp(2rem, 2.7vw, 2.8rem) !important;
+}
+
+html body #root .members-archive .archive-public-return,
+html body #root .members-archive .archive-godmode-link {
+  min-height: 3.9rem !important;
+  padding: 0.55rem 0.7rem !important;
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+html body #root .members-archive .archive-cabinet {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.35rem !important;
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .members-archive .archive-cabinet button {
+  min-height: 4rem !important;
+  padding: 0.55rem 0.7rem !important;
+  border: 0 !important;
+  text-align: left !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+html body #root .members-archive .archive-cabinet button.is-active {
+  background: var(--register-gold) !important;
+}
+
+html body #root .members-archive .archive-source-plate {
+  width: 100% !important;
+  margin: auto 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .members-archive .archive-source-plate img {
+  width: 100% !important;
+  max-height: 10rem !important;
+  object-fit: cover !important;
+}
+
+html body #root .members-archive .archive-workbench {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100dvh !important;
+  overflow: visible !important;
+}
+
+html body #root .members-archive .archive-topbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  min-height: clamp(9rem, 15vw, 13rem) !important;
+  height: auto !important;
+  padding: var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .members-archive .archive-topbar h1[lang="en"] {
+  margin: 0 !important;
+  font-size: clamp(3.6rem, 7vw, 8rem) !important;
+  line-height: 0.74 !important;
+}
+
+html body #root .members-archive .archive-context {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  min-height: 7rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .members-archive .archive-context > div {
+  min-height: 7rem !important;
+  padding: 0.85rem 1rem !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(5, 5, 5, 0.2) !important;
+}
+
+html body #root .members-archive .member-next-actions {
+  grid-template-columns: minmax(6rem, 0.22fr) repeat(2, minmax(0, 1fr)) !important;
+  gap: var(--jerboa-layout-gap) !important;
+  padding: 1rem var(--jerboa-layout-gutter) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+}
+
+html body #root .members-archive .member-next-actions > * {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+html body #root .members-archive .archive-main {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Responsive reflow ------------------------------------------------------ */
+
+@media (max-width: 1100px) {
+  html body #root .public-home .publication-masthead,
+  html body #root .public-home .featured-event {
+    grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.2fr) !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .masthead-index > p:first-child,
+  html body #root .public-home .masthead-index > p:nth-child(2),
+  html body #root .public-home .masthead-index .editorial-plate--masthead,
+  html body #root .public-home .orientation-ledger {
+    grid-column: 1 !important;
+  }
+
+  html body #root .public-home .masthead-index .editorial-plate--masthead {
+    display: none !important;
+  }
+
+  html body #root .public-home .archive-tools,
+  html body #root .public-home.catalogue-home .catalogue-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: minmax(13rem, 1.35fr) minmax(16rem, 1.5fr) repeat(2, minmax(8rem, 0.75fr)) !important;
+  }
+
+  html body #root .public-home .poster-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro {
+    grid-template-columns: minmax(10rem, 0.4fr) minmax(0, 1.6fr) !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+    grid-column: 2 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-index {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body #root .public-home .archive-header {
+    position: relative !important;
+    grid-template-columns: 8.5rem minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-nav {
+    grid-auto-columns: minmax(8.75rem, 1fr) !important;
+  }
+
+  html body #root .public-home .publication-masthead,
+  html body #root .public-home .featured-event,
+  html body #root .public-home.detail-home .detail-record,
+  html body #root .public-home.catalogue-home .catalogue-detail {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    min-height: 25rem !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    min-height: 28rem !important;
+  }
+
+  html body #root .public-home .featured-poster-wrap img {
+    max-height: 82vh !important;
+  }
+
+  html body #root .public-home .archive-section-title {
+    grid-template-columns: minmax(10rem, 0.6fr) minmax(0, 1.4fr) !important;
+  }
+
+  html body #root .public-home .archive-section-title .editorial-plate--archive {
+    display: none !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home .poster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home:not(.detail-home) > main > :is(.manifesto-block, .join-block) {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home .manifesto-block {
+    border-right: 0 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-poster {
+    position: relative !important;
+    top: auto !important;
+    height: min(78vh, 46rem) !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > :not(.catalogue-media-asset),
+  html body #root .public-home.catalogue-home .catalogue-detail > .catalogue-media-asset {
+    grid-column: 1 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > .catalogue-media-asset {
+    grid-row: auto !important;
+    position: relative !important;
+    top: auto !important;
+    max-height: none !important;
+  }
+
+  html body #root .members-archive {
+    display: block !important;
+  }
+
+  html body #root .members-archive .archive-sidebar {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 8rem minmax(10rem, 1fr) minmax(12rem, 2fr) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0.55rem !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+    overflow-x: auto !important;
+  }
+
+  html body #root .members-archive .archive-sigil,
+  html body #root .members-archive .archive-public-return {
+    min-height: 4.5rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet {
+    grid-template-columns: repeat(3, minmax(8.5rem, 1fr)) !important;
+    grid-auto-flow: column !important;
+  }
+
+  html body #root .members-archive .archive-godmode-link,
+  html body #root .members-archive .archive-source-plate {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  html body #root .public-home .archive-header {
+    grid-template-columns: 7.25rem minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-wordmark {
+    min-height: 4.25rem !important;
+    padding: 0.45rem 0.7rem !important;
+  }
+
+  html body #root .public-home .archive-nav,
+  html body #root .public-home .archive-nav > a {
+    min-height: 4.25rem !important;
+  }
+
+  html body #root .public-home .publication-masthead {
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    min-height: 21rem !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    min-height: 0 !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home .masthead-index > p:first-child {
+    font-size: clamp(2.8rem, 15vw, 4.7rem) !important;
+  }
+
+  html body #root .public-home .orientation-ledger,
+  html body #root .public-home .featured-copy,
+  html body #root .public-home .featured-copy .constellation-grid,
+  html body #root .public-home .manifesto-block,
+  html body #root .public-home .join-block,
+  html body #root .public-home.catalogue-home .catalogue-intro {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .orientation-ledger > :is(.orientation-kicker, strong, .orientation-routes),
+  html body #root .public-home .featured-copy > *,
+  html body #root .public-home .manifesto-block > *,
+  html body #root .public-home .join-block > *,
+  html body #root .public-home.catalogue-home .catalogue-intro > * {
+    grid-column: 1 !important;
+  }
+
+  html body #root .public-home .orientation-ledger .orientation-kicker {
+    grid-row: auto !important;
+  }
+
+  html body #root .public-home .orientation-routes {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .featured-event,
+  html body #root .public-home .archive-section-title,
+  html body #root .public-home .archive-tools,
+  html body #root .public-home .poster-grid,
+  html body #root .public-home .manifesto-block,
+  html body #root .public-home .join-block,
+  html body #root .public-home.catalogue-home .catalogue-room,
+  html body #root .public-home.detail-home .detail-copy {
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home .archive-section-title {
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home .archive-section-title > * {
+    grid-column: 1 !important;
+  }
+
+  html body #root .public-home .archive-discovery,
+  html body #root .public-home .poster-grid,
+  html body #root .public-home.catalogue-home .catalogue-index,
+  html body #root .public-home.detail-home .archive-knowledge-grid,
+  html body #root .public-home.detail-home .detail-meta {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home .archive-view-switch {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+
+  html body #root .public-home .manifesto-block .editorial-plate--manifesto,
+  html body #root .public-home .join-block .editorial-plate--join {
+    height: 10rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-manuscript-plate {
+    float: none !important;
+    width: 100% !important;
+    margin: 1rem 0 !important;
+  }
+
+  html body #root .members-archive .archive-sidebar {
+    grid-template-columns: 6.5rem minmax(9rem, 1fr) !important;
+  }
+
+  html body #root .members-archive .archive-cabinet {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(3, minmax(7.5rem, 1fr)) !important;
+    overflow-x: auto !important;
+  }
+
+  html body #root .members-archive .archive-topbar {
+    min-height: 9rem !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .members-archive .archive-topbar h1[lang="en"] {
+    font-size: clamp(3rem, 18vw, 5.5rem) !important;
+  }
+
+  html body #root .members-archive .archive-context,
+  html body #root .members-archive .member-next-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .public-home *,
+  html body #root .members-archive * {
+    scroll-behavior: auto !important;
+  }
+}

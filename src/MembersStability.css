@@ -1649,6 +1649,129 @@ html body .members-archive .member-login-intent > ol > li:last-child {
   }
 }
 
+/* Workroom-inspired wide editorial spread: the month remains primary while
+   the selected date reads alongside it, reducing page-length without hiding
+   any register content. */
+html body .members-archive .archive-calendar-grid {
+  grid-auto-rows: clamp(4.35rem, 5.8vw, 5.4rem) !important;
+}
+
+@media (min-width: 1100px) {
+  html body .members-archive .archive-calendar-view {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.7fr) minmax(20rem, 0.55fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html body .members-archive .archive-calendar-toolbar {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+
+  html body .members-archive .archive-calendar-scroll {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .members-archive .archive-calendar-detail {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    min-width: 0 !important;
+    max-height: calc(6 * 5.4rem + 3.25rem) !important;
+    border-left: 1px solid rgba(5, 5, 5, 0.5) !important;
+    padding: clamp(1rem, 1.7vw, 1.5rem) !important;
+    overflow: auto !important;
+  }
+
+  html body .members-archive .archive-calendar-detail > .archive-undated-events {
+    margin-top: clamp(1.5rem, 3vw, 2.5rem) !important;
+  }
+}
+
+/* Keep the sidebar's Korean wayfinding readable at the same supporting scale
+   as the rest of the member room. These compact labels previously inherited
+   an older, extra-small utility rule. */
+html body #root .members-archive .archive-public-return small[lang="ko"],
+html body #root .members-archive .archive-cabinet button small[lang="ko"],
+html body #root .members-archive .archive-godmode-link small[lang="ko"],
+html body #root .members-archive .archive-source-plate small {
+  font-size: clamp(0.82rem, 0.74vw, 0.9rem) !important;
+  line-height: 1.48 !important;
+}
+
+/* Readability pass: raise explanatory copy and operational labels without
+   changing the display typography or the register's composition. */
+html body .members-archive :is(
+  .archive-public-return,
+  .archive-cabinet,
+  .archive-godmode-link,
+  .archive-source-plate
+) small[lang="ko"] {
+  font-size: clamp(0.82rem, 0.74vw, 0.9rem) !important;
+  line-height: 1.48 !important;
+}
+
+html body .members-archive .archive-server-line,
+html body .members-archive .archive-save-notice,
+html body .members-archive .archive-notice {
+  font-size: clamp(0.84rem, 0.76vw, 0.92rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body .members-archive .member-login-intent > p[lang="ko"] {
+  font-size: clamp(0.96rem, 0.88vw, 1.04rem) !important;
+  line-height: 1.65 !important;
+}
+
+html body .members-archive .member-next-actions article small,
+html body .members-archive .member-next-actions article span,
+html body .members-archive .member-next-actions article button {
+  font-size: clamp(0.88rem, 0.8vw, 0.96rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body .members-archive .member-next-actions article strong {
+  font-size: clamp(1rem, 0.92vw, 1.08rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body .members-archive .archive-undated-events h4 {
+  font-size: clamp(1rem, 0.92vw, 1.08rem) !important;
+  line-height: 1.45 !important;
+}
+
+html body .members-archive .archive-undated-events p {
+  font-size: clamp(0.94rem, 0.86vw, 1.02rem) !important;
+  line-height: 1.58 !important;
+}
+
+html body .members-archive .archive-undated-events li,
+html body .members-archive .archive-undated-events button {
+  font-size: clamp(0.86rem, 0.78vw, 0.94rem) !important;
+  line-height: 1.48 !important;
+}
+
+html body .members-archive .archive-main [class*="text-[8px]"],
+html body .members-archive .archive-main [class*="text-[9px]"] {
+  font-size: 0.78rem !important;
+  line-height: 1.4 !important;
+}
+
+html body .members-archive .archive-main [class*="text-[10px]"] {
+  font-size: 0.84rem !important;
+  line-height: 1.45 !important;
+}
+
+html body .members-archive .archive-main [class*="text-[11px]"] {
+  font-size: 0.88rem !important;
+  line-height: 1.45 !important;
+}
+
 /* Editorial refinement: the member's next decision is the focal point. */
 html body .members-archive .member-login-intent {
   display: block !important;
@@ -1666,7 +1789,7 @@ html body .members-archive .member-login-intent > p[lang="ko"] {
   border: 0 !important;
   padding: 0 !important;
   background: transparent !important;
-  font-size: clamp(0.85rem, 1vw, 0.98rem) !important;
+  font-size: clamp(0.96rem, 1vw, 1.04rem) !important;
   line-height: 1.65 !important;
   text-align: center !important;
   transform: none !important;
@@ -1703,5 +1826,79 @@ html body .members-archive .member-next-actions h2 {
   html body .members-archive .member-next-actions > :last-child {
     border-bottom: 0 !important;
     padding-bottom: 0 !important;
+  }
+}
+
+/* Abstract calendar field: one month surface, whitespace between dates, and
+   a single gold plane for the active day. Per-cell boxes are intentionally
+   removed; focus keeps a visible outline only during keyboard navigation. */
+html body .members-archive .archive-calendar-scroll {
+  padding: clamp(0.55rem, 1vw, 0.9rem) !important;
+  background: var(--register-paper) !important;
+}
+
+html body #root .members-archive .archive-calendar-view .archive-calendar-grid {
+  gap: clamp(0.24rem, 0.42vw, 0.48rem) !important;
+  row-gap: clamp(0.24rem, 0.42vw, 0.48rem) !important;
+  column-gap: clamp(0.24rem, 0.42vw, 0.48rem) !important;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-weekday {
+  min-height: 2.6rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.45) !important;
+  background: transparent !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day {
+  min-height: 4.35rem !important;
+  border: 0 !important;
+  outline: 0 !important;
+  padding: clamp(0.48rem, 0.72vw, 0.72rem) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  transition: background-color 140ms ease !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day:hover {
+  background: rgba(214, 167, 64, 0.2) !important;
+  outline: 0 !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day:focus-visible {
+  background: rgba(214, 167, 64, 0.2) !important;
+  outline: 2px solid var(--register-ink) !important;
+  outline-offset: -2px !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day.is-selected,
+html body .members-archive .archive-calendar-grid > .archive-calendar-day[aria-pressed="true"] {
+  background: var(--register-gold) !important;
+  outline: 0 !important;
+}
+
+html body .members-archive .archive-calendar-grid > .archive-calendar-day[aria-pressed="true"] .calendar-date-mark {
+  background: transparent !important;
+  color: var(--register-ink) !important;
+}
+
+html body .members-archive .archive-calendar-grid .archive-event-dot {
+  width: 0.52rem !important;
+  height: 0.52rem !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 1100px) {
+  html body .members-archive .archive-calendar-view {
+    column-gap: clamp(0.75rem, 1.4vw, 1.3rem) !important;
+  }
+
+  html body .members-archive .archive-calendar-detail {
+    border-left: 0 !important;
+    background: rgba(214, 167, 64, 0.09) !important;
   }
 }

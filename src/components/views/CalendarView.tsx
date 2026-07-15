@@ -141,7 +141,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-stone-50">
+    <div className="archive-calendar-view flex flex-col h-full bg-stone-50">
       <div className="archive-calendar-toolbar p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
         <div className="archive-calendar-period flex items-center gap-2">
           <button aria-label="이전 달" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="archive-calendar-nav p-1 hover:bg-stone-50 rounded-full text-stone-400">
@@ -183,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   {dateEvents.length > 0 && (
                     <div className="flex flex-wrap gap-0.5 mt-1">
                       {dateEvents.slice(0, 4).map(e => (
-                        <div key={e.id} className={`w-1.5 h-1.5 rounded-full ${THEME_CONFIG[e.theme].bg} ring-1 ring-white shadow-sm`} />
+                        <div key={e.id} className={`archive-event-dot w-1.5 h-1.5 rounded-full ${THEME_CONFIG[e.theme].bg} ring-1 ring-white shadow-sm`} />
                       ))}
                       {dateEvents.length > 4 && <div className="text-[8px] font-bold text-stone-300">+{dateEvents.length - 4}</div>}
                     </div>
@@ -195,7 +195,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="archive-calendar-detail flex-1 overflow-y-auto p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-stone-800">
             <span lang="ko">{format(selectedDate, 'MM dd')} 프로그램</span>
