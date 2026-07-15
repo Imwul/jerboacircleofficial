@@ -35,39 +35,34 @@ import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
+import { archiveReferences } from '../data/archiveKnowledge';
+import { inspectArchiveIntegrity } from '../utils/archiveIntegrity';
+import RelationshipPicker from '../components/archive/RelationshipPicker';
+import ConnectivityNotice from '../components/ui/ConnectivityNotice';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { parseArchiveDraftImport } from '../utils/archiveImport';
+import {
+  splitArchiveFormList as splitDraftList,
+  toArchiveEventDraft as toDraft,
+  toArchiveRecordForm as toFormState,
+  validateArchiveRecordForm as validateKeeperForm,
+  type ArchiveRecordFormState as KeeperFormState,
+} from '../utils/archiveRecordForm';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
-interface KeeperFormState {
-  kind: ArchiveContentKind;
-  visibility: ArchiveVisibility;
-  workflowStatus: ArchiveWorkflowStatus;
-  seasonId: string;
-  collectionIdsText: string;
-  edition: string;
-  title: string;
-  subtitle: string;
-  latinQuote: string;
-  marginalia: string;
-  date: string;
-  status: EventStatus;
-  posterImage: string;
-  shortDescription: string;
-  longDescription: string;
-  passageText: string;
-  materialsText: string;
-  themesText: string;
-  referenceIdsText: string;
-  relatedEventIdsText: string;
-  location: string;
-  ctaLabel: string;
-}
-
 interface ArchiveSyncPayload {
+  schemaVersion?: 1;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
 }
+
+type KeeperPendingAction =
+  | { kind: 'import'; drafts: ArchiveDraftMap; recordCount: number; fieldCount: number }
+  | { kind: 'clear' }
+  | { kind: 'restore'; revisionId: string; title: string }
+  | null;
 
 const siteTextFields: Array<{
   key: keyof SiteText;
@@ -136,69 +131,6 @@ const siteTextFields: Array<{
   { key: 'missingTitle', label: '없는 기록 / 제목' },
 ];
 
-function toFormState(event: ArchiveEvent): KeeperFormState {
-  return {
-    kind: event.kind,
-    visibility: event.visibility,
-    workflowStatus: event.workflowStatus,
-    seasonId: event.seasonId,
-    collectionIdsText: event.collectionIds.join(' / '),
-    edition: event.edition,
-    title: event.title,
-    subtitle: event.subtitle,
-    latinQuote: event.latinQuote,
-    marginalia: event.marginalia,
-    date: event.date,
-    status: event.status,
-    posterImage: event.posterImage,
-    shortDescription: event.shortDescription,
-    longDescription: event.longDescription,
-    passageText: event.passage.join(' / '),
-    materialsText: event.materials.join(' / '),
-    themesText: event.themes.join(' / '),
-    referenceIdsText: event.referenceIds.join(' / '),
-    relatedEventIdsText: event.relatedEventIds.join(' / '),
-    location: event.location,
-    ctaLabel: event.ctaLabel,
-  };
-}
-
-function toDraft(form: KeeperFormState): ArchiveEventDraft {
-  return {
-    kind: form.kind,
-    visibility: form.visibility,
-    workflowStatus: form.workflowStatus,
-    seasonId: form.seasonId,
-    collectionIds: splitDraftList(form.collectionIdsText),
-    edition: form.edition,
-    title: form.title,
-    subtitle: form.subtitle,
-    latinQuote: form.latinQuote,
-    marginalia: form.marginalia,
-    date: form.date,
-    status: form.status,
-    posterImage: form.posterImage,
-    shortDescription: form.shortDescription,
-    longDescription: form.longDescription,
-    passage: form.passageText
-      .split(/\n|\//)
-      .map((item) => item.trim())
-      .filter(Boolean),
-    materials: form.materialsText
-      .split(/\n|\//)
-      .map((item) => item.trim())
-      .filter(Boolean),
-    themes: form.themesText
-      .split(/\n|\//)
-      .map((theme) => theme.trim())
-      .filter(Boolean),
-    referenceIds: splitDraftList(form.referenceIdsText),
-    relatedEventIds: splitDraftList(form.relatedEventIdsText),
-    location: form.location,
-    ctaLabel: form.ctaLabel,
-  };
-}
-
 function makeRecordId(title: string) {
   const slug = title
     .toLowerCase()
@@ -214,33 +146,6 @@ function timeLabel(date = new Date()) {
     minute: '2-digit',
     second: '2-digit',
   });
-}
-
-function splitDraftList(value: string) {
-  return value.split(/\n|\//).map((item) => item.trim()).filter(Boolean);
-}
-
-function validateKeeperForm(form: KeeperFormState) {
-  const requiredFields: Array<[keyof KeeperFormState, string]> = [
-    ['edition', '판본'],
-    ['title', '제목'],
-    ['subtitle', '부제'],
-    ['date', '일자'],
-    ['posterImage', '포스터 이미지'],
-    ['shortDescription', '짧은 설명'],
-    ['longDescription', '긴 설명'],
-    ['location', '형식'],
-    ['ctaLabel', '버튼 문구'],
-  ];
-
-  const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
-  if (emptyField) return `${emptyField[1]}을 입력하세요`;
-  if (!archiveSeasons.some((season) => season.id === form.seasonId)) return '시즌을 선택하세요';
-  if (splitDraftList(form.collectionIdsText).length === 0) return '컬렉션을 하나 이상 입력하세요';
-  if (splitDraftList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
-  if (splitDraftList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
-  if (splitDraftList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
-  return '';
 }
 
 function validateSiteTextForm(siteText: SiteText) {
@@ -281,14 +186,18 @@ export default function KeeperPage() {
   const [archiveSavedAt, setArchiveSavedAt] = useState<string | null>(null);
   const [hasArchiveConflict, setHasArchiveConflict] = useState(false);
   const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
+  const [pendingAction, setPendingAction] = useState<KeeperPendingAction>(null);
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
+  const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents), [archiveEvents]);
+  const selectedIntegrityIssues = integrityIssues.filter((issue) => !issue.recordId || issue.recordId === selectedEvent.id);
 
   usePageMetadata({
     title: mode === 'text' ? 'Text Register | Jerboa Circle Keeper' : 'Register of Passages | Jerboa Circle Keeper',
     description: 'Jerboa Circle keeper desk for archive records, site text, drafts, and shared publication.',
     canonicalPath: mode === 'text' ? '/godmode/' : '/keeper/',
+    noIndex: true,
   });
 
   function selectEvent(event: ArchiveEvent) {
@@ -306,7 +215,7 @@ export default function KeeperPage() {
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validation = validateKeeperForm(form);
+    const validation = validateKeeperForm(form, archiveEvents);
     if (validation) {
       setSyncStatus(`입력 확인 / ${validation}`);
       return;
@@ -419,6 +328,7 @@ export default function KeeperPage() {
       ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
     };
     return {
+      schemaVersion: 1 as const,
       drafts,
       siteText: siteTextForm,
     };
@@ -435,7 +345,7 @@ export default function KeeperPage() {
 
   async function saveArchiveToServer() {
     try {
-      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form) : '';
+      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents) : '';
       if (archiveValidation) {
         setSyncStatus(`입력 확인 / ${archiveValidation}`);
         return;
@@ -532,25 +442,21 @@ export default function KeeperPage() {
 
   async function importArchiveDrafts(file: File) {
     try {
-      const payload = JSON.parse(await file.text());
-      const drafts = payload.drafts || payload.data?.drafts || payload;
-      if (!drafts || typeof drafts !== 'object') {
-        throw new Error('Invalid draft file');
-      }
-      writeArchiveDrafts(drafts);
-      const nextEvents = applyArchiveDrafts(events);
-      const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
-      setForm(toFormState(nextSelected));
-      setVersion((current) => current + 1);
-      setSyncStatus('초안 파일 적용됨');
+      if (file.size > 6_000_000) throw new Error('파일이 6MB를 넘어 안전하게 확인할 수 없습니다.');
+      const parsed = parseArchiveDraftImport(JSON.parse(await file.text()));
+      setPendingAction({ kind: 'import', ...parsed });
+      setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 필드 ${parsed.fieldCount}개`);
     } catch (error) {
       console.error('Archive draft import failed:', error);
-      setSyncStatus('초안 파일을 읽을 수 없음');
+      setSyncStatus(error instanceof Error ? `초안 파일 적용 보류 / ${error.message}` : '초안 파일을 읽을 수 없음');
     }
   }
 
   function clearEveryDraft() {
-    if (!confirm('모든 포스터 초안을 지울까요? 공개 원본 데이터는 유지됩니다.')) return;
+    setPendingAction({ kind: 'clear' });
+  }
+
+  function performClearEveryDraft() {
     clearAllArchiveDrafts();
     const baseEvent = events.find((event) => event.id === selectedId) ?? events[0];
     setSelectedId(baseEvent.id);
@@ -559,7 +465,11 @@ export default function KeeperPage() {
     setSyncStatus('모든 로컬 초안 삭제됨');
   }
 
-  function restoreRevision(revisionId: string) {
+  function restoreRevision(revisionId: string, title: string) {
+    setPendingAction({ kind: 'restore', revisionId, title });
+  }
+
+  function performRestoreRevision(revisionId: string) {
     if (!restoreArchiveDraftRevision(selectedEvent.id, revisionId)) {
       setSyncStatus('되돌릴 초안 이력을 찾을 수 없음');
       return;
@@ -569,6 +479,23 @@ export default function KeeperPage() {
     setForm(toFormState(nextEvent));
     setVersion((current) => current + 1);
     setSyncStatus('선택한 초안 이력으로 되돌림 / 확인 후 공동 장부에 봉인하세요');
+  }
+
+  function confirmPendingAction() {
+    if (!pendingAction) return;
+    if (pendingAction.kind === 'import') {
+      writeArchiveDrafts(pendingAction.drafts);
+      const nextEvents = applyArchiveDrafts(events);
+      const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
+      setForm(toFormState(nextSelected));
+      setVersion((current) => current + 1);
+      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개`);
+    } else if (pendingAction.kind === 'clear') {
+      performClearEveryDraft();
+    } else {
+      performRestoreRevision(pendingAction.revisionId);
+    }
+    setPendingAction(null);
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
@@ -603,6 +530,8 @@ export default function KeeperPage() {
         </nav>
       </header>
 
+      <ConnectivityNotice context="Keeper Desk" />
+
       <main className="keeper-room">
         <aside className="keeper-register" aria-label="Programme register">
           <p className="section-kicker">Keeper desk / marginal edition room</p>
@@ -611,9 +540,9 @@ export default function KeeperPage() {
             포스터, 문구, 여정, 자료 묶음을 고쳐 서클의 보이는 기억에 반영합니다
           </p>
           <ul className="keeper-purpose-list">
-            <li lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</li>
-            <li lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</li>
-            <li lang="ko">공동 장부에 봉인하면 여러 사람에게 같은 판본을 보여줍니다</li>
+            <li><span lang="ko">프로그램 모드는 각 장의 포스터와 기록을 고칩니다</span></li>
+            <li><span lang="ko">문구실은 공개 화면의 반복 문장을 고칩니다</span></li>
+            <li><span lang="ko">공동 장부에 봉인하면 여러 사람에게 같은 판본을 보여줍니다</span></li>
           </ul>
           <p className="keeper-draft-count" lang="ko">
             {mode === 'text'
@@ -626,24 +555,24 @@ export default function KeeperPage() {
               onClick={() => setMode('events')}
               type="button"
             >
-              프로그램
+              <span lang="ko">프로그램</span>
             </button>
             <button
               className={mode === 'text' ? 'is-active' : ''}
               onClick={() => setMode('text')}
               type="button"
             >
-              문구실
+              <span lang="ko">문구실</span>
             </button>
           </div>
           {mode === 'events' && (
             <button className="keeper-new-record" type="button" onClick={createNewRecord}>
-              아직 필사되지 않은 장 추가
+              <span lang="ko">아직 필사되지 않은 장 추가</span>
             </button>
           )}
           <div className="keeper-sync-panel" aria-label="Archive sync controls">
             <label>
-              <span>역할 또는 공동 장부 열쇠</span>
+              <span lang="ko">역할 또는 공동 장부 열쇠</span>
               <input
                 type="password"
                 value={serverKey}
@@ -652,11 +581,11 @@ export default function KeeperPage() {
               />
             </label>
             <div className="keeper-sync-actions">
-              <button type="button" onClick={saveArchiveToServer}>공동 장부에 봉인</button>
-              <button type="button" onClick={loadArchiveFromServer}>공동 장부 열람</button>
-              <button type="button" onClick={downloadArchiveDrafts}>파일 백업</button>
+              <button type="button" onClick={saveArchiveToServer}><span lang="ko">공동 장부에 봉인</span></button>
+              <button type="button" onClick={loadArchiveFromServer}><span lang="ko">공동 장부 열람</span></button>
+              <button type="button" onClick={downloadArchiveDrafts}><span lang="ko">파일 백업</span></button>
               <label>
-                파일 적용
+                <span lang="ko">파일 적용</span>
                 <input
                   type="file"
                   accept="application/json,.json"
@@ -669,17 +598,32 @@ export default function KeeperPage() {
                   }}
                 />
               </label>
-              <button type="button" onClick={clearEveryDraft}>초안 삭제</button>
+              <button type="button" onClick={clearEveryDraft}><span lang="ko">초안 삭제</span></button>
             </div>
             {hasArchiveConflict && (
               <p className="keeper-sync-conflict" role="alert" lang="ko">
                 공동 장부가 다른 곳에서 먼저 바뀌었습니다. 열람 후 다시 봉인하세요.
                 {hasArchiveRecovery && (
-                  <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}>로컬 복구 파일 받기</button>
+                  <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}><span lang="ko">로컬 복구 파일 받기</span></button>
                 )}
               </p>
             )}
-            <small>{syncStatus}</small>
+            <small lang="ko">{syncStatus}</small>
+          </div>
+          <div className="keeper-sync-panel" aria-label="Archive integrity status">
+            <strong lang="ko">아카이브 연결 검사</strong>
+            <small lang="ko">
+              {integrityIssues.length === 0
+                ? `기록 ${archiveEvents.length}개 / 끊어진 연결 없음`
+                : `확인할 연결 ${integrityIssues.length}개`}
+            </small>
+            {selectedIntegrityIssues.length > 0 && (
+              <ul className="keeper-integrity-list">
+                {selectedIntegrityIssues.slice(0, 5).map((issue) => (
+                  <li data-severity={issue.severity} key={issue.id}>{issue.message}</li>
+                ))}
+              </ul>
+            )}
           </div>
           {mode === 'events' ? (
             <div className="keeper-list">
@@ -701,7 +645,7 @@ export default function KeeperPage() {
               <button className="is-selected" type="button">
                 <span>⚜ Scriptorium</span>
                 <strong>Text register</strong>
-                <small>반복되는 문장</small>
+                <small lang="ko">반복되는 문장</small>
               </button>
             </div>
           )}
@@ -726,7 +670,7 @@ export default function KeeperPage() {
               <div className="godmode-field-grid">
                 {siteTextFields.map((field) => (
                   <label className="keeper-field godmode-field" key={field.key}>
-                    <span>{field.label}</span>
+                    <span lang="ko">{field.label}</span>
                     {field.area ? (
                       <textarea
                         rows={field.key === 'manifestoBody' ? 5 : 3}
@@ -759,32 +703,32 @@ export default function KeeperPage() {
 
           <form className="keeper-form" onSubmit={saveDraft}>
             <div className="keeper-editor-heading">
-              <p className="section-kicker">{selectedEvent.edition} / 편집 중</p>
+              <p className="section-kicker"><span lang="en">{selectedEvent.edition}</span> / <span lang="ko">편집 중</span></p>
               <h2>{form.title}</h2>
             </div>
 
             <label className="keeper-field">
-              <span>판본</span>
+              <span lang="ko">판본</span>
               <input value={form.edition} onChange={(event) => updateField('edition', event.target.value)} />
             </label>
 
             <label className="keeper-field">
-              <span>제목</span>
+              <span lang="ko">제목</span>
               <input value={form.title} onChange={(event) => updateField('title', event.target.value)} />
             </label>
 
             <label className="keeper-field">
-              <span>부제</span>
+              <span lang="ko">부제</span>
               <input value={form.subtitle} onChange={(event) => updateField('subtitle', event.target.value)} />
             </label>
 
             <label className="keeper-field">
-              <span>라틴 문장</span>
+              <span lang="ko">라틴 문장</span>
               <input value={form.latinQuote} onChange={(event) => updateField('latinQuote', event.target.value)} />
             </label>
 
             <label className="keeper-field">
-              <span>여백 주석</span>
+              <span lang="ko">여백 주석</span>
               <textarea
                 rows={2}
                 value={form.marginalia}
@@ -794,12 +738,12 @@ export default function KeeperPage() {
 
             <div className="keeper-field-grid">
               <label className="keeper-field">
-                <span>일자</span>
+                <span lang="ko">일자</span>
                 <input value={form.date} onChange={(event) => updateField('date', event.target.value)} />
               </label>
 
               <label className="keeper-field">
-                <span>상태</span>
+                <span lang="ko">상태</span>
                 <select value={form.status} onChange={(event) => updateField('status', event.target.value as EventStatus)}>
                   <option value="current">current</option>
                   <option value="upcoming">upcoming</option>
@@ -810,7 +754,7 @@ export default function KeeperPage() {
 
             <div className="keeper-field-grid">
               <label className="keeper-field">
-                <span>종류</span>
+                <span lang="ko">종류</span>
                 <select value={form.kind} onChange={(event) => updateField('kind', event.target.value as ArchiveContentKind)}>
                   <option value="workshop">workshop</option>
                   <option value="essay">essay</option>
@@ -821,7 +765,7 @@ export default function KeeperPage() {
               </label>
 
               <label className="keeper-field">
-                <span>공개 상태</span>
+                <span lang="ko">공개 상태</span>
                 <select value={form.visibility} onChange={(event) => updateField('visibility', event.target.value as ArchiveVisibility)}>
                   <option value="public">public</option>
                   <option value="unlisted">unlisted</option>
@@ -831,7 +775,7 @@ export default function KeeperPage() {
             </div>
 
             <label className="keeper-field">
-              <span>발행 단계</span>
+              <span lang="ko">발행 단계</span>
               <select value={form.workflowStatus} onChange={(event) => updateField('workflowStatus', event.target.value as ArchiveWorkflowStatus)}>
                 <option value="draft">draft</option>
                 <option value="preview">preview</option>
@@ -840,33 +784,29 @@ export default function KeeperPage() {
               </select>
             </label>
 
-            <div className="keeper-field-grid">
-              <label className="keeper-field">
-                <span>시즌</span>
-                <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
-                  {archiveSeasons.map((season) => (
-                    <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
-                  ))}
-                </select>
-              </label>
+            <label className="keeper-field">
+              <span lang="ko">시즌</span>
+              <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
+                {archiveSeasons.map((season) => (
+                  <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+                ))}
+              </select>
+            </label>
 
-              <label className="keeper-field">
-                <span>컬렉션 ID</span>
-                <input
-                  list="archive-collection-ids"
-                  value={form.collectionIdsText}
-                  onChange={(event) => updateField('collectionIdsText', event.target.value)}
-                />
-              </label>
-            </div>
-            <datalist id="archive-collection-ids">
-              {archiveCollections.map((collection) => (
-                <option value={collection.id} key={collection.id}>{collection.title}</option>
-              ))}
-            </datalist>
+            <RelationshipPicker
+              label="컬렉션"
+              description="이 프로그램이 나타날 공개 묶음을 선택합니다. ID를 직접 입력할 필요가 없습니다."
+              options={archiveCollections.map((collection) => ({
+                id: collection.id,
+                title: collection.title,
+                meta: collection.visibility,
+              }))}
+              selectedIds={splitDraftList(form.collectionIdsText)}
+              onChange={(ids) => updateField('collectionIdsText', ids.join(' / '))}
+            />
 
             <label className="keeper-field">
-              <span>포스터 이미지 URL</span>
+              <span lang="ko">포스터 이미지 URL</span>
               <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
             </label>
 
@@ -875,14 +815,14 @@ export default function KeeperPage() {
                 <img src={form.posterImage} alt="" />
               </figure>
               <label className="keeper-field">
-                <span>포스터 이미지 업로드</span>
-                <small>파일을 올리면 웹용 크기로 줄인 뒤 이 프로그램 기록에 붙습니다</small>
+                <span lang="ko">포스터 이미지 업로드</span>
+                <small lang="ko">파일을 올리면 웹용 크기로 줄인 뒤 이 프로그램 기록에 붙습니다</small>
                 <input accept="image/*" onChange={readPosterFile} type="file" />
               </label>
             </div>
 
             <label className="keeper-field">
-              <span>짧은 설명</span>
+              <span lang="ko">짧은 설명</span>
               <textarea
                 rows={3}
                 value={form.shortDescription}
@@ -891,7 +831,7 @@ export default function KeeperPage() {
             </label>
 
             <label className="keeper-field">
-              <span>긴 설명</span>
+              <span lang="ko">긴 설명</span>
               <textarea
                 rows={5}
                 value={form.longDescription}
@@ -900,7 +840,7 @@ export default function KeeperPage() {
             </label>
 
             <label className="keeper-field">
-              <span>여정 단계</span>
+              <span lang="ko">여정 단계</span>
               <textarea
                 rows={3}
                 value={form.passageText}
@@ -909,7 +849,7 @@ export default function KeeperPage() {
             </label>
 
             <label className="keeper-field">
-              <span>자료 묶음</span>
+              <span lang="ko">자료 묶음</span>
               <textarea
                 rows={3}
                 value={form.materialsText}
@@ -918,7 +858,7 @@ export default function KeeperPage() {
             </label>
 
             <label className="keeper-field">
-              <span>주제</span>
+              <span lang="ko">주제</span>
               <textarea
                 rows={3}
                 value={form.themesText}
@@ -926,34 +866,38 @@ export default function KeeperPage() {
               />
             </label>
 
-            <label className="keeper-field">
-              <span>참조 노드 ID</span>
-              <small>책, 작품, 인용, 도판, 장소의 ID를 / 로 구분합니다</small>
-              <textarea
-                rows={3}
-                value={form.referenceIdsText}
-                onChange={(event) => updateField('referenceIdsText', event.target.value)}
-              />
-            </label>
+            <RelationshipPicker
+              label="참고자료와 문화 노드"
+              description="책, 작품, 인용, 도판, 장소를 검색해 선택합니다. 선택한 자료로 공개 읽기 목록이 자동 생성됩니다."
+              options={archiveReferences.map((reference) => ({
+                id: reference.id,
+                title: reference.title,
+                meta: reference.attribution ?? reference.kind,
+              }))}
+              selectedIds={splitDraftList(form.referenceIdsText)}
+              onChange={(ids) => updateField('referenceIdsText', ids.join(' / '))}
+            />
 
-            <label className="keeper-field">
-              <span>연결 프로그램 ID</span>
-              <small>과거와 미래에 직접 이어지는 프로그램 ID를 / 로 구분합니다</small>
-              <textarea
-                rows={3}
-                value={form.relatedEventIdsText}
-                onChange={(event) => updateField('relatedEventIdsText', event.target.value)}
-              />
-            </label>
+            <RelationshipPicker
+              label="이어지는 프로그램"
+              description="이 판본과 직접 연결할 과거·미래 프로그램을 선택합니다. 자기 자신은 목록에서 제외됩니다."
+              options={archiveEvents.filter((event) => event.id !== selectedEvent.id).map((event) => ({
+                id: event.id,
+                title: event.title,
+                meta: event.edition,
+              }))}
+              selectedIds={splitDraftList(form.relatedEventIdsText)}
+              onChange={(ids) => updateField('relatedEventIdsText', ids.join(' / '))}
+            />
 
             <div className="keeper-field-grid">
               <label className="keeper-field">
-                <span>형식</span>
+                <span lang="ko">형식</span>
                 <input value={form.location} onChange={(event) => updateField('location', event.target.value)} />
               </label>
 
               <label className="keeper-field">
-                <span>버튼 문구</span>
+                <span lang="ko">버튼 문구</span>
                 <input value={form.ctaLabel} onChange={(event) => updateField('ctaLabel', event.target.value)} />
               </label>
             </div>
@@ -969,8 +913,8 @@ export default function KeeperPage() {
               <span>{form.edition}</span>
               <h3>{form.title}</h3>
               <p>{form.subtitle}</p>
-              <p>{form.marginalia}</p>
-              <small>{form.workflowStatus} / {form.visibility} / {form.shortDescription}</small>
+              <p lang={/[가-힣]/.test(form.marginalia) ? 'ko' : 'en'}>{form.marginalia}</p>
+              <small><span lang="en">{form.workflowStatus} / {form.visibility}</span> / <span lang={/[가-힣]/.test(form.shortDescription) ? 'ko' : 'en'}>{form.shortDescription}</span></small>
             </aside>
 
             <aside className="keeper-revision-history" aria-label="Archive draft revision history">
@@ -984,7 +928,7 @@ export default function KeeperPage() {
                     <li key={revision.id}>
                       <span>{new Date(revision.savedAt).toLocaleString('ko-KR')}</span>
                       <small>{revision.label} / {revision.title}</small>
-                      <button type="button" onClick={() => restoreRevision(revision.id)}>이 버전으로 되돌리기</button>
+                      <button type="button" onClick={() => restoreRevision(revision.id, revision.title)}><span lang="ko">이 버전으로 되돌리기</span></button>
                     </li>
                   ))}
                 </ol>
@@ -996,6 +940,23 @@ export default function KeeperPage() {
           </section>
         )}
       </main>
+      <ConfirmDialog
+        open={Boolean(pendingAction)}
+        title={pendingAction?.kind === 'import'
+          ? '검증된 초안 파일을 적용할까요?'
+          : pendingAction?.kind === 'clear'
+            ? '모든 로컬 초안을 지울까요?'
+            : '이전 초안으로 되돌릴까요?'}
+        description={pendingAction?.kind === 'import'
+          ? `기록 ${pendingAction.recordCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
+          : pendingAction?.kind === 'clear'
+            ? '공개 원본은 유지되지만, 이 기기에 저장된 모든 수정 초안이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
+            : `“${pendingAction?.kind === 'restore' ? pendingAction.title : ''}” 저장본으로 되돌립니다. 현재 초안은 새 이력으로 남습니다.`}
+        confirmLabel={pendingAction?.kind === 'import' ? '검증 파일 적용' : pendingAction?.kind === 'clear' ? '로컬 초안 삭제' : '이 버전 복원'}
+        tone={pendingAction?.kind === 'clear' ? 'danger' : 'default'}
+        onCancel={() => setPendingAction(null)}
+        onConfirm={confirmPendingAction}
+      />
     </div>
   );
 }

@@ -50,6 +50,8 @@ Import this repository in Vercel and use the default Vite settings:
 
 Recommended environment variables:
 
+- `PUBLIC_SITE_URL`: canonical public origin used for sitemap and feed URLs (for example `https://example.org`).
+
 - `JERBOA_SYNC_KEY`: legacy/shared write key for member and archive sync.
 - `JERBOA_AUTH_SECRET`: signing secret for temporary role sessions.
 - `JERBOA_ADMIN_KEY`: owner key that can authenticate either role.

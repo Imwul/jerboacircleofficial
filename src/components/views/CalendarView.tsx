@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, parseISO, isSameMonth, startOfDay, startOfWeek, endOfWeek, isAfter, isValid } from 'date-fns';
 import { CalendarEvent, User, THEME_CONFIG, ThemeColor } from '../../types';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface CalendarViewProps {
   events: CalendarEvent[];
@@ -85,6 +86,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentMonth, setCurrentMonth] = useState(initialDate);
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [expandedEvents, setExpandedEvents] = useState<Record<string, 'summary' | 'detail'>>({});
+  const [pendingDeleteEvent, setPendingDeleteEvent] = useState<CalendarEvent | null>(null);
   const hasAlignedInitialDate = useRef(false);
 
   const handleEventClick = (eventId: string) => {
@@ -107,11 +109,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const getEventsForDate = (date: Date) => {
     return events.filter((event) => {
       const eventDate = parseEventDate(event.date);
-      return eventDate ? isSameDay(eventDate, date) : isSameDay(date, startOfDay(new Date()));
+      return eventDate ? isSameDay(eventDate, date) : false;
     });
   };
 
   const selectedEvents = getEventsForDate(selectedDate);
+  const undatedEvents = events.filter((event) => !parseEventDate(event.date));
   const nextAvailableDate = [...events]
     .map((event) => parseEventDate(event.date))
     .filter((date): date is Date => Boolean(date))
@@ -322,9 +325,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             aria-label={`${event.title} 삭제`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm(`${event.title} 프로그램을 삭제할까요? 참가 신청 기록에서도 제거됩니다.`)) {
-                                onDeleteEvent?.(event);
-                              }
+                              setPendingDeleteEvent(event);
                             }}
                             className="p-2 bg-white/10 hover:bg-red-500/40 rounded-xl transition-colors"
                           >
@@ -349,13 +350,51 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </div>
                       )}
                     </div>
+                    {event.archiveRecordId && (
+                      <a
+                        href={`/archive/${event.archiveRecordId}/`}
+                        onClick={(clickEvent) => clickEvent.stopPropagation()}
+                        className="inline-flex text-[10px] font-black underline underline-offset-4 opacity-80 hover:opacity-100"
+                      >
+                        <span lang="ko">공개 프로그램 기록과 읽기 자료 보기</span>
+                      </a>
+                    )}
                   </div>
                 </article>
               );
             })}
           </div>
         )}
+
+        {undatedEvents.length > 0 && (
+          <section className="archive-undated-events" aria-labelledby="undated-events-title">
+            <div>
+              <h4 id="undated-events-title" lang="ko">날짜 확인이 필요한 프로그램</h4>
+              <p lang="ko">이전 장부에서 날짜를 읽을 수 없는 기록입니다. 오늘 일정에는 포함하지 않았습니다.</p>
+            </div>
+            <ul>
+              {undatedEvents.map((event) => (
+                <li key={event.id}>
+                  <span lang="ko">{event.title}</span>
+                  {isAdmin && <button type="button" onClick={() => onEditEvent?.(event)}><span lang="ko">날짜 수정</span></button>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
+      <ConfirmDialog
+        open={Boolean(pendingDeleteEvent)}
+        title="프로그램을 삭제할까요?"
+        description={pendingDeleteEvent ? `“${pendingDeleteEvent.title}” 일정과 모든 참가 신청 기록이 함께 제거됩니다.` : ''}
+        confirmLabel="프로그램 삭제"
+        tone="danger"
+        onCancel={() => setPendingDeleteEvent(null)}
+        onConfirm={() => {
+          if (pendingDeleteEvent) onDeleteEvent?.(pendingDeleteEvent);
+          setPendingDeleteEvent(null);
+        }}
+      />
     </div>
   );
 };

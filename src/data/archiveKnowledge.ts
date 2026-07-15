@@ -8,6 +8,15 @@ export interface ArchiveReference {
   kind: ArchiveReferenceKind;
   title: string;
   attribution?: string;
+  creator?: string;
+  date?: string;
+  edition?: string;
+  locator?: string;
+  sourceUrl?: string;
+  rights?: string;
+  language?: string;
+  citationNote?: string;
+  altText?: string;
   description: string;
   parentId?: string;
 }
@@ -37,6 +46,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'book',
     title: 'Canticum Canticorum',
     attribution: 'Song of Songs',
+    language: 'Latin',
+    rights: 'Public-domain source text',
+    citationNote: 'Canticum Canticorum, chapter 2. Edition varies by programme.',
     description: 'Edition 004의 2:14와 Edition 006의 2:13을 잇는 공통 원전.',
   },
   {
@@ -44,6 +56,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'Surge, amica mea, speciosa mea, et veni',
     attribution: 'Canticum Canticorum 2:13',
+    locator: '2:13',
+    language: 'Latin',
+    rights: 'Public-domain source text',
+    citationNote: 'Canticum Canticorum 2:13.',
     description: 'Scintilla Animae의 문을 여는 부름.',
     parentId: 'canticum-canticorum',
   },
@@ -52,6 +68,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'Ostende mihi faciem tuam',
     attribution: 'Canticum Canticorum 2:14',
+    locator: '2:14',
+    language: 'Latin',
+    rights: 'Public-domain source text',
+    citationNote: 'Canticum Canticorum 2:14.',
     description: '보이지 않는 얼굴과 응답을 요청하는 문장.',
     parentId: 'canticum-canticorum',
   },
@@ -60,6 +80,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'book',
     title: 'Divina Commedia',
     attribution: 'Dante Alighieri',
+    creator: 'Dante Alighieri',
+    language: 'Italian',
+    rights: 'Public-domain source text',
+    citationNote: 'Dante Alighieri, Divina Commedia. Edition varies by programme.',
     description: '어두운 숲과 다시 보는 별을 통해 Edition 003과 Edition 006을 잇는 원전.',
   },
   {
@@ -67,6 +91,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'selva oscura',
     attribution: 'Inferno I',
+    locator: 'Inferno, Canto I',
+    language: 'Italian',
+    rights: 'Public-domain source text',
+    citationNote: 'Dante Alighieri, Inferno, Canto I.',
     description: '길을 잃는 장면을 하나의 읽기 방법으로 바꾸는 구절.',
     parentId: 'divine-comedy',
   },
@@ -75,6 +103,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'E quindi uscimmo a riveder le stelle',
     attribution: 'Inferno XXXIV.139',
+    locator: 'Inferno XXXIV.139',
+    language: 'Italian',
+    rights: 'Public-domain source text',
+    citationNote: 'Dante Alighieri, Inferno XXXIV.139.',
     description: '폐관 이후의 시선과 귀환을 연결하는 마지막 행.',
     parentId: 'divine-comedy',
   },
@@ -82,6 +114,8 @@ export const archiveReferences: ArchiveReference[] = [
     id: 'book-of-job',
     kind: 'book',
     title: 'Book of Job',
+    rights: 'Public-domain source text; translation rights vary',
+    citationNote: 'Book of Job. Translation and edition vary by programme.',
     description: '질문에 답하는 대신 질문의 규모를 넓히는 원전.',
   },
   {
@@ -89,6 +123,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'Job 38:7',
     attribution: 'Book of Job',
+    locator: '38:7',
+    rights: 'Source text is public domain; translation rights vary',
+    citationNote: 'Book of Job 38:7. Translation varies by programme.',
     description: '아침 별의 이미지로 프로그램의 마지막 표식을 지지하는 구절.',
     parentId: 'book-of-job',
   },
@@ -97,12 +134,17 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'book',
     title: 'Perceval, le Conte du Graal',
     attribution: 'Chrétien de Troyes',
+    creator: 'Chrétien de Troyes',
+    language: 'Old French',
+    rights: 'Public-domain source text',
+    citationNote: 'Chrétien de Troyes, Perceval, le Conte du Graal. Edition varies by programme.',
     description: '성배 앞에서 무엇을 물어야 하는가라는 질문의 문학적 계보.',
   },
   {
     id: 'grail-question',
     kind: 'theme',
     title: 'The Grail question',
+    citationNote: 'Jerboa Circle thematic node derived from Perceval, le Conte du Graal.',
     description: '페르스발이 묻지 못한 질문과 그 책임을 중심에 놓는 반복 주제.',
     parentId: 'perceval',
   },
@@ -111,6 +153,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'book',
     title: 'Sir Gawain and the Green Knight',
     attribution: 'Anonymous',
+    creator: 'Anonymous',
+    language: 'Middle English',
+    rights: 'Public-domain source text',
+    citationNote: 'Sir Gawain and the Green Knight. Edition varies by programme.',
     description: '목소리, 단단한 글자와 겨울의 방을 연결하는 중세 영어 원전.',
   },
   {
@@ -118,6 +164,10 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'quotation',
     title: 'In stori stif and stronge',
     attribution: 'Sir Gawain and the Green Knight, line 34',
+    locator: 'Line 34',
+    language: 'Middle English',
+    rights: 'Public-domain source text',
+    citationNote: 'Sir Gawain and the Green Knight, line 34.',
     description: 'Edition 005에서 낭독과 기록이 오래 버티는 방식을 설명하는 행.',
     parentId: 'sir-gawain',
   },
@@ -125,18 +175,21 @@ export const archiveReferences: ArchiveReference[] = [
     id: 'winter-room',
     kind: 'place',
     title: 'The winter room',
+    citationNote: 'Jerboa Circle programme place node.',
     description: '목소리, 침묵과 여백이 한 장면에 머무는 장소.',
   },
   {
     id: 'unmade-place',
     kind: 'place',
     title: 'An unmade place',
+    citationNote: 'Jerboa Circle programme place node.',
     description: '주소보다 편지가 먼저 도착하는 가상의 수신지.',
   },
   {
     id: 'museum-after-hours-place',
     kind: 'place',
     title: 'The museum after hours',
+    citationNote: 'Jerboa Circle programme place node.',
     description: '라벨의 설명이 멈춘 뒤 사물과 잔상이 다시 읽히는 장소.',
   },
   {
@@ -144,6 +197,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'image',
     title: 'Grail table plate',
     attribution: 'Jerboa Circle image archive',
+    rights: 'Jerboa Circle archive; reuse by permission',
+    altText: '성배의 질문과 원탁의 관계를 다루는 중세 도판.',
+    citationNote: 'Jerboa Circle image archive, Grail table plate.',
     description: 'Scintilla Animae에서 질문과 원탁의 관계를 여는 도판.',
   },
   {
@@ -151,6 +207,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'image',
     title: 'Bestiary margin plate',
     attribution: 'Jerboa Circle image archive',
+    rights: 'Jerboa Circle archive; reuse by permission',
+    altText: '낭독과 여백의 관계를 보여주는 중세 필사본 가장자리 도판.',
+    citationNote: 'Jerboa Circle image archive, Bestiary margin plate.',
     description: 'Edition 005의 목소리와 여백을 시각적으로 연결하는 도판.',
   },
   {
@@ -158,6 +217,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'image',
     title: 'Love window plate',
     attribution: 'Jerboa Circle image archive',
+    rights: 'Jerboa Circle archive; reuse by permission',
+    altText: '보이지 않는 얼굴과 먼 수신지를 연결하는 창문 도상.',
+    citationNote: 'Jerboa Circle image archive, Love window plate.',
     description: '보이지 않는 얼굴과 먼 수신지를 연결하는 도판.',
   },
   {
@@ -165,6 +227,9 @@ export const archiveReferences: ArchiveReference[] = [
     kind: 'image',
     title: 'Dante stars plate',
     attribution: 'Jerboa Circle image archive',
+    rights: 'Jerboa Circle archive; reuse by permission',
+    altText: '어두운 공간을 지나 다시 별을 바라보는 장면의 도판.',
+    citationNote: 'Jerboa Circle image archive, Dante stars plate.',
     description: '폐관 이후의 별과 Scintilla Animae의 마지막 표식을 잇는 도판.',
   },
 ];
@@ -360,6 +425,14 @@ export function archiveKnowledgeSearchText(event: ArchiveEvent, records: Archive
       reference.kind,
       reference.title,
       reference.attribution,
+      reference.creator,
+      reference.date,
+      reference.edition,
+      reference.locator,
+      reference.rights,
+      reference.language,
+      reference.citationNote,
+      reference.altText,
       reference.description,
     ]),
     ...connections.flatMap((connection) => [

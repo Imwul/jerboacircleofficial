@@ -5,6 +5,8 @@ import { resizeImage } from '../../utils/imageUtils';
 import { HabitTrackingView } from './HabitTrackingView';
 import { format, isBefore, isValid, parseISO, startOfDay, subDays } from 'date-fns';
 import { deriveParticipantJourney, participantJourneyLabels } from '../../utils/participantJourney';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { useDialogFocus } from '../../utils/useDialogFocus';
 
 interface AdminViewProps {
   users: User[];
@@ -118,6 +120,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [bulkEndDate, setBulkEndDate] = useState('');
   const [journeyFilter, setJourneyFilter] = useState<ParticipantJourneyStage | 'all'>('all');
   const [rosterBaseline, setRosterBaseline] = useState(() => readRosterSnapshot());
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null);
+  const [imageUploadError, setImageUploadError] = useState('');
+  const editorDialogRef = useDialogFocus<HTMLDivElement>(Boolean(editingUser), () => setEditingUser(null));
+  const bulkDialogRef = useDialogFocus<HTMLDivElement>(bulkEditDateModalOpen, () => setBulkEditDateModalOpen(false));
   const journeyStages: ParticipantJourneyStage[] = ['first-visit', 'invited', 'active', 'returning', 'lapsed', 'season-complete'];
 
   const getTodayKey = () => {
@@ -213,11 +219,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       try {
+        setImageUploadError('');
         const resizedImage = await resizeImage(file, 800, 800);
         onUpdateMainImage(resizedImage);
       } catch (error) {
         console.error("Failed to resize image", error);
-        alert("이미지 업로드에 실패했습니다.");
+        setImageUploadError('장부 표지 이미지를 읽을 수 없습니다. 다른 이미지나 더 작은 파일을 선택해주세요.');
       }
     }
   };
@@ -261,6 +268,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
+      {imageUploadError && <div className="archive-notice" role="alert" lang="ko">{imageUploadError}</div>}
       <div className="p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
         <h2 className="text-xl font-black text-stone-800">보관자 책상</h2>
         <button onClick={onLogout} className="text-[10px] font-bold text-stone-400 hover:text-stone-600"><span className="archive-ko-label">장부 닫기</span></button>
@@ -491,11 +499,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     </button>
                     <button
                       aria-label={`${user.name} 회원 기록 삭제`}
-                      onClick={() => {
-                        if (confirm(`${user.name} 회원 기록을 삭제할까요? 신청 내역과 개인 기록도 함께 사라집니다.`)) {
-                          onDeleteUser(user.id);
-                        }
-                      }}
+                      onClick={() => setPendingDeleteUser(user)}
                       className="p-2.5 hover:bg-red-50 rounded-2xl text-red-300 transition-colors"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -630,7 +634,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {editingUser && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="member-editor-title">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
+          <div ref={editorDialogRef} className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
             <h3 id="member-editor-title" className="text-lg font-black text-stone-900">회원 기록 수정</h3>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -709,7 +713,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       )}
       {bulkEditDateModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-date-title">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
+          <div ref={bulkDialogRef} className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
             <h3 id="bulk-date-title" className="text-lg font-black text-stone-900">마감일 표시</h3>
             <p className="text-xs text-stone-500">모든 회원 기록에 같은 마감일을 적용합니다</p>
             <div className="space-y-2">
@@ -728,6 +732,18 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(pendingDeleteUser)}
+        title="회원 기록을 삭제할까요?"
+        description={pendingDeleteUser ? `${pendingDeleteUser.name}님의 신청 내역, 개인 기록과 이미지가 모두 사라집니다. 필요한 장부를 먼저 백업해주세요.` : ''}
+        confirmLabel="회원 기록 삭제"
+        tone="danger"
+        onCancel={() => setPendingDeleteUser(null)}
+        onConfirm={() => {
+          if (pendingDeleteUser) onDeleteUser(pendingDeleteUser.id);
+          setPendingDeleteUser(null);
+        }}
+      />
     </div>
   );
 };

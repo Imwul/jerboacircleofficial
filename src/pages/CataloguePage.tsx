@@ -1,0 +1,226 @@
+import { useEffect, useMemo, useState } from 'react';
+import { events, getPublicArchiveEvents } from '../data/events';
+import {
+  archiveReferenceKindLabel,
+  archiveReferences,
+  getArchiveReference,
+  type ArchiveReferenceKind,
+} from '../data/archiveKnowledge';
+import { applyArchiveDrafts, writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import { usePageMetadata } from '../utils/pageMetadata';
+import { loadServerSync } from '../utils/serverSync';
+import './HomePage.css';
+import './EditorialStability.css';
+import '../JerboaCondoRefine.css';
+
+const kinds: Array<ArchiveReferenceKind | 'all'> = ['all', 'book', 'artwork', 'quotation', 'image', 'place', 'theme'];
+
+function textLanguage(text: string) {
+  return /[가-힣]/.test(text) ? 'ko' : 'en';
+}
+
+function referenceMetadata(reference: NonNullable<ReturnType<typeof getArchiveReference>>) {
+  return [
+    ['Creator / 만든 이', reference.creator],
+    ['Date / 연도', reference.date],
+    ['Edition / 판본', reference.edition],
+    ['Locator / 쪽·행', reference.locator],
+    ['Language / 언어', reference.language],
+    ['Rights / 권리', reference.rights],
+  ].filter((row): row is [string, string] => Boolean(row[1]));
+}
+
+function copyWithSelection(text: string) {
+  const field = document.createElement('textarea');
+  field.value = text;
+  field.setAttribute('readonly', '');
+  field.style.position = 'fixed';
+  field.style.opacity = '0';
+  document.body.appendChild(field);
+  field.select();
+  const copied = document.execCommand('copy');
+  field.remove();
+  return copied;
+}
+
+function CatalogueHeader() {
+  return (
+    <header className="archive-header" aria-label="Jerboa Circle catalogue navigation">
+      <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
+        <span>Jerboa</span><span>Circle</span><small lang="la">Ad quaerendum.</small>
+      </a>
+      <nav className="archive-nav" aria-label="Catalogue navigation">
+        <a className="archive-nav-memory" href="/#archive"><span className="nav-en">Memory</span><small lang="ko">프로그램 기록벽</small></a>
+        <a className="archive-nav-fragments" href="/catalogue/" aria-current="page"><span className="nav-en">Catalogue</span><small lang="ko">자료의 계보</small></a>
+        <a className="archive-private-door" href="/members/"><span className="nav-en">Scriptorium</span><small lang="ko">비공개 장부</small></a>
+      </nav>
+    </header>
+  );
+}
+
+export default function CataloguePage({ id }: { id?: string }) {
+  const [version, setVersion] = useState(0);
+  const [query, setQuery] = useState('');
+  const [kind, setKind] = useState<ArchiveReferenceKind | 'all'>('all');
+  const [copyStatus, setCopyStatus] = useState('');
+  const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
+  const selected = getArchiveReference(id);
+  const usedBy = selected ? publicEvents.filter((event) => event.referenceIds.includes(selected.id)) : [];
+  const parent = selected?.parentId ? getArchiveReference(selected.parentId) : undefined;
+  const children = selected ? archiveReferences.filter((reference) => reference.parentId === selected.id) : [];
+  const metadata = selected ? referenceMetadata(selected) : [];
+  const visibleReferences = archiveReferences.filter((reference) => {
+    const kindMatches = kind === 'all' || reference.kind === kind;
+    const text = [
+      reference.title,
+      reference.attribution,
+      reference.creator,
+      reference.date,
+      reference.edition,
+      reference.locator,
+      reference.language,
+      reference.rights,
+      reference.citationNote,
+      reference.description,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return kindMatches && text.includes(query.trim().toLowerCase());
+  });
+
+  async function copyCitation() {
+    if (!selected) return;
+    const citation = selected.citationNote ?? [selected.creator ?? selected.attribution, selected.title, selected.edition, selected.locator]
+      .filter(Boolean)
+      .join(', ');
+    let copied = false;
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('clipboard_unavailable');
+      await Promise.race([
+        navigator.clipboard.writeText(citation),
+        new Promise((_, reject) => window.setTimeout(() => reject(new Error('clipboard_timeout')), 700)),
+      ]);
+      copied = true;
+    } catch {
+      copied = copyWithSelection(citation);
+    }
+    setCopyStatus(copied ? '인용 표기를 복사했습니다.' : '복사할 수 없습니다. 인용 표기를 직접 선택해주세요.');
+  }
+
+  usePageMetadata({
+    title: selected ? `${selected.title} | Jerboa Circle Catalogue` : 'Reference Catalogue | Jerboa Circle',
+    description: selected?.description ?? 'Books, artworks, quotations, images, places, and themes connected across Jerboa Circle programmes.',
+    canonicalPath: selected ? `/catalogue/${selected.id}/` : '/catalogue/',
+    type: selected ? 'article' : 'website',
+    noIndex: Boolean(id && !selected),
+  });
+
+  useEffect(() => {
+    let ignore = false;
+    void loadServerSync<{ drafts?: ArchiveDraftMap }>('archive').then((result) => {
+      if (ignore || !result.exists || !result.saved?.data.drafts) return;
+      writeArchiveDrafts(result.saved.data.drafts);
+      setVersion((current) => current + 1);
+    }).catch((error) => {
+      if (!(error instanceof Error) || error.message !== 'sync_unavailable') console.warn('Catalogue sync skipped:', error);
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  if (id && !selected) {
+    return (
+      <div className="public-home detail-home catalogue-home">
+        <CatalogueHeader />
+        <main className="missing-record">
+          <p className="section-kicker">Uncatalogued fragment / 없는 자료</p>
+          <h1 lang="ko">이 자료 노드는 아직 장부에 없습니다.</h1>
+          <a className="archive-cta" href="/catalogue/"><span className="archive-cta-label">자료 장부로 돌아가기</span></a>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="public-home detail-home catalogue-home">
+      <CatalogueHeader />
+      <main className="catalogue-room">
+        {selected ? (
+          <article className="catalogue-detail">
+            <p className="section-kicker"><span lang="en">{selected.kind}</span> / <span lang="ko">{archiveReferenceKindLabel(selected.kind)}</span></p>
+            <h1 lang={textLanguage(selected.title)}>{selected.title}</h1>
+            {selected.attribution && <p className="event-subtitle">{selected.attribution}</p>}
+            <p className="detail-long" lang="ko">{selected.description}</p>
+
+            {(metadata.length > 0 || selected.citationNote || selected.sourceUrl) && (
+              <section className="catalogue-provenance" aria-labelledby="catalogue-provenance-title">
+                <h2 id="catalogue-provenance-title">Source note / 출처와 이용 정보</h2>
+                {metadata.length > 0 && (
+                  <dl>
+                    {metadata.map(([label, value]) => (
+                      <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+                    ))}
+                  </dl>
+                )}
+                {selected.citationNote && <p><strong>Citation / 인용 표기</strong><span>{selected.citationNote}</span></p>}
+                {selected.sourceUrl && <a href={selected.sourceUrl} rel="noreferrer" target="_blank">원문 출처 열기</a>}
+              </section>
+            )}
+            <div className="catalogue-export-actions" aria-label="Citation and print actions">
+              <button type="button" onClick={() => { void copyCitation(); }}><span lang="ko">인용 표기 복사</span></button>
+              <button type="button" onClick={() => window.print()}><span lang="ko">자료 기록 인쇄</span></button>
+              {copyStatus && <span role="status" lang="ko">{copyStatus}</span>}
+            </div>
+
+            {(parent || children.length > 0) && (
+              <section className="catalogue-relations" aria-labelledby="catalogue-family-title">
+                <h2 id="catalogue-family-title">Source relations / 상위 원전과 파생 노드</h2>
+                {parent && <a href={`/catalogue/${parent.id}/`}><span lang="ko">상위 원전</span><strong lang={textLanguage(parent.title)}>{parent.title}</strong></a>}
+                {children.map((child) => <a href={`/catalogue/${child.id}/`} key={child.id}><span lang="ko">{archiveReferenceKindLabel(child.kind)}</span><strong lang={textLanguage(child.title)}>{child.title}</strong></a>)}
+              </section>
+            )}
+
+            <section className="catalogue-programmes" aria-labelledby="catalogue-programmes-title">
+              <h2 id="catalogue-programmes-title">Appears in / 이 자료를 읽는 프로그램</h2>
+              {usedBy.length > 0 ? usedBy.map((event) => (
+                <a href={`/archive/${event.id}/`} key={event.id}>
+                  <span>{event.edition}</span><strong lang={/[가-힣]/.test(event.title) ? 'ko' : 'en'}>{event.title}</strong><small lang="ko">{event.shortDescription}</small>
+                </a>
+              )) : <p lang="ko">아직 공개 프로그램에 연결되지 않은 자료입니다.</p>}
+            </section>
+            <a className="archive-cta" href="/catalogue/"><span className="archive-cta-label">전체 자료 장부</span></a>
+          </article>
+        ) : (
+          <>
+            <header className="catalogue-intro">
+              <p className="section-kicker"><span lang="en">Reference catalogue</span> / <span lang="ko">자료의 계보</span></p>
+              <h1>Books, images, quotations,<br />places and recurring signs.</h1>
+              <p lang="ko">프로그램을 만든 책, 작품, 인용, 도판, 장소와 주제를 한 번 기록하고 여러 판본에서 다시 연결합니다.</p>
+            </header>
+            <div className="catalogue-tools" aria-label="자료 장부 검색과 종류 필터">
+              <label><span>Find</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목, 저자, 설명 검색" /></label>
+              <div className="archive-filter-set">
+                {kinds.map((item) => (
+                  <button type="button" className={kind === item ? 'is-active' : ''} aria-pressed={kind === item} key={item} onClick={() => setKind(item)}>
+                    <span lang={item === 'all' ? 'en' : 'ko'}>{item === 'all' ? 'All' : archiveReferenceKindLabel(item)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="catalogue-index">
+              {visibleReferences.map((reference) => {
+                const appearances = publicEvents.filter((event) => event.referenceIds.includes(reference.id)).length;
+                return (
+                  <a href={`/catalogue/${reference.id}/`} key={reference.id}>
+                    <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
+                    <strong lang={textLanguage(reference.title)}>{reference.title}</strong>
+                    <small lang={textLanguage(reference.attribution ?? reference.description)}>{reference.attribution ?? reference.description}</small>
+                    <em lang="ko">연결된 프로그램 {appearances}개</em>
+                  </a>
+                );
+              })}
+            </div>
+            {visibleReferences.length === 0 && <div className="archive-empty-state" role="status">맞는 자료가 없습니다.</div>}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}

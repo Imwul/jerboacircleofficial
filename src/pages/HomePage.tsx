@@ -15,23 +15,24 @@ import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
-import jerboaSeal from '../assets/identity/jerboa-seal.png';
+import jerboaSeal from '../assets/identity/jerboa-seal.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
+import { archiveKnowledgeSearchText } from '../data/archiveKnowledge';
+import ArchiveConstellation from '../components/archive/ArchiveConstellation';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
+  schemaVersion?: 1;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
 }
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
 type ArchiveTaxonomyFilter = string | 'all';
-type ArchiveKnowledgeModule = typeof import('../data/archiveKnowledge');
 
 const archiveBookmarkStorageKey = 'jerboa-circle-archive-bookmarks';
-
 function readArchiveBookmarks() {
   if (typeof window === 'undefined') return [];
 
@@ -46,6 +47,19 @@ function readArchiveBookmarks() {
 function writeArchiveBookmarks(ids: string[]) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(archiveBookmarkStorageKey, JSON.stringify(ids));
+}
+
+function readArchiveQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+  return {
+    query: params.get('q') ?? '',
+    status: status === 'current' || status === 'upcoming' || status === 'past' ? status : 'all',
+    season: params.get('season') ?? 'all',
+    collection: params.get('collection') ?? 'all',
+    filed: params.get('filed') === '1',
+    view: params.get('view') === 'constellation' ? 'constellation' : 'chronology',
+  } as const;
 }
 
 function textLang(text: string) {
@@ -222,7 +236,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
-        <h1>{featuredEvent.title}</h1>
+        <h1 lang={textLang(featuredEvent.title)}>{featuredEvent.title}</h1>
         <p className="korean-annotation" lang="ko">
           {siteText.featuredAnnotation}
         </p>
@@ -251,7 +265,6 @@ function matchesArchiveQuery(
   event: ArchiveEvent,
   query: string,
   archiveEvents: ArchiveEvent[],
-  archiveKnowledge: ArchiveKnowledgeModule | null,
 ) {
   if (!query.trim()) return true;
 
@@ -272,7 +285,7 @@ function matchesArchiveQuery(
     ...event.passage,
     ...event.materials,
     ...event.themes,
-    archiveKnowledge?.archiveKnowledgeSearchText(event, archiveEvents),
+    archiveKnowledgeSearchText(event, archiveEvents),
   ].join(' ').toLowerCase();
 
   return searchable.includes(query.trim().toLowerCase());
@@ -307,26 +320,28 @@ function PosterTile({
         </div>
         <div className="poster-caption">
           <span>{event.edition}</span>
-          <h2>{event.title}</h2>
+          <h2 lang={textLang(event.title)}>{event.title}</h2>
           <small>{season ? `${season.label} / ${collections[0]?.title ?? event.kind}` : event.kind}</small>
           <small>{event.latinQuote}</small>
           <p lang="ko">{event.shortDescription}</p>
           <em lang="ko">{event.marginalia}</em>
           <ThemeList themes={event.themes} />
         </div>
-        <span className="poster-open-tab" aria-hidden="true">Open <i>☞</i></span>
+        <span className="poster-open-tab" aria-hidden="true">Open <i>🜍</i></span>
       </a>
     </article>
   );
 }
 
 function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEvent[]; siteText: SiteText }) {
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>('all');
-  const [seasonFilter, setSeasonFilter] = useState<ArchiveTaxonomyFilter>('all');
-  const [collectionFilter, setCollectionFilter] = useState<ArchiveTaxonomyFilter>('all');
+  const initialQueryState = useMemo(readArchiveQueryState, []);
+  const [query, setQuery] = useState(initialQueryState.query);
+  const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>(initialQueryState.status);
+  const [seasonFilter, setSeasonFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.season);
+  const [collectionFilter, setCollectionFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.collection);
+  const [filedOnly, setFiledOnly] = useState(initialQueryState.filed);
+  const [archiveView, setArchiveView] = useState<'chronology' | 'constellation'>(initialQueryState.view);
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
-  const [archiveKnowledge, setArchiveKnowledge] = useState<ArchiveKnowledgeModule | null>(null);
   const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
   const seasonOptions = archiveSeasons.filter((season) => archiveEvents.some((event) => event.seasonId === season.id));
   const collectionOptions = archiveCollections.filter((collection) => (
@@ -337,8 +352,9 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
     const statusMatches = statusFilter === 'all' || event.status === statusFilter;
     const seasonMatches = seasonFilter === 'all' || event.seasonId === seasonFilter;
     const collectionMatches = collectionFilter === 'all' || event.collectionIds.includes(collectionFilter);
-    return statusMatches && seasonMatches && collectionMatches
-      && matchesArchiveQuery(event, query, archiveEvents, archiveKnowledge);
+    const filedMatches = !filedOnly || bookmarkedIds.includes(event.id);
+    return statusMatches && seasonMatches && collectionMatches && filedMatches
+      && matchesArchiveQuery(event, query, archiveEvents);
   });
   const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
   const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
@@ -359,17 +375,17 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
   }
 
   useEffect(() => {
-    if (query.trim().length < 2 || archiveKnowledge) return;
-    let ignore = false;
-
-    void import('../data/archiveKnowledge').then((module) => {
-      if (!ignore) setArchiveKnowledge(module);
-    });
-
-    return () => {
-      ignore = true;
-    };
-  }, [query, archiveKnowledge]);
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (seasonFilter !== 'all') params.set('season', seasonFilter);
+    if (collectionFilter !== 'all') params.set('collection', collectionFilter);
+    if (filedOnly) params.set('filed', '1');
+    if (archiveView === 'constellation') params.set('view', 'constellation');
+    const archiveHash = params.size > 0 || window.location.hash === '#archive' ? '#archive' : '';
+    const nextUrl = `${window.location.pathname}${params.size ? `?${params}` : ''}${archiveHash}`;
+    window.history.replaceState(window.history.state, '', nextUrl);
+  }, [query, statusFilter, seasonFilter, collectionFilter, filedOnly, archiveView]);
 
   useEffect(() => {
     const term = normalizeSearchTerm(query);
@@ -393,9 +409,10 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
       statusFilter,
       seasonFilter,
       collectionFilter,
+      archiveView,
       resultCount: visibleEvents.length,
     });
-  }, [statusFilter, seasonFilter, collectionFilter, visibleEvents.length]);
+  }, [statusFilter, seasonFilter, collectionFilter, archiveView, visibleEvents.length]);
 
   return (
     <section className="poster-archive" id="archive">
@@ -408,88 +425,129 @@ function PosterArchive({ archiveEvents, siteText }: { archiveEvents: ArchiveEven
         />
       </div>
       <div className="archive-tools" aria-label="Archive search and filters">
-        <label className="archive-search">
-          <span lang="en">Find</span>
-          <span className="archive-search-control">
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              aria-label="아카이브 검색"
-            />
-            {!query && <span className="archive-search-placeholder" lang="ko" aria-hidden="true">제목, 주제, 자료 검색</span>}
-          </span>
-        </label>
-        <div className="archive-filter-set" aria-label="Archive status filter">
-          {statusFilters.map((filter) => (
+        <div className="archive-view-switch" aria-label="아카이브 보기 방식">
+          <button type="button" aria-pressed={archiveView === 'chronology'} className={archiveView === 'chronology' ? 'is-active' : ''} onClick={() => setArchiveView('chronology')}>
+            <span lang="en">Chronology</span><small lang="ko">시간순</small>
+          </button>
+          <button type="button" aria-pressed={archiveView === 'constellation'} className={archiveView === 'constellation' ? 'is-active' : ''} onClick={() => setArchiveView('constellation')}>
+            <span lang="en">Constellation</span><small lang="ko">관계 지도</small>
+          </button>
+          <a href="/catalogue/">
+            <span lang="en">Catalogue</span><small lang="ko">자료 장부</small>
+          </a>
+        </div>
+        <div className="archive-discovery">
+          <label className="archive-search">
+            <span lang="en">Find</span>
+            <span className="archive-search-control">
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label="아카이브 검색"
+              />
+              {!query && <span className="archive-search-placeholder" lang="ko" aria-hidden="true">제목, 주제, 자료 검색</span>}
+            </span>
+          </label>
+          <div className="archive-filter-set" aria-label="Archive status filter">
+            {statusFilters.map((filter) => (
+              <button
+                type="button"
+                key={filter}
+                className={statusFilter === filter ? 'is-active' : ''}
+                aria-pressed={statusFilter === filter}
+                onClick={() => setStatusFilter(filter)}
+              >
+                <span className="archive-filter-label" lang={filter === 'all' ? 'en' : 'ko'}>
+                  {filter === 'all' ? 'All' : statusLabel(filter, siteText)}
+                </span>
+              </button>
+            ))}
             <button
               type="button"
-              key={filter}
-              className={statusFilter === filter ? 'is-active' : ''}
-              aria-pressed={statusFilter === filter}
-              onClick={() => setStatusFilter(filter)}
+              className={filedOnly ? 'is-active' : ''}
+              aria-pressed={filedOnly}
+              onClick={() => setFiledOnly((current) => !current)}
             >
-              <span className="archive-filter-label" lang={filter === 'all' ? 'en' : 'ko'}>
-                {filter === 'all' ? 'All' : statusLabel(filter, siteText)}
-              </span>
+              <span className="archive-filter-label" lang="ko">북마크</span>
             </button>
-          ))}
+          </div>
+          <label className="archive-select">
+            <span lang="ko">시즌</span>
+            <select
+              value={seasonFilter}
+              onChange={(event) => setSeasonFilter(event.target.value)}
+              aria-label="시즌으로 기록 필터링"
+            >
+              <option value="all">All seasons</option>
+              {seasonOptions.map((season) => (
+                <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+              ))}
+            </select>
+          </label>
+          <label className="archive-select">
+            <span lang="ko">컬렉션</span>
+            <select
+              value={collectionFilter}
+              onChange={(event) => setCollectionFilter(event.target.value)}
+              aria-label="컬렉션으로 기록 필터링"
+            >
+              <option value="all">All collections</option>
+              {collectionOptions.map((collection) => (
+                <option value={collection.id} key={collection.id}>{collection.title}</option>
+              ))}
+            </select>
+          </label>
+          <p className="archive-results-count">
+            <span lang="ko">
+              {visibleEvents.length}개의 기록
+              {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
+            </span>
+          </p>
+          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || filedOnly) && (
+            <button
+              className="archive-filter-reset"
+              type="button"
+              onClick={() => {
+                setQuery('');
+                setStatusFilter('all');
+                setSeasonFilter('all');
+                setCollectionFilter('all');
+                setFiledOnly(false);
+              }}
+            >
+              <span lang="ko">검색과 필터 지우기</span>
+            </button>
+          )}
         </div>
-        <label className="archive-select">
-          <span lang="ko">시즌</span>
-          <select
-            value={seasonFilter}
-            onChange={(event) => setSeasonFilter(event.target.value)}
-            aria-label="시즌으로 기록 필터링"
-          >
-            <option value="all">All seasons</option>
-            {seasonOptions.map((season) => (
-              <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
-            ))}
-          </select>
-        </label>
-        <label className="archive-select">
-          <span lang="ko">컬렉션</span>
-          <select
-            value={collectionFilter}
-            onChange={(event) => setCollectionFilter(event.target.value)}
-            aria-label="컬렉션으로 기록 필터링"
-          >
-            <option value="all">All collections</option>
-            {collectionOptions.map((collection) => (
-              <option value={collection.id} key={collection.id}>{collection.title}</option>
-            ))}
-          </select>
-        </label>
-        <p className="archive-results-count">
-          <span lang="ko">
-            {visibleEvents.length}개의 기록
-            {bookmarkedIds.length > 0 ? ` / 북마크 ${bookmarkedIds.length}` : ''}
-          </span>
-        </p>
       </div>
-      <div className="archive-ledger" aria-label="Programme index">
-        {orderedVisibleEvents.map((event) => (
-          <a href={event.ctaHref} key={event.id}>
-            <span>{event.edition}</span>
-            <strong>{event.title}</strong>
-            <em>{getSeasonById(event.seasonId)?.label ?? event.date}</em>
-            <small lang="ko">{event.marginalia}</small>
-          </a>
-        ))}
-      </div>
-      {orderedVisibleEvents.length > 0 ? (
-        <div className="poster-grid">
-          {orderedVisibleEvents.map((event) => (
-            <PosterTile
-              event={event}
-              isBookmarked={bookmarkedIds.includes(event.id)}
-              key={event.id}
-              onToggleBookmark={toggleBookmark}
-            />
-          ))}
-        </div>
-      ) : (
+      {archiveView === 'chronology' ? (
+        <>
+          <div className="archive-ledger" aria-label="Programme index">
+            {orderedVisibleEvents.map((event) => (
+              <a href={event.ctaHref} key={event.id}>
+                <span>{event.edition}</span>
+                <strong lang={textLang(event.title)}>{event.title}</strong>
+                <em>{getSeasonById(event.seasonId)?.label ?? event.date}</em>
+                <small lang="ko">{event.marginalia}</small>
+              </a>
+            ))}
+          </div>
+          {orderedVisibleEvents.length > 0 && (
+            <div className="poster-grid">
+              {orderedVisibleEvents.map((event) => (
+                <PosterTile
+                  event={event}
+                  isBookmarked={bookmarkedIds.includes(event.id)}
+                  key={event.id}
+                  onToggleBookmark={toggleBookmark}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      ) : orderedVisibleEvents.length > 0 ? <ArchiveConstellation records={orderedVisibleEvents} /> : null}
+      {orderedVisibleEvents.length === 0 && (
         <div className="archive-empty-state" role="status" lang="ko">
           맞는 기록이 없습니다. 검색어를 줄이거나 상태 필터를 바꿔보세요.
         </div>
@@ -533,6 +591,11 @@ function SiteFooter({ siteText }: { siteText: SiteText }) {
   return (
     <footer className="archive-footer">
       <span>{siteText.footerLeft}</span>
+      <nav aria-label="Archive feeds and catalogue">
+        <a href="/catalogue/">Catalogue</a>
+        <a href="/feed.xml">Feed</a>
+        <a href="/archive.json">Data</a>
+      </nav>
       <span lang="it">{siteText.footerRight}</span>
     </footer>
   );
@@ -548,6 +611,7 @@ export default function HomePage() {
     title: 'Jerboa Circle Official Archive',
     description: `${currentEvent.title}: ${currentEvent.shortDescription}`,
     canonicalPath: '/',
+    image: currentEvent.posterImage,
   });
 
   useEffect(() => {
@@ -584,7 +648,7 @@ export default function HomePage() {
 
   return (
     <div className="public-home">
-      <a className="skip-to-archive" href="#archive">기록 목록으로 바로가기</a>
+      <a className="skip-to-archive" href="#archive"><span lang="ko">기록 목록으로 바로가기</span></a>
       <SiteHeader siteText={siteText} />
       <main>
         <Masthead featuredEvent={currentEvent} siteText={siteText} />

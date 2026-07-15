@@ -62,7 +62,8 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
     isReward: false,
     date: format(addDays(today, 2), 'yyyy-MM-ddT14:00:00'),
     endDate: format(addHours(addDays(today, 2), 2), 'yyyy-MM-ddT16:00:00'),
-    maxParticipants: 20
+    maxParticipants: 20,
+    archiveRecordId: 'scintilla-animae',
   },
   {
     id: 'evt-2',
@@ -75,7 +76,8 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
     isReward: true, // 문장 지급
     date: format(addDays(today, 3), 'yyyy-MM-ddT10:00:00'),
     endDate: format(addHours(addDays(today, 3), 1), 'yyyy-MM-ddT11:00:00'),
-    maxParticipants: 3
+    maxParticipants: 3,
+    archiveRecordId: 'scintilla-animae',
   },
   {
     id: 'evt-3',
@@ -88,6 +90,7 @@ export const INITIAL_EVENTS: CalendarEvent[] = [
     isReward: false,
     date: format(addDays(today, 10), 'yyyy-MM-ddT18:00:00'),
     endDate: format(addHours(addDays(today, 10), 4), 'yyyy-MM-ddT22:00:00'),
-    maxParticipants: 10
+    maxParticipants: 10,
+    archiveRecordId: 'scintilla-animae',
   }
 ];

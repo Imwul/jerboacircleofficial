@@ -16,6 +16,11 @@ import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from 
 import { roleSessionToken } from './utils/roleAuth';
 import { deriveParticipantJourney, stampParticipantActivity } from './utils/participantJourney';
 import { trackProductEvent } from './utils/productAnalytics';
+import { events as archiveRecords, getPublicArchiveEvents } from './data/events';
+import ConnectivityNotice from './components/ui/ConnectivityNotice';
+import ConfirmDialog from './components/ui/ConfirmDialog';
+import { parseMembersImport, type MembersSyncPayload } from './utils/membersImport';
+import { useDialogFocus } from './utils/useDialogFocus';
 import './MembersArchive.css';
 import './MembersStability.css';
 
@@ -47,15 +52,34 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 text-2xl">!</div>
           <h1 className="text-xl font-black text-stone-900 mb-2">장부가 잠시 닫혔습니다</h1>
           <p className="text-sm text-stone-500 mb-6">데이터가 너무 크거나 일시적으로 열 수 없는 상태입니다.</p>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              window.location.reload();
-            }}
-            className="px-6 py-3 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
-          >
-            데이터 초기화 후 재시작
-          </button>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all"
+            >
+              다시 열기
+            </button>
+            <button
+              onClick={() => {
+                const entries = Object.fromEntries(
+                  Object.keys(localStorage)
+                    .filter((key) => key.startsWith('jerboa'))
+                    .map((key) => [key, localStorage.getItem(key)]),
+                );
+                const url = URL.createObjectURL(new Blob([
+                  JSON.stringify({ exportedAt: new Date().toISOString(), entries }, null, 2),
+                ], { type: 'application/json' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `jerboa-emergency-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-6 py-3 bg-white text-stone-700 border border-stone-200 rounded-xl font-bold text-sm"
+            >
+              응급 백업 받기
+            </button>
+          </div>
         </div>
       );
     }
@@ -115,13 +139,6 @@ function RegisterSyncStatus({ status, compact = false }: { status: string; compa
   );
 }
 
-interface MembersSyncPayload {
-  users: User[];
-  events: CalendarEvent[];
-  themeNames: Record<ThemeColor, string>;
-  mainImage: string | null;
-}
-
 function App() {
   const [users, setUsers] = useState<User[]>(() => {
     try {
@@ -164,6 +181,7 @@ function App() {
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
   const [hasServerConflict, setHasServerConflict] = useState(false);
   const [hasMemberRecovery, setHasMemberRecovery] = useState(() => Boolean(readSyncRecovery<MembersSyncPayload>('members')));
+  const [pendingMembersImport, setPendingMembersImport] = useState<{ data: MembersSyncPayload; source: 'code' | 'file' } | null>(null);
   const [memberSyncKey, setMemberSyncKey] = useState(() => (
     localStorage.getItem('jerboa_members_sync_key')
     || localStorage.getItem('jerboa_keeper_sync_key')
@@ -181,6 +199,7 @@ function App() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const createMembersSyncPayload = (): MembersSyncPayload => ({
+    schemaVersion: 1,
     users,
     events,
     themeNames,
@@ -343,6 +362,7 @@ function App() {
   };
 
   const [syncCodeToDisplay, setSyncCodeToDisplay] = useState<string | null>(null);
+  const syncCodeDialogRef = useDialogFocus<HTMLDivElement>(Boolean(syncCodeToDisplay), () => setSyncCodeToDisplay(null));
 
   const handleExportAllData = () => {
     const allData = { users, events, themeNames, mainImage, exportedAt: new Date().toISOString() };
@@ -371,37 +391,13 @@ function App() {
         }
       }
       
-      const parsed = JSON.parse(decodedData);
-      const data = parsed.data || parsed;
-      
-      if (data.users && data.events && data.themeNames) {
-        if (confirm("비공개 장부 데이터를 불러오시겠습니까?\n(기존 기록이 덮어씌워집니다)")) {
-          applyMembersSyncPayload(data);
-          void saveServerSync('members', data, memberSyncKey, {
-            baseSavedAt: serverSavedAt.current,
-            authSession: roleSessionToken('member-admin'),
-          }).then((result) => {
-            serverSavedAt.current = result.savedAt || serverSavedAt.current;
-            setServerSyncStatus('가져오기 완료 / 공동 장부에 봉인됨');
-          }).catch((error) => {
-            if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
-              captureMembersRecovery('member_import_conflict', error.savedAt);
-              serverSavedAt.current = error.savedAt || serverSavedAt.current;
-              setServerSyncStatus('가져오기 보류 / 공동 장부 열람 후 다시 봉인');
-              return;
-            }
-            console.error('Import server save failed:', error);
-            setServerSyncStatus('가져오기 완료 / 공동 장부 봉인 실패');
-          });
-          setNotice('비공개 장부를 불러왔습니다.');
-          return true;
-        }
-      } else {
-        setNotice('장부 형식이 올바르지 않습니다.');
-      }
+      const data = parseMembersImport(JSON.parse(decodedData));
+      setPendingMembersImport({ data, source: 'code' });
+      setNotice(`장부 코드 검증됨 / 회원 ${data.users.length}명 · 프로그램 ${data.events.length}개`);
+      return true;
     } catch (err) { 
       console.error("Import error:", err);
-      setNotice('잘못된 장부 코드입니다. 코드를 다시 확인해주세요.');
+      setNotice(err instanceof Error ? `장부 코드 적용 보류 / ${err.message}` : '잘못된 장부 코드입니다. 코드를 다시 확인해주세요.');
     }
     return false;
   };
@@ -425,35 +421,48 @@ function App() {
 
   const handleImportAllDataFile = async (file: File) => {
     try {
+      if (file.size > 12_000_000) throw new Error('파일이 12MB를 넘어 안전하게 확인할 수 없습니다.');
       const raw = await file.text();
-      const payload = JSON.parse(raw);
-      const data = payload.data || payload;
-      if (!data.users || !data.events || !data.themeNames) {
-        setNotice('장부 형식이 올바르지 않습니다.');
-        return false;
-      }
-
-      if (confirm('백업 파일의 장부를 불러오시겠습니까? 기존 데이터가 덮어씌워집니다.')) {
-        applyMembersSyncPayload(data);
-        const result = await saveServerSync('members', data, memberSyncKey, {
-          baseSavedAt: serverSavedAt.current,
-          authSession: roleSessionToken('member-admin'),
-        });
-        serverSavedAt.current = result.savedAt || serverSavedAt.current;
-        setServerSyncStatus('백업 파일 적용 / 공동 장부에 봉인됨');
-        return true;
-      }
+      const data = parseMembersImport(JSON.parse(raw));
+      setPendingMembersImport({ data, source: 'file' });
+      setNotice(`백업 파일 검증됨 / 회원 ${data.users.length}명 · 프로그램 ${data.events.length}개`);
+      return true;
     } catch (error) {
-      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
-        captureMembersRecovery('member_file_import_conflict', error.savedAt);
-        serverSavedAt.current = error.savedAt || serverSavedAt.current;
-        setServerSyncStatus('백업 적용 보류 / 공동 장부 열람 후 다시 봉인');
-        return false;
-      }
       console.error('File import failed:', error);
-      setNotice('백업 파일을 읽을 수 없습니다.');
+      setNotice(error instanceof Error ? `백업 파일 적용 보류 / ${error.message}` : '백업 파일을 읽을 수 없습니다.');
     }
     return false;
+  };
+
+  const confirmMembersImport = async () => {
+    if (!pendingMembersImport) return;
+    const pending = pendingMembersImport;
+    setPendingMembersImport(null);
+    applyMembersSyncPayload(pending.data);
+    setNotice('검증된 비공개 장부를 이 기기에 적용했습니다.');
+    try {
+      const result = await saveServerSync('members', pending.data, memberSyncKey, {
+        baseSavedAt: serverSavedAt.current,
+        authSession: roleSessionToken('member-admin'),
+      });
+      serverSavedAt.current = result.savedAt || serverSavedAt.current;
+      setServerSyncStatus(`${pending.source === 'file' ? '백업 파일' : '장부 코드'} 적용 / 공동 장부에 봉인됨`);
+    } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        writeSyncRecovery('members', pending.data, {
+          reason: 'member_import_conflict',
+          baseSavedAt: serverSavedAt.current,
+          remoteSavedAt: error.savedAt,
+        });
+        setHasMemberRecovery(true);
+        serverSavedAt.current = error.savedAt || serverSavedAt.current;
+        setHasServerConflict(true);
+        setServerSyncStatus('가져온 장부는 로컬에 보관됨 / 공동 장부 열람 후 다시 봉인');
+        return;
+      }
+      console.error('Import server save failed:', error);
+      setServerSyncStatus('가져온 장부는 로컬에 보관됨 / 공동 장부 봉인 실패');
+    }
   };
 
   const handleUserLogin = (user: User) => {
@@ -546,7 +555,8 @@ function App() {
       isReward: eventData.isReward || false,
       date: eventData.date!,
       endDate: eventData.endDate!,
-      maxParticipants: eventData.maxParticipants
+      maxParticipants: eventData.maxParticipants,
+      archiveRecordId: eventData.archiveRecordId,
     };
 
     if (editingEvent) {
@@ -618,6 +628,12 @@ function App() {
   };
 
   const todayKeyForArchive = format(new Date(), 'yyyy-MM-dd');
+  const nextMemberProgramme = activeUserData
+    ? events
+      .filter((event) => activeUserData.enrolledEventIds.includes(event.id) && parseISO(event.endDate || event.date).getTime() >= Date.now())
+      .sort((a, b) => a.date.localeCompare(b.date))[0]
+    : undefined;
+  const todayReflectionComplete = activeUserData?.habitRecords?.[todayKeyForArchive]?.status === 'success';
   const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
   const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
   const journeySummaries = users.map((user) => deriveParticipantJourney(user));
@@ -638,6 +654,7 @@ function App() {
     title: `${archiveSectionTitle} | Jerboa Circle Private Room`,
     description: archiveSectionNote,
     canonicalPath: '/members/',
+    noIndex: true,
   });
 
   return (
@@ -690,6 +707,7 @@ function App() {
         </aside>
 
         <div className="archive-workbench">
+          <ConnectivityNotice context="비공개 장부" />
           {lastSaved && (
             <div className="archive-save-notice">
               로컬 초안 보관 중 / {lastSaved}
@@ -751,6 +769,35 @@ function App() {
                 <small lang="ko">{lapsedParticipants > 0 ? `쉬는 중 ${lapsedParticipants}명` : '오늘 주석을 남긴 회원'}</small>
                 <strong>{completedToday}</strong>
               </div>
+            </section>
+          )}
+
+          {activeUserData && (
+            <section className="member-next-actions" aria-labelledby="member-next-actions-title">
+              <div>
+                <span lang="en">Next folio</span>
+                <h2 id="member-next-actions-title" lang="ko">지금 이어서 할 일</h2>
+              </div>
+              <article>
+                <small lang="ko">다음 참여 프로그램</small>
+                {nextMemberProgramme ? (
+                  <>
+                    <strong>{nextMemberProgramme.title}</strong>
+                    <span lang="ko">{format(parseISO(nextMemberProgramme.date), 'M월 d일 HH:mm')}</span>
+                    <button type="button" onClick={() => setActiveTab('calendar')}><span lang="ko">일정에서 열기</span></button>
+                  </>
+                ) : (
+                  <>
+                    <strong lang="ko">신청한 다음 프로그램이 없습니다.</strong>
+                    <button type="button" onClick={() => setActiveTab('calendar')}><span lang="ko">열린 장 살펴보기</span></button>
+                  </>
+                )}
+              </article>
+              <article>
+                <small lang="ko">오늘의 개인 기록</small>
+                <strong lang="ko">{todayReflectionComplete ? '오늘의 주석을 남겼습니다.' : '아직 끝내지 않은 주석이 있습니다.'}</strong>
+                <button type="button" onClick={() => setActiveTab('habit')}><span lang="ko">{todayReflectionComplete ? '기록 다시 보기' : '이어서 기록하기'}</span></button>
+              </article>
             </section>
           )}
 
@@ -817,15 +864,15 @@ function App() {
             <nav className="archive-mobile-tabs" aria-label="Mobile private room navigation">
               <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span>여정함</span>
+                <span lang="ko">여정함</span>
               </button>
               <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>주석</span>
+                <span lang="ko">주석</span>
               </button>
               <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span>표지</span>
+                <span lang="ko">표지</span>
               </button>
             </nav>
           )}
@@ -836,10 +883,21 @@ function App() {
             initialDate={selectedDateForNewEvent} 
             event={editingEvent} 
             themeNames={themeNames}
+            archiveRecords={getPublicArchiveEvents(archiveRecords).map(({ id, title, edition }) => ({ id, title, edition }))}
+          />
+          <ConfirmDialog
+            open={Boolean(pendingMembersImport)}
+            title="검증된 비공개 장부를 적용할까요?"
+            description={pendingMembersImport
+              ? `회원 ${pendingMembersImport.data.users.length}명과 프로그램 ${pendingMembersImport.data.events.length}개를 확인했습니다. 현재 이 기기의 회원·일정·개인 기록은 가져온 장부로 교체됩니다.`
+              : ''}
+            confirmLabel="검증된 장부 적용"
+            onCancel={() => setPendingMembersImport(null)}
+            onConfirm={() => { void confirmMembersImport(); }}
           />
           {syncCodeToDisplay && (
             <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" role="dialog" aria-modal="true" aria-labelledby="sync-code-title">
-              <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+              <div ref={syncCodeDialogRef} className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
                 <div className="p-6 space-y-4">
                   <h2 id="sync-code-title" className="text-xl font-black text-stone-900">동기화 코드</h2>
                   <p className="text-sm text-stone-500">

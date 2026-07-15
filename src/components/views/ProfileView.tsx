@@ -4,6 +4,8 @@ import { User, Tier, TIER_COLORS, AVATAR_ICONS, AVATAR_COLORS } from '../../type
 import { differenceInDays, parseISO, addWeeks, startOfDay } from 'date-fns';
 import { resizeImage } from '../../utils/imageUtils';
 import { deriveParticipantJourney } from '../../utils/participantJourney';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { useDialogFocus } from '../../utils/useDialogFocus';
 
 interface ProfileViewProps {
   user: User;
@@ -14,6 +16,9 @@ interface ProfileViewProps {
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout, onDeleteAccount }) => {
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const avatarDialogRef = useDialogFocus<HTMLDivElement>(isEditingAvatar, () => setIsEditingAvatar(false));
 
   const getRemainingDays = () => {
     const today = startOfDay(new Date());
@@ -43,18 +48,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
     const file = e.target.files?.[0];
     if (file) {
       try {
+        setUploadError('');
         const resizedImage = await resizeImage(file, 400, 400);
         onUpdateUser({ ...user, profileImage: resizedImage });
         setIsEditingAvatar(false);
       } catch (error) {
         console.error("Failed to resize image", error);
-        alert("이미지 업로드에 실패했습니다.");
+        setUploadError('이미지 업로드에 실패했습니다. 다른 이미지나 더 작은 파일을 선택해주세요.');
       }
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-stone-50 p-6 space-y-8 overflow-y-auto">
+      {uploadError && <div className="archive-notice" role="alert" lang="ko">{uploadError}</div>}
       <div className="flex flex-col items-center space-y-4">
         <div 
           className="member-seal member-seal--large group cursor-pointer"
@@ -114,11 +121,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
             <svg className="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
           </button>
           <button
-            onClick={() => {
-              if (confirm(`${user.name} 계정을 삭제할까요? 개인 장부와 신청 내역이 함께 사라집니다.`)) {
-                onDeleteAccount();
-              }
-            }}
+            onClick={() => setDeleteConfirmationOpen(true)}
             className="w-full p-4 flex items-center justify-between hover:bg-red-50 transition-colors group"
           >
             <span className="text-sm font-bold text-red-500">계정 삭제</span>
@@ -129,7 +132,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
       {isEditingAvatar && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in slide-in-from-bottom-full duration-300">
+          <div ref={avatarDialogRef} className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in slide-in-from-bottom-full duration-300">
             <div className="flex justify-between items-center">
               <h3 id="avatar-editor-title" className="text-lg font-black text-stone-900">회원 표식 수정</h3>
               <button aria-label="회원 표식 수정 닫기" onClick={() => setIsEditingAvatar(false)} className="p-2 hover:bg-stone-100 rounded-full text-stone-400">
@@ -187,6 +190,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmationOpen}
+        title="개인 장부를 삭제할까요?"
+        description={`${user.name}님의 개인 기록, 이미지와 프로그램 신청 내역이 모두 사라집니다. 필요한 기록을 먼저 백업해주세요.`}
+        confirmLabel="개인 장부 삭제"
+        tone="danger"
+        onCancel={() => setDeleteConfirmationOpen(false)}
+        onConfirm={() => {
+          setDeleteConfirmationOpen(false);
+          onDeleteAccount();
+        }}
+      />
     </div>
   );
 };

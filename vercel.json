@@ -3,6 +3,10 @@
     {
       "source": "/archive/:path*",
       "destination": "/archive/index.html"
+    },
+    {
+      "source": "/catalogue/:path*",
+      "destination": "/catalogue/index.html"
     }
   ]
 }

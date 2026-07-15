@@ -3,7 +3,6 @@ const path = require('node:path');
 
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
-const eventsPath = path.join(rootDir, 'src', 'data', 'events.ts');
 
 function assert(condition, message) {
   if (!condition) {
@@ -48,8 +47,9 @@ function assertHtmlAssets(htmlPath) {
   }
 }
 
-const eventSource = read(eventsPath);
-const eventIds = Array.from(eventSource.matchAll(/id:\s*'([^']+)'/g), (match) => match[1]);
+const archiveManifest = JSON.parse(read(path.join(distDir, 'archive', 'manifest.json')));
+const eventIds = archiveManifest.recordIds;
+const referenceIds = archiveManifest.referenceIds;
 const routeFiles = [
   path.join(distDir, 'index.html'),
   path.join(distDir, '404.html'),
@@ -57,11 +57,18 @@ const routeFiles = [
   path.join(distDir, 'keeper', 'index.html'),
   path.join(distDir, 'godmode', 'index.html'),
   path.join(distDir, 'archive', 'index.html'),
+  path.join(distDir, 'catalogue', 'index.html'),
   ...eventIds.map((id) => path.join(distDir, 'archive', id, 'index.html')),
+  ...referenceIds.map((id) => path.join(distDir, 'catalogue', id, 'index.html')),
 ];
 
 assert(fs.existsSync(distDir), 'Missing dist directory. Run the build first.');
 assert(eventIds.length > 0, 'No archive event ids found for static route smoke test.');
+assert(referenceIds.length > 0, 'No archive reference ids found for static route smoke test.');
+assertFile(path.join(distDir, 'sitemap.xml'));
+assertFile(path.join(distDir, 'feed.xml'));
+assertFile(path.join(distDir, 'archive.json'));
+assertFile(path.join(distDir, 'robots.txt'));
 
 for (const routeFile of routeFiles) {
   assertHtmlAssets(routeFile);

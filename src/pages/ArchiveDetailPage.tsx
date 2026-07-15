@@ -23,22 +23,38 @@ import {
 import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
-import type { ArchiveProgrammeConnection, ArchiveReference } from '../data/archiveKnowledge';
+import {
+  archiveConnectionDirectionLabel,
+  archiveReferenceKindLabel,
+  archiveReferences,
+  getArchiveConnections,
+  getArchiveReferencesForEvent,
+  type ArchiveProgrammeConnection,
+  type ArchiveReference,
+} from '../data/archiveKnowledge';
 import { resizeImage } from '../utils/imageUtils';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import { trackProductEvent } from '../utils/productAnalytics';
+import RelationshipPicker from '../components/archive/RelationshipPicker';
+import ConnectivityNotice from '../components/ui/ConnectivityNotice';
+import {
+  splitArchiveFormList as splitDetailList,
+  toArchiveEventDraft as toDetailDraft,
+  toArchiveRecordForm as toDetailForm,
+  validateArchiveRecordForm as validateDetailForm,
+  type ArchiveRecordFormState as DetailFormState,
+} from '../utils/archiveRecordForm';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
 interface ArchiveSyncPayload {
+  schemaVersion?: 1;
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
 }
-
-type ArchiveKnowledgeModule = typeof import('../data/archiveKnowledge');
 
 function detailRootHref() {
   return window.location.pathname.includes('/archive/') ? '../../' : './';
@@ -48,120 +64,15 @@ function detailTextLang(text: string) {
   return /[가-힣]/.test(text) ? 'ko' : 'en';
 }
 
-interface DetailFormState {
-  kind: ArchiveContentKind;
-  visibility: ArchiveVisibility;
-  workflowStatus: ArchiveWorkflowStatus;
-  seasonId: string;
-  collectionIdsText: string;
-  edition: string;
-  title: string;
-  subtitle: string;
-  latinQuote: string;
-  marginalia: string;
-  date: string;
-  status: EventStatus;
-  posterImage: string;
-  shortDescription: string;
-  longDescription: string;
-  passageText: string;
-  materialsText: string;
-  themesText: string;
-  referenceIdsText: string;
-  relatedEventIdsText: string;
-  location: string;
-  ctaLabel: string;
-}
-
-function toDetailForm(event: ArchiveEvent): DetailFormState {
-  return {
-    kind: event.kind,
-    visibility: event.visibility,
-    workflowStatus: event.workflowStatus,
-    seasonId: event.seasonId,
-    collectionIdsText: event.collectionIds.join(' / '),
-    edition: event.edition,
-    title: event.title,
-    subtitle: event.subtitle,
-    latinQuote: event.latinQuote,
-    marginalia: event.marginalia,
-    date: event.date,
-    status: event.status,
-    posterImage: event.posterImage,
-    shortDescription: event.shortDescription,
-    longDescription: event.longDescription,
-    passageText: event.passage.join(' / '),
-    materialsText: event.materials.join(' / '),
-    themesText: event.themes.join(' / '),
-    referenceIdsText: event.referenceIds.join(' / '),
-    relatedEventIdsText: event.relatedEventIds.join(' / '),
-    location: event.location,
-    ctaLabel: event.ctaLabel,
-  };
-}
-
-function toDetailDraft(form: DetailFormState, event: ArchiveEvent): ArchiveEventDraft {
-  return {
-    kind: form.kind,
-    visibility: form.visibility,
-    workflowStatus: form.workflowStatus,
-    seasonId: form.seasonId,
-    collectionIds: splitDetailList(form.collectionIdsText),
-    edition: form.edition,
-    title: form.title,
-    subtitle: form.subtitle,
-    latinQuote: form.latinQuote,
-    marginalia: form.marginalia,
-    date: form.date,
-    status: form.status,
-    posterImage: form.posterImage,
-    shortDescription: form.shortDescription,
-    longDescription: form.longDescription,
-    passage: form.passageText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
-    materials: form.materialsText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
-    themes: form.themesText.split(/\n|\//).map((item) => item.trim()).filter(Boolean),
-    referenceIds: splitDetailList(form.referenceIdsText),
-    relatedEventIds: splitDetailList(form.relatedEventIdsText),
-    location: form.location,
-    ctaLabel: form.ctaLabel,
-    ctaHref: event.ctaHref || `./archive/${event.id}/`,
-  };
-}
-
-function splitDetailList(value: string) {
-  return value.split(/\n|\//).map((item) => item.trim()).filter(Boolean);
-}
-
-function validateDetailForm(form: DetailFormState) {
-  const requiredFields: Array<[keyof DetailFormState, string]> = [
-    ['edition', '판본'],
-    ['title', '제목'],
-    ['subtitle', '부제'],
-    ['date', '일자'],
-    ['posterImage', '포스터 이미지'],
-    ['shortDescription', '짧은 설명'],
-    ['longDescription', '긴 설명'],
-    ['location', '형식'],
-    ['ctaLabel', '버튼 문구'],
-  ];
-
-  const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
-  if (emptyField) return `${emptyField[1]}을 입력하세요`;
-  if (!archiveSeasons.some((season) => season.id === form.seasonId)) return '시즌을 선택하세요';
-  if (splitDetailList(form.collectionIdsText).length === 0) return '컬렉션을 하나 이상 입력하세요';
-  if (splitDetailList(form.passageText).length === 0) return '여정을 하나 이상 입력하세요';
-  if (splitDetailList(form.materialsText).length === 0) return '자료를 하나 이상 입력하세요';
-  if (splitDetailList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
-  return '';
-}
-
 function DetailKeeperPanel({
   event,
+  archiveEvents,
   onSaved,
   serverSavedAt,
   onServerSavedAt,
 }: {
   event: ArchiveEvent;
+  archiveEvents: ArchiveEvent[];
   onSaved: () => void;
   serverSavedAt: string | null;
   onServerSavedAt: (savedAt: string | null) => void;
@@ -187,6 +98,7 @@ function DetailKeeperPanel({
 
   function createDetailArchivePayload(nextDraft: ArchiveEventDraft) {
     return {
+      schemaVersion: 1 as const,
       drafts: {
         ...readArchiveDrafts(),
         [event.id]: nextDraft,
@@ -244,7 +156,7 @@ function DetailKeeperPanel({
 
   function saveLocal(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
-    const validation = validateDetailForm(form);
+    const validation = validateDetailForm(form, archiveEvents);
     if (validation) {
       setStatus(`입력 확인 / ${validation}`);
       return;
@@ -256,7 +168,7 @@ function DetailKeeperPanel({
 
   async function publishToServer() {
     try {
-      const validation = validateDetailForm(form);
+      const validation = validateDetailForm(form, archiveEvents);
       if (validation) {
         setStatus(`입력 확인 / ${validation}`);
         return;
@@ -372,29 +284,21 @@ function DetailKeeperPanel({
               </select>
             </label>
           </div>
-          <div className="detail-keeper-grid">
-            <label>
-              <span>시즌</span>
-              <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
-                {archiveSeasons.map((season) => (
-                  <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
-                ))}
-              </select>
-            </label>
-          </div>
           <label>
-            <span>컬렉션 ID</span>
-            <input
-              list="detail-archive-collection-ids"
-              value={form.collectionIdsText}
-              onChange={(event) => updateField('collectionIdsText', event.target.value)}
-            />
+            <span>시즌</span>
+            <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
+              {archiveSeasons.map((season) => (
+                <option value={season.id} key={season.id}>{season.label} / {season.title}</option>
+              ))}
+            </select>
           </label>
-          <datalist id="detail-archive-collection-ids">
-            {archiveCollections.map((collection) => (
-              <option value={collection.id} key={collection.id}>{collection.title}</option>
-            ))}
-          </datalist>
+          <RelationshipPicker
+            label="컬렉션"
+            description="이 기록을 묶을 컬렉션을 선택합니다."
+            options={archiveCollections.map((collection) => ({ id: collection.id, title: collection.title, meta: collection.visibility }))}
+            selectedIds={splitDetailList(form.collectionIdsText)}
+            onChange={(ids) => updateField('collectionIdsText', ids.join(' / '))}
+          />
           <label>
             <span>포스터 URL</span>
             <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
@@ -422,16 +326,20 @@ function DetailKeeperPanel({
               <span>주제</span>
               <textarea rows={4} value={form.themesText} onChange={(event) => updateField('themesText', event.target.value)} />
             </label>
-            <label>
-              <span>참조 노드 ID</span>
-              <small>책, 작품, 인용, 도판, 장소의 ID를 / 로 구분합니다</small>
-              <textarea rows={4} value={form.referenceIdsText} onChange={(event) => updateField('referenceIdsText', event.target.value)} />
-            </label>
-            <label>
-              <span>연결 프로그램 ID</span>
-              <small>이 판본과 직접 이어지는 프로그램 ID를 / 로 구분합니다</small>
-              <textarea rows={4} value={form.relatedEventIdsText} onChange={(event) => updateField('relatedEventIdsText', event.target.value)} />
-            </label>
+            <RelationshipPicker
+              label="참고자료와 문화 노드"
+              description="선택한 자료로 공개 읽기 목록이 자동 생성됩니다."
+              options={archiveReferences.map((reference) => ({ id: reference.id, title: reference.title, meta: reference.attribution ?? reference.kind }))}
+              selectedIds={splitDetailList(form.referenceIdsText)}
+              onChange={(ids) => updateField('referenceIdsText', ids.join(' / '))}
+            />
+            <RelationshipPicker
+              label="이어지는 프로그램"
+              description="이 판본과 직접 연결할 프로그램을 선택합니다."
+              options={archiveEvents.filter((record) => record.id !== event.id).map((record) => ({ id: record.id, title: record.title, meta: record.edition }))}
+              selectedIds={splitDetailList(form.relatedEventIdsText)}
+              onChange={(ids) => updateField('relatedEventIdsText', ids.join(' / '))}
+            />
           </div>
           <div className="detail-keeper-actions">
             <button type="submit"><span className="keeper-button-label">로컬 초안 봉인</span></button>
@@ -458,15 +366,23 @@ function ArchiveReferenceIndex({
 }) {
   return (
     <div className="text-index archive-reference-index">
-      <span className="text-index-title"><span lang="ko">원전 · 인용 · 도판 · 장소</span></span>
+      <span className="text-index-title"><span lang="ko">자동 읽기 목록 · 원전 · 인용 · 도판 · 장소</span></span>
       <ol>
         {references.map((reference) => (
           <li key={reference.id}>
-            <span className="archive-knowledge-kind" lang="ko">{kindLabel(reference.kind)}</span>
-            <strong>{reference.title}</strong>
-            <small lang="ko">
-              {[reference.attribution, reference.description].filter(Boolean).join(' · ')}
-            </small>
+            <a href={`${detailRootHref()}catalogue/${reference.id}/`}>
+              <span className="archive-knowledge-kind" lang="ko">{kindLabel(reference.kind)}</span>
+              <strong>{reference.title}</strong>
+              <small lang="ko">
+                {[
+                  reference.attribution,
+                  reference.edition,
+                  reference.locator,
+                  reference.language,
+                  reference.citationNote,
+                ].filter(Boolean).join(' · ')}
+              </small>
+            </a>
           </li>
         ))}
       </ol>
@@ -491,22 +407,11 @@ function EventDetail({
 }) {
   const season = getSeasonById(event.seasonId);
   const collections = getCollectionsForEvent(event);
-  const [archiveKnowledge, setArchiveKnowledge] = useState<ArchiveKnowledgeModule | null>(null);
   const relationRecords = archiveEvents.filter((record) => (
     record.visibility !== 'private' && record.workflowStatus !== 'archived'
   ));
-  const references: ArchiveReference[] = archiveKnowledge?.getArchiveReferencesForEvent(event) ?? [];
-  const connections: ArchiveProgrammeConnection[] = archiveKnowledge?.getArchiveConnections(event, relationRecords) ?? [];
-
-  useEffect(() => {
-    let ignore = false;
-    void import('../data/archiveKnowledge').then((module) => {
-      if (!ignore) setArchiveKnowledge(module);
-    });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const references: ArchiveReference[] = getArchiveReferencesForEvent(event);
+  const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords);
 
   return (
     <div className="public-home detail-home">
@@ -521,6 +426,7 @@ function EventDetail({
           <a className="archive-private-door" href={`${detailRootHref()}members/`}><span className="nav-en" lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
         </nav>
       </header>
+      {roleSessionToken('archive-editor') && <ConnectivityNotice context="기록 편집기" />}
       <main className="detail-record section-reveal">
         <aside className="detail-poster">
           <img src={event.posterImage} alt={`${event.title} poster`} decoding="async" width={1200} height={1600} />
@@ -567,7 +473,7 @@ function EventDetail({
               <div className="constellation-grid archive-knowledge-grid">
                 <ArchiveReferenceIndex
                   references={references}
-                  kindLabel={(kind) => archiveKnowledge?.archiveReferenceKindLabel(kind) ?? kind}
+                  kindLabel={archiveReferenceKindLabel}
                 />
                 <div className="text-index archive-connection-index">
                   <span className="text-index-title"><span lang="ko">이어지는 프로그램</span></span>
@@ -576,7 +482,7 @@ function EventDetail({
                       <li key={connection.event.id}>
                         <a href={`${detailRootHref()}archive/${connection.event.id}/`}>
                           <span className="archive-knowledge-kind" lang="ko">
-                            {archiveKnowledge?.archiveConnectionDirectionLabel(connection.direction) ?? connection.direction} · {connection.event.edition}
+                            {archiveConnectionDirectionLabel(connection.direction)} · {connection.event.edition}
                           </span>
                           <strong>{connection.event.title}</strong>
                           <small lang="ko">{connection.note}</small>
@@ -619,12 +525,15 @@ function EventDetail({
           </a>
         </article>
       </main>
-      <DetailKeeperPanel
-        event={event}
-        onSaved={onSaved}
-        onServerSavedAt={onServerSavedAt}
-        serverSavedAt={serverSavedAt}
-      />
+      {roleSessionToken('archive-editor') && (
+        <DetailKeeperPanel
+          event={event}
+          archiveEvents={archiveEvents}
+          onSaved={onSaved}
+          onServerSavedAt={onServerSavedAt}
+          serverSavedAt={serverSavedAt}
+        />
+      )}
     </div>
   );
 }
@@ -633,7 +542,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
   const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
+  const [archiveSyncState, setArchiveSyncState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
+  const knownRecord = useMemo(() => archiveEvents.find((archiveEvent) => archiveEvent.id === id), [archiveEvents, id]);
   const event = useMemo(
     () => archiveEvents.find((archiveEvent) => (
       archiveEvent.id === id
@@ -647,6 +558,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     title: event ? `${event.title} | Jerboa Circle` : `${siteText.missingTitle} | Jerboa Circle`,
     description: event ? event.shortDescription : 'Jerboa Circle archive record was not found.',
     canonicalPath: event ? `/archive/${event.id}/` : undefined,
+    image: event?.posterImage,
+    noIndex: !event || event.visibility !== 'public' || event.workflowStatus !== 'published',
+    type: event ? 'article' : 'website',
   });
 
   useEffect(() => {
@@ -655,7 +569,11 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     async function loadPublicArchive() {
       try {
         const result = await loadServerSync<ArchiveSyncPayload>('archive');
-        if (ignore || !result.exists || !result.saved?.data) return;
+        if (ignore) return;
+        if (!result.exists || !result.saved?.data) {
+          setArchiveSyncState('ready');
+          return;
+        }
 
         if (result.saved.data.drafts) {
           writeArchiveDrafts(result.saved.data.drafts);
@@ -668,7 +586,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
 
         setServerSavedAt(result.saved.savedAt);
         setVersion((current) => current + 1);
+        setArchiveSyncState('ready');
       } catch (error) {
+        if (!ignore) setArchiveSyncState('unavailable');
         if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
           console.warn('Public archive sync skipped:', error);
         }
@@ -695,6 +615,30 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   }, [event?.id]);
 
   if (!event) {
+    const isUnpublished = Boolean(knownRecord);
+    const isLoading = !isUnpublished && archiveSyncState === 'loading';
+    const isUnavailable = !isUnpublished && archiveSyncState === 'unavailable';
+    const stateKicker = isLoading
+      ? 'Collating / 기록 확인 중'
+      : isUnavailable
+        ? 'Temporarily unavailable / 잠시 닫힘'
+        : isUnpublished
+          ? 'Reserved folio / 아직 발행되지 않은 기록'
+          : siteText.missingKicker;
+    const stateTitle = isLoading
+      ? '공동 장부에서 기록을 확인하고 있습니다.'
+      : isUnavailable
+        ? '공동 장부를 잠시 확인할 수 없습니다.'
+        : isUnpublished
+          ? '이 기록은 아직 공개 판본으로 발행되지 않았습니다.'
+          : siteText.missingTitle;
+    const stateDescription = isLoading
+      ? '확인이 끝나면 기록이 자동으로 열립니다.'
+      : isUnavailable
+        ? '네트워크 연결을 확인한 뒤 다시 열어주세요. 공개 기록벽은 계속 이용할 수 있습니다.'
+        : isUnpublished
+          ? '제목과 내용은 공개 준비가 끝난 뒤 이 자리에서 열립니다.'
+          : '주소가 바뀌었거나 아직 장부에 없는 기록입니다.';
     return (
       <div className="public-home detail-home">
         <header className="archive-header">
@@ -705,8 +649,9 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           </a>
         </header>
         <main className="missing-record">
-          <p className="section-kicker">{siteText.missingKicker}</p>
-          <h1 lang="ko">{siteText.missingTitle}</h1>
+          <p className="section-kicker">{stateKicker}</p>
+          <h1 lang="ko">{stateTitle}</h1>
+          <p lang="ko">{stateDescription}</p>
           <a className="archive-cta" href={detailRootHref()}>
             <span className="archive-cta-label" lang={detailTextLang(siteText.detailBackLabel)}>{siteText.detailBackLabel}</span>
           </a>

@@ -700,7 +700,7 @@
   margin: 0 auto 1rem !important;
   border: 0 !important;
   background-color: transparent !important;
-  background-image: url("./assets/identity/member-saf-seal-transparent.png") !important;
+  background-image: url("./assets/identity/member-saf-seal-transparent.webp") !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
@@ -1579,4 +1579,72 @@ html body .members-archive .member-login-intent > ol > li {
 
 html body .members-archive .member-login-intent > ol > li:last-child {
   border-right: 0 !important;
+}
+/* A returning member can resume the next programme or unfinished reflection without searching the full register. */
+.members-archive .member-next-actions {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.55fr) repeat(2, minmax(0, 1fr));
+  border-bottom: 2px solid #050505;
+  background: #f7efdd;
+}
+
+.members-archive .member-next-actions > * {
+  display: grid;
+  align-content: start;
+  gap: 0.45rem;
+  min-width: 0;
+  border-right: 1px solid #050505;
+  padding: 1rem;
+}
+
+.members-archive .member-next-actions > :last-child {
+  border-right: 0;
+}
+
+.members-archive .member-next-actions h2,
+.members-archive .member-next-actions :is(strong, span, small, button) {
+  margin: 0;
+  font-family: var(--font-ko);
+}
+
+.members-archive .member-next-actions h2 {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.members-archive .member-next-actions > div > span {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.members-archive .member-next-actions article small,
+.members-archive .member-next-actions article span {
+  font-size: 0.72rem;
+}
+
+.members-archive .member-next-actions article strong {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.members-archive .member-next-actions button {
+  justify-self: start;
+  margin-top: auto;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0.35rem 0;
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 800px) {
+  .members-archive .member-next-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .members-archive .member-next-actions > * {
+    border-right: 0;
+    border-bottom: 1px solid #050505;
+  }
 }

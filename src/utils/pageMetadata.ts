@@ -4,6 +4,9 @@ interface PageMetadata {
   title: string;
   description: string;
   canonicalPath?: string;
+  image?: string;
+  noIndex?: boolean;
+  type?: 'website' | 'article';
 }
 
 function upsertMeta(selector: string, create: () => HTMLMetaElement, content: string) {
@@ -16,9 +19,11 @@ function upsertMeta(selector: string, create: () => HTMLMetaElement, content: st
 }
 
 function upsertCanonical(path?: string) {
-  if (!path) return;
-
   let element = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!path) {
+    element?.remove();
+    return;
+  }
   if (!element) {
     element = document.createElement('link');
     element.setAttribute('rel', 'canonical');
@@ -27,7 +32,18 @@ function upsertCanonical(path?: string) {
   element.setAttribute('href', `${window.location.origin}${path}`);
 }
 
-export function usePageMetadata({ title, description, canonicalPath }: PageMetadata) {
+function removeMeta(selector: string) {
+  document.head.querySelector(selector)?.remove();
+}
+
+export function usePageMetadata({
+  title,
+  description,
+  canonicalPath,
+  image,
+  noIndex = false,
+  type = 'website',
+}: PageMetadata) {
   useEffect(() => {
     document.title = title;
     upsertMeta('meta[name="description"]', () => {
@@ -45,6 +61,56 @@ export function usePageMetadata({ title, description, canonicalPath }: PageMetad
       meta.setAttribute('property', 'og:description');
       return meta;
     }, description);
+    upsertMeta('meta[property="og:type"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('property', 'og:type');
+      return meta;
+    }, type);
+    upsertMeta('meta[name="twitter:card"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('name', 'twitter:card');
+      return meta;
+    }, image ? 'summary_large_image' : 'summary');
+    upsertMeta('meta[name="twitter:title"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('name', 'twitter:title');
+      return meta;
+    }, title);
+    upsertMeta('meta[name="twitter:description"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('name', 'twitter:description');
+      return meta;
+    }, description);
+    upsertMeta('meta[name="robots"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('name', 'robots');
+      return meta;
+    }, noIndex ? 'noindex, nofollow' : 'index, follow');
+    if (canonicalPath) {
+      upsertMeta('meta[property="og:url"]', () => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('property', 'og:url');
+        return meta;
+      }, `${window.location.origin}${canonicalPath}`);
+    } else {
+      removeMeta('meta[property="og:url"]');
+    }
+    if (image) {
+      const imageUrl = new URL(image, window.location.href).href;
+      upsertMeta('meta[property="og:image"]', () => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('property', 'og:image');
+        return meta;
+      }, imageUrl);
+      upsertMeta('meta[name="twitter:image"]', () => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('name', 'twitter:image');
+        return meta;
+      }, imageUrl);
+    } else {
+      removeMeta('meta[property="og:image"]');
+      removeMeta('meta[name="twitter:image"]');
+    }
     upsertCanonical(canonicalPath);
-  }, [title, description, canonicalPath]);
+  }, [title, description, canonicalPath, image, noIndex, type]);
 }

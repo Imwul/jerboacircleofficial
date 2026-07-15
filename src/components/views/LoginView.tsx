@@ -66,11 +66,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
         </figure>
         <div className="member-login-intent">
           <span lang="en">Private archive room</span>
-          <p lang="ko">회원실은 프로그램 신청, 오늘의 기록, 개인 장부를 남기는 비공개 공간입니다.</p>
+          <p lang="ko"><span lang="ko">회원실은 프로그램 신청, 오늘의 기록, 개인 장부를 남기는 비공개 공간입니다.</span></p>
           <ol>
-            <li lang="ko">이름 선택</li>
-            <li lang="ko">일정 확인</li>
-            <li lang="ko">기록 남기기</li>
+            <li lang="ko"><span lang="ko">이름 선택</span></li>
+            <li lang="ko"><span lang="ko">일정 확인</span></li>
+            <li lang="ko"><span lang="ko">기록 남기기</span></li>
           </ol>
         </div>
       </div>

@@ -104,7 +104,7 @@ html body .public-home :is(.orientation-routes a, .archive-ledger a) {
 }
 
 html body .public-home :is(.orientation-routes a, .archive-ledger a)::after {
-  content: "☞" / "";
+  content: "🜍" / "";
   position: absolute;
   z-index: 2;
   top: 0;
@@ -147,7 +147,7 @@ html body #root .public-home .archive-cta {
 }
 
 html body .public-home .archive-cta::after {
-  content: "☞" / "";
+  content: "🜍" / "";
   position: absolute;
   top: 0;
   right: 0;
@@ -431,7 +431,7 @@ html body .public-home .archive-connection-index li > a {
 }
 
 html body .public-home .archive-connection-index li > a::after {
-  content: "☞" / "";
+  content: "🜍" / "";
   position: absolute;
   top: 0;
   right: 0;
@@ -465,6 +465,95 @@ html body .members-archive :is(a, button, input, select, textarea):focus-visible
   }
 }
 
+html body #root .confirm-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 5, 5, 0.62);
+}
+
+html body #root .confirm-dialog {
+  display: grid;
+  width: min(34rem, 100%);
+  border: 2px solid #050505;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  background: var(--signal-cream, #f7efdd);
+  box-shadow: 0.65rem 0.65rem 0 #050505;
+}
+
+html body #root .confirm-dialog > span {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+html body #root .confirm-dialog h2 {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-ko);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+html body #root .confirm-dialog p {
+  margin: 0.8rem 0 1.2rem;
+  font-family: var(--font-ko);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+html body #root .confirm-dialog > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+html body #root .confirm-dialog button {
+  min-height: 3rem;
+  border: 1px solid #050505;
+  padding: 0.65rem 0.9rem;
+  background: transparent;
+  color: #050505;
+}
+
+html body #root .confirm-dialog button:last-child {
+  background: #050505;
+  color: var(--signal-cream, #f7efdd);
+}
+
+html body #root .confirm-dialog[data-tone="danger"] button:last-child {
+  background: var(--signal-pink, #e57758);
+  color: #050505;
+}
+
+html body #root .connectivity-notice {
+  position: sticky;
+  z-index: 80;
+  top: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.4rem 1rem;
+  border-bottom: 2px solid #050505;
+  padding: 0.7rem 1rem;
+  background: var(--signal-gold, #d4a23e);
+  color: #050505;
+}
+
+html body #root .connectivity-notice :is(strong, span) {
+  font-family: var(--font-ko);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 720px) {
+  html body #root .connectivity-notice {
+    position: relative;
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1180px) and (min-width: 981px) {
   html body #root .public-home .archive-tools {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -487,5 +576,494 @@ html body .members-archive :is(a, button, input, select, textarea):focus-visible
   html body .public-home *::after,
   html body .public-home *::before {
     transition: none !important;
+  }
+}
+
+/* Archive discovery V3: one calm control surface instead of a row of boxes. */
+html body #root .public-home .archive-tools {
+  display: block !important;
+  margin: 0 !important;
+  border: 2px solid var(--ink) !important;
+  border-top: 0 !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home .archive-view-switch {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) {
+  display: flex !important;
+  min-width: 0 !important;
+  min-height: 5.25rem !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: clamp(0.4rem, 0.8vw, 0.8rem) !important;
+  padding: 0.85rem clamp(0.75rem, 1.4vw, 1.35rem) !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(5, 5, 5, 0.28) !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .archive-view-switch > :last-child {
+  border-right: 0 !important;
+}
+
+html body #root .public-home .archive-view-switch > button.is-active {
+  background: var(--ink) !important;
+  color: var(--signal-cream) !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) > span[lang="en"] {
+  flex: 0 1 auto !important;
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.45rem, 2.15vw, 2.2rem) !important;
+  line-height: 0.95 !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) > small[lang="ko"] {
+  flex: 0 1 auto !important;
+  margin: 0 !important;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.78rem, 0.86vw, 0.94rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .archive-discovery {
+  display: grid !important;
+  grid-template-columns: minmax(17rem, 1.4fr) minmax(22rem, 1.35fr) minmax(9rem, 0.7fr) minmax(10rem, 0.78fr) auto !important;
+  gap: clamp(0.75rem, 1.25vw, 1.4rem) !important;
+  align-items: end !important;
+  padding: clamp(0.9rem, 1.5vw, 1.35rem) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search,
+html body #root .public-home .archive-discovery .archive-filter-set,
+html body #root .public-home .archive-discovery .archive-select,
+html body #root .public-home .archive-discovery .archive-results-count {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.8rem !important;
+  align-items: center !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search > span[lang="en"] {
+  font-family: var(--font-display) !important;
+  font-size: clamp(1.35rem, 1.7vw, 1.8rem) !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search-control {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search input {
+  width: 100% !important;
+  min-height: 2.8rem !important;
+  padding: 0.45rem 0.2rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  outline-offset: 0 !important;
+  background: transparent !important;
+  font-size: 0.95rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-search-placeholder {
+  left: 0.2rem !important;
+  font-size: 0.86rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-set {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-set button {
+  min-width: 0 !important;
+  min-height: 2.75rem !important;
+  padding: 0.45rem 0.72rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: rgba(5, 5, 5, 0.06) !important;
+  color: var(--ink) !important;
+  font-size: 0.86rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-set button::before {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-set button:is(.is-active, [aria-pressed="true"]) {
+  background: var(--ink) !important;
+  color: var(--signal-cream) !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-set button:is(.is-active, [aria-pressed="true"]) [lang] {
+  color: inherit !important;
+}
+
+html body #root .public-home .archive-discovery .archive-select {
+  display: grid !important;
+  gap: 0.3rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-select > span[lang="ko"] {
+  font-size: 0.75rem !important;
+  font-weight: 900 !important;
+}
+
+html body #root .public-home .archive-discovery .archive-select select {
+  width: 100% !important;
+  min-height: 2.8rem !important;
+  padding: 0.45rem 1.2rem 0.45rem 0.2rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 0.85rem !important;
+}
+
+html body #root .public-home .archive-discovery .archive-results-count {
+  display: flex !important;
+  min-height: 2.8rem !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  color: var(--ink) !important;
+  font-size: 0.84rem !important;
+  text-align: right !important;
+}
+
+html body #root .public-home .archive-discovery .archive-filter-reset {
+  grid-column: 1 / -1 !important;
+  justify-self: end !important;
+  margin: -0.2rem 0 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid currentColor !important;
+  padding: 0.15rem 0 !important;
+  background: transparent !important;
+  font-size: 0.76rem !important;
+}
+
+/* The selected constellation record is reading content, not microcopy. */
+html body #root .public-home .constellation-selection {
+  gap: clamp(1.5rem, 3vw, 3.5rem) !important;
+  padding: 1.4rem 0 1.7rem !important;
+}
+
+html body #root .public-home .constellation-selection h3 {
+  font-size: clamp(2rem, 3.3vw, 3.4rem) !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .constellation-selection :is(p, dd) {
+  font-size: clamp(1rem, 1.08vw, 1.18rem) !important;
+  line-height: 1.55 !important;
+}
+
+html body #root .public-home .constellation-selection :is(span, dt) {
+  font-size: clamp(0.875rem, 0.94vw, 1rem) !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home .constellation-selection .archive-cta-label {
+  font-size: 1rem !important;
+}
+
+html body #root .public-home .constellation-legend {
+  font-size: clamp(0.875rem, 0.94vw, 1rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home :is(.poster-open-tab i, .archive-cta::after, .archive-connection-index li > a::after) {
+  font-family: "Apple Symbols", "Noto Sans Symbols 2", "Arial Unicode MS", sans-serif !important;
+  font-style: normal !important;
+}
+
+@media (max-width: 1180px) {
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home .archive-discovery :is(.archive-search, .archive-filter-set) {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home .archive-discovery .archive-results-count {
+    grid-column: 1 / -1 !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home .archive-view-switch > :is(button, a) {
+    min-height: 4.1rem !important;
+    gap: 0.28rem !important;
+    padding: 0.65rem 0.3rem !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) > span[lang="en"] {
+    font-size: clamp(0.82rem, 3.8vw, 1rem) !important;
+  }
+
+  html body #root .public-home .archive-view-switch > button:nth-child(2) > span[lang="en"] {
+    font-size: 0.82rem !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) > small[lang="ko"] {
+    font-size: clamp(0.54rem, 2.25vw, 0.66rem) !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+    padding: 0.9rem !important;
+  }
+
+  html body #root .public-home .archive-discovery > * {
+    grid-column: 1 !important;
+  }
+
+  html body #root .public-home .archive-discovery .archive-filter-set {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home .archive-discovery .archive-filter-set button {
+    min-height: 2.65rem !important;
+    padding-inline: 0.35rem !important;
+  }
+
+  html body #root .public-home .constellation-selection {
+    gap: 1.15rem !important;
+  }
+}
+
+/* Reusable relationship editor: searchable choices replace fragile slash-separated IDs. */
+html body #root .relationship-picker {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--ink, #050505);
+  padding: 0.85rem;
+  background: rgba(247, 239, 221, 0.45);
+}
+
+html body #root .relationship-picker legend {
+  padding: 0 0.4rem;
+  font-family: var(--font-ko);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+html body #root .relationship-picker > p,
+html body #root .relationship-picker-count {
+  display: block;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-ko);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+html body #root .relationship-picker-search {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.65rem !important;
+  align-items: center !important;
+  margin-bottom: 0.7rem !important;
+}
+
+html body #root .relationship-picker-search > span {
+  font-family: var(--font-ko);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+html body #root .relationship-picker-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0 !important;
+  border-bottom: 1px solid currentColor !important;
+  border-radius: 0 !important;
+  padding: 0.45rem 0.2rem !important;
+  background: transparent !important;
+}
+
+html body #root .relationship-picker-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  max-height: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+html body #root .relationship-picker-options > label {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.55rem !important;
+  align-items: start !important;
+  min-width: 0;
+  margin: 0 !important;
+  border: 1px solid rgba(5, 5, 5, 0.25);
+  padding: 0.65rem !important;
+  background: transparent;
+  cursor: pointer;
+}
+
+html body #root .relationship-picker-options > label.is-selected {
+  border-color: var(--ink, #050505);
+  background: var(--signal-gold, #d4a23e);
+}
+
+html body #root .relationship-picker-options input[type="checkbox"] {
+  width: 1rem !important;
+  height: 1rem !important;
+  margin: 0.1rem 0 0 !important;
+  accent-color: #050505;
+}
+
+html body #root .relationship-picker-options span {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+html body #root .relationship-picker-options strong {
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+html body #root .relationship-picker-options small {
+  overflow-wrap: anywhere;
+  font-family: var(--font-ko);
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+html body #root .relationship-picker-count {
+  margin: 0.7rem 0 0;
+  text-align: right;
+}
+
+html body #root .catalogue-provenance {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--ink);
+  padding-top: 1rem;
+}
+
+html body #root .catalogue-provenance h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+  font-weight: 500;
+}
+
+html body #root .catalogue-provenance dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid rgba(5, 5, 5, 0.25);
+}
+
+html body #root .catalogue-provenance dl > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.4fr) minmax(0, 1fr);
+  gap: 0.7rem;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.25);
+  padding: 0.7rem 0;
+}
+
+html body #root .catalogue-provenance :is(dt, dd, p, a) {
+  margin: 0;
+  font-family: var(--font-ko);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+html body #root .catalogue-provenance p {
+  display: grid;
+  gap: 0.3rem;
+}
+
+html body #root .catalogue-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+html body #root .catalogue-export-actions button {
+  min-height: 2.6rem;
+  border: 1px solid var(--ink);
+  padding: 0.55rem 0.8rem;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-ko);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+html body #root .catalogue-export-actions > span {
+  font-family: var(--font-ko);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 720px) {
+  html body #root .relationship-picker-options,
+  html body #root .catalogue-provenance dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  html body #root .catalogue-home .archive-header,
+  html body #root .catalogue-home .catalogue-export-actions,
+  html body #root .catalogue-home .archive-cta {
+    display: none !important;
+  }
+
+  html body #root .catalogue-home,
+  html body #root .catalogue-home .catalogue-room {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  html body #root .catalogue-home .catalogue-room {
+    padding: 0 !important;
+  }
+
+  html body #root .catalogue-home .catalogue-detail h1 {
+    font-size: 3.5rem !important;
   }
 }

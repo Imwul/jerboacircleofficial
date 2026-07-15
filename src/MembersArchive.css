@@ -1387,7 +1387,7 @@
   margin: 0 auto 1rem;
   place-items: center;
   border: 0;
-  background: url("./assets/identity/member-saf-seal-transparent.png") center / contain no-repeat;
+  background: url("./assets/identity/member-saf-seal-transparent.webp") center / contain no-repeat;
   color: transparent !important;
   font-family: var(--font-heavy-header);
   font-size: 0;
@@ -1974,4 +1974,54 @@
   .members-archive .archive-main .member-login-actions > button {
     border-bottom: 2px solid var(--register-ink) !important;
   }
+}
+.archive-undated-events {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid rgba(120, 86, 42, 0.28);
+  padding: 1rem;
+  background: rgba(217, 171, 88, 0.08);
+}
+
+.archive-undated-events h4,
+.archive-undated-events p {
+  margin: 0;
+}
+
+.archive-undated-events h4 {
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.archive-undated-events p,
+.archive-undated-events li {
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.archive-undated-events ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.archive-undated-events li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgba(120, 86, 42, 0.2);
+  padding-top: 0.4rem;
+  font-weight: 750;
+}
+
+.archive-undated-events button {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }

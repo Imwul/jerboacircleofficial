@@ -6,6 +6,7 @@ import './JerboaCondoRefine.css';
 
 const MembersApp = lazy(() => import('./MembersApp'));
 const KeeperPage = lazy(() => import('./pages/KeeperPage'));
+const CataloguePage = lazy(() => import('./pages/CataloguePage'));
 
 function DeferredRoute({ children }: { children: ReactNode }) {
   return (
@@ -19,6 +20,7 @@ function NotFoundPage() {
   usePageMetadata({
     title: '없는 길 | Jerboa Circle',
     description: '이 주소에는 아직 열린 Jerboa Circle 기록이 없습니다.',
+    noIndex: true,
   });
 
   return (
@@ -66,10 +68,13 @@ function App() {
   const isKeeperRoute = path === '/keeper';
   const isGodmodeRoute = path === '/godmode';
   const archiveMatch = path.match(/\/archive\/([^/]+)$/);
+  const catalogueMatch = path.match(/\/catalogue\/([^/]+)$/);
 
   if (isHomeRoute || isArchiveIndexRoute) return <HomePage />;
   if (isMembersRoute) return <DeferredRoute><MembersApp /></DeferredRoute>;
   if (isKeeperRoute || isGodmodeRoute) return <DeferredRoute><KeeperPage /></DeferredRoute>;
+  if (path === '/catalogue') return <DeferredRoute><CataloguePage /></DeferredRoute>;
+  if (catalogueMatch) return <DeferredRoute><CataloguePage id={catalogueMatch[1]} /></DeferredRoute>;
   if (archiveMatch) return <ArchiveDetailPage id={archiveMatch[1]} />;
   return <NotFoundPage />;
 }

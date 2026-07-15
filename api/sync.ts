@@ -16,10 +16,10 @@ class SyncError extends Error {
   }
 }
 
-function sendJson(response: any, statusCode: number, body: unknown) {
+function sendJson(response: any, statusCode: number, body: unknown, cacheControl = 'no-store') {
   response.statusCode = statusCode;
   response.setHeader('content-type', 'application/json; charset=utf-8');
-  response.setHeader('cache-control', 'no-store');
+  response.setHeader('cache-control', cacheControl);
   response.end(JSON.stringify(body));
 }
 
@@ -111,6 +111,32 @@ function savedAtFromBody(body: Record<string, unknown>) {
   return typeof body.baseSavedAt === 'string' ? body.baseSavedAt : null;
 }
 
+function hasArchiveReadAccess(request: any) {
+  return assertSyncKey(request) || assertRoleSession(request, 'archive');
+}
+
+function publicArchiveSnapshot(saved: any) {
+  if (!saved?.data || !isPlainObject(saved.data)) return saved;
+
+  const drafts = isPlainObject(saved.data.drafts) ? saved.data.drafts : {};
+  const publicDrafts = Object.fromEntries(
+    Object.entries(drafts).filter(([, value]) => (
+      isPlainObject(value)
+      && value.visibility === 'public'
+      && value.workflowStatus === 'published'
+    )),
+  );
+
+  return {
+    ...saved,
+    data: {
+      ...(saved.data.schemaVersion === 1 ? { schemaVersion: 1 } : {}),
+      drafts: publicDrafts,
+      ...(isPlainObject(saved.data.siteText) ? { siteText: saved.data.siteText } : {}),
+    },
+  };
+}
+
 export default async function handler(request: any, response: any) {
   const scope = request.query?.scope;
   if (!allowedScopes.has(scope)) {
@@ -134,11 +160,16 @@ export default async function handler(request: any, response: any) {
   try {
     if (request.method === 'GET') {
       const saved = await readBlobJson(pathname);
+      const isPublicArchiveRead = scope === 'archive' && !hasArchiveReadAccess(request);
+      const readableSaved = isPublicArchiveRead
+        ? publicArchiveSnapshot(saved)
+        : saved;
+      if (scope === 'archive') response.setHeader('vary', 'x-jerboa-sync-key, x-jerboa-session');
       return sendJson(response, 200, {
         ok: true,
-        exists: Boolean(saved),
-        saved,
-      });
+        exists: Boolean(readableSaved),
+        saved: readableSaved,
+      }, isPublicArchiveRead ? 'public, s-maxage=60, stale-while-revalidate=300' : 'no-store');
     }
 
     if (request.method === 'POST') {

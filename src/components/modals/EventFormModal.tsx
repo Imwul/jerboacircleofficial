@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { format, parseISO, addMinutes, isBefore, isValid } from 'date-fns';
 import { CalendarEvent, ThemeColor, THEME_CONFIG } from '../../types';
+import { useDialogFocus } from '../../utils/useDialogFocus';
 
 export interface EventRecurrence {
   type: 'count' | 'date';
@@ -16,11 +17,10 @@ interface EventFormModalProps {
   onSave: (event: CalendarEvent, recurrence?: EventRecurrence) => void;
   onClose: () => void;
   themeNames: Record<ThemeColor, string>;
+  archiveRecords: Array<{ id: string; title: string; edition: string }>;
 }
 
-export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, initialDate, onSave, onClose, themeNames }) => {
-  if (!isOpen) return null;
-
+export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, initialDate, onSave, onClose, themeNames, archiveRecords }) => {
   const [title, setTitle] = useState(event?.title || '');
   const [description, setDescription] = useState(event?.description || '');
   const [detailedDescription, setDetailedDescription] = useState(event?.detailedDescription || '');
@@ -36,11 +36,13 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     return 60;
   });
   const [maxParticipants, setMaxParticipants] = useState(event?.maxParticipants || 0);
+  const [archiveRecordId, setArchiveRecordId] = useState(event?.archiveRecordId || '');
   
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState<'count' | 'date'>('count');
   const [recurrenceValue, setRecurrenceValue] = useState<number | string>(4);
   const [selectedDays, setSelectedDays] = useState<number[]>([new Date(date).getDay()]);
+  const dialogRef = useDialogFocus<HTMLDivElement>(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,6 +62,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
       }
       
       setMaxParticipants(event?.maxParticipants || 0);
+      setArchiveRecordId(event?.archiveRecordId || '');
       setIsRecurring(false);
       setRecurrenceType('count');
       setRecurrenceValue(4);
@@ -113,7 +116,8 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
       date,
       endDate: format(endDate, "yyyy-MM-dd'T'HH:mm"),
       maxParticipants: maxParticipants || undefined,
-      recurringGroupId: event?.recurringGroupId
+      recurringGroupId: event?.recurringGroupId,
+      archiveRecordId: archiveRecordId || undefined,
     };
 
     const recurrence = isRecurring ? {
@@ -125,9 +129,11 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
     onSave(newEvent, recurrence);
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="event-form-title">
-      <div className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div ref={dialogRef} className="bg-white w-full max-w-md rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
           <h3 id="event-form-title" className="text-xl font-black tracking-tighter text-stone-900">
             <span lang="en">{event ? 'Revised passage' : 'New passage'}</span> / <span lang="ko">{event ? '프로그램 수정' : '프로그램 추가'}</span>
@@ -147,6 +153,19 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, event, i
               className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
               placeholder="여정의 제목을 입력하세요"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-stone-400 tracking-widest"><span lang="en">Public folio</span> / <span lang="ko">연결할 공개 프로그램 기록</span></label>
+            <select
+              value={archiveRecordId}
+              onChange={(event) => setArchiveRecordId(event.target.value)}
+              className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold outline-none focus:ring-1 focus:ring-stone-200"
+            >
+              <option value="">연결하지 않음</option>
+              {archiveRecords.map((record) => <option value={record.id} key={record.id}>{record.edition} / {record.title}</option>)}
+            </select>
+            <p className="text-[10px] text-stone-400" lang="ko">같은 소개, 읽기 자료와 아카이브 계보를 다시 입력하지 않고 회원 일정에서 바로 연결합니다.</p>
           </div>
 
           <div className="space-y-2">

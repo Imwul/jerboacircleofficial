@@ -73,6 +73,7 @@ export interface CalendarEvent {
   endDate: string; 
   maxParticipants?: number;
   recurringGroupId?: string;
+  archiveRecordId?: string;
 }
 
 export const TIER_COLORS = {

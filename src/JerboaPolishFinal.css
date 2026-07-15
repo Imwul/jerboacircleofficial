@@ -442,6 +442,15 @@ html body .public-home.keeper-home .keeper-purpose-list li {
   transform: none !important;
 }
 
+html body .public-home.keeper-home .keeper-purpose-list li > span[lang="ko"] {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
 html body .public-home.keeper-home .keeper-purpose-list li:last-child {
   border-bottom: 0 !important;
 }

@@ -749,6 +749,22 @@
   }
 }
 
+.archive-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.archive-footer nav a {
+  color: inherit;
+  font-family: var(--font-ko);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2rem;
+}
+
 /* Final Condo-colour pass / no parchment grid */
 .public-home {
   --paper: #ff3b08;
@@ -5016,7 +5032,7 @@ html body .public-home.detail-home .archive-knowledge-grid .text-index li {
   padding: 0 !important;
 }
 
-html body .public-home.detail-home .archive-knowledge-grid .archive-reference-index li,
+html body .public-home.detail-home .archive-knowledge-grid .archive-reference-index li > a,
 html body .public-home.detail-home .archive-knowledge-grid .archive-connection-index li > a {
   display: grid !important;
   width: 100% !important;
@@ -5066,4 +5082,480 @@ html body .public-home.detail-home .archive-knowledge-grid small {
 html body .public-home.detail-home .archive-connection-index li > a:hover,
 html body .public-home.detail-home .archive-connection-index li > a:focus-visible {
   background: rgba(5, 5, 5, 0.06) !important;
+}
+
+.archive-filter-reset {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 0.2rem 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.keeper-integrity-list,
+.keeper-id-reference ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keeper-integrity-list li {
+  border-left: 3px solid #9b6d24;
+  padding-left: 0.55rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.keeper-integrity-list li[data-severity="error"] {
+  border-left-color: #8c302d;
+}
+
+.keeper-id-reference {
+  border: 1px solid rgba(5, 5, 5, 0.16);
+  padding: 0.75rem;
+}
+
+.keeper-id-reference summary {
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.keeper-id-reference li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  font-size: 0.72rem;
+}
+
+.keeper-id-reference code {
+  overflow-wrap: anywhere;
+}
+
+.archive-view-switch {
+  display: flex;
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(5, 5, 5, 0.28);
+  border-bottom: 1px solid rgba(5, 5, 5, 0.28);
+}
+
+.archive-view-switch button,
+.archive-view-switch > a {
+  display: grid;
+  flex: 1;
+  gap: 0.15rem;
+  border: 0;
+  border-right: 1px solid rgba(5, 5, 5, 0.28);
+  padding: 0.8rem 1rem;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.archive-view-switch > :last-child {
+  border-right: 0;
+}
+
+.archive-view-switch button.is-active {
+  background: #050505;
+  color: #f4f0e7;
+}
+
+.archive-view-switch button.is-active :is(span, small),
+.constellation-node[data-current="true"] :is(span, strong, small) {
+  color: #f4f0e7 !important;
+}
+
+.archive-view-switch span {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.8vw, 1.45rem);
+}
+
+.archive-view-switch small {
+  font-family: var(--font-ko);
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.archive-view-switch > a {
+  text-decoration: none;
+}
+
+.catalogue-room {
+  width: min(100%, 96rem);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 4vw, 4rem);
+}
+
+.catalogue-intro {
+  display: grid;
+  max-width: 70rem;
+  gap: 1rem;
+  margin-bottom: clamp(2rem, 6vw, 5rem);
+}
+
+.catalogue-intro h1,
+.catalogue-detail h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 8rem);
+  font-weight: 500;
+  line-height: 0.84;
+  letter-spacing: -0.04em;
+}
+
+.catalogue-intro > p:last-child,
+.catalogue-detail .detail-long {
+  max-width: 48rem;
+  font-family: var(--font-ko);
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
+  line-height: 1.7;
+}
+
+.catalogue-tools {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 1rem;
+  align-items: end;
+  border-top: 1px solid #050505;
+  border-bottom: 1px solid #050505;
+  padding: 1rem 0;
+}
+
+.catalogue-tools label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  font-family: var(--font-display);
+}
+
+.catalogue-tools input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #050505;
+  padding: 0.55rem;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-ko);
+}
+
+.catalogue-index {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid #050505;
+  margin-top: 2rem;
+}
+
+.catalogue-index > a {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  gap: 0.4rem 1rem;
+  border-right: 1px solid #050505;
+  border-bottom: 1px solid #050505;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.catalogue-index > a:nth-child(even) {
+  border-right: 0;
+}
+
+.catalogue-index span,
+.catalogue-index small,
+.catalogue-index em,
+.catalogue-relations span,
+.catalogue-programmes span,
+.catalogue-programmes small {
+  font-family: var(--font-ko);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.catalogue-index strong,
+.catalogue-relations strong,
+.catalogue-programmes strong {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.7vw, 1.45rem);
+  line-height: 1;
+}
+
+.catalogue-index small {
+  grid-column: 2;
+  line-height: 1.45;
+}
+
+.catalogue-index em {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+}
+
+.catalogue-detail {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.catalogue-detail .event-subtitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 3vw, 2.4rem);
+}
+
+.catalogue-relations,
+.catalogue-programmes {
+  display: grid;
+  margin-top: 2rem;
+  border-top: 1px solid #050505;
+}
+
+.catalogue-relations h2,
+.catalogue-programmes h2 {
+  margin: 0;
+  border-bottom: 1px solid #050505;
+  padding: 0.8rem 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 2.2rem);
+}
+
+.catalogue-relations > a,
+.catalogue-programmes > a {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.3);
+  padding: 0.9rem 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.catalogue-programmes > a small {
+  grid-column: 2;
+}
+
+@media (max-width: 720px) {
+  .catalogue-tools,
+  .catalogue-index {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogue-index > a,
+  .catalogue-index > a:nth-child(even) {
+    border-right: 0;
+  }
+
+  .archive-view-switch {
+    flex-wrap: wrap;
+  }
+
+  .archive-view-switch > * {
+    min-width: 50%;
+  }
+}
+
+.archive-constellation {
+  display: grid;
+  gap: 1rem;
+  margin-top: clamp(1.2rem, 3vw, 2.5rem);
+}
+
+.constellation-field {
+  position: relative;
+  min-height: clamp(34rem, 62vw, 48rem);
+  overflow: hidden;
+  border-top: 1px solid #050505;
+  border-bottom: 1px solid #050505;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(5, 5, 5, 0.055) 0 1px, transparent 2px),
+    linear-gradient(rgba(5, 5, 5, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 5, 5, 0.035) 1px, transparent 1px);
+  background-size: auto, 3rem 3rem, 3rem 3rem;
+}
+
+.constellation-field canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.constellation-node {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: clamp(7.2rem, 14vw, 10.5rem);
+  min-height: 4.4rem;
+  transform: translate(-50%, -50%);
+  align-content: center;
+  gap: 0.15rem;
+  border: 1px solid rgba(5, 5, 5, 0.62);
+  padding: 0.7rem;
+  background: rgba(244, 240, 231, 0.94);
+  color: #050505;
+  text-align: left;
+  cursor: pointer;
+}
+
+.constellation-node[data-selected="true"] {
+  outline: 3px double #050505;
+  outline-offset: 3px;
+}
+
+.constellation-node[data-current="true"] {
+  width: clamp(9.6rem, 18vw, 13rem);
+  min-height: 6.4rem;
+  border: 2px solid #050505;
+  background: #050505;
+  color: #f4f0e7;
+  box-shadow: 0 0 0 0.55rem rgba(5, 5, 5, 0.1), 0 0 0 1.1rem rgba(5, 5, 5, 0.045);
+}
+
+.constellation-node span,
+.constellation-node small {
+  font-family: var(--font-ko);
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.constellation-node strong {
+  font-family: var(--font-display);
+  font-size: clamp(0.86rem, 1.3vw, 1.1rem);
+  line-height: 1.05;
+}
+
+.constellation-selection {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.5fr) auto;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
+  border-bottom: 1px solid #050505;
+  padding: 1rem 0 1.4rem;
+}
+
+.constellation-selection h3 {
+  margin: 0.2rem 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  line-height: 0.95;
+}
+
+.constellation-selection p,
+.constellation-selection span,
+.constellation-selection dl,
+.constellation-selection dt,
+.constellation-selection dd,
+.constellation-legend {
+  font-family: var(--font-ko);
+}
+
+/* Programme titles: the English display face gets only a two-point increase
+   from its original 1.08 rhythm. Korean keeps every existing line-height. */
+html body #root .public-home .poster-caption h2[lang="en"],
+html body #root .public-home .constellation-node strong[lang="en"],
+html body #root .public-home .catalogue-programmes strong[lang="en"] {
+  line-height: 1.1 !important;
+}
+
+html body #root .public-home .poster-caption h2[lang="ko"],
+html body #root .public-home .constellation-node strong[lang="ko"],
+html body #root .public-home .catalogue-programmes strong[lang="ko"] {
+  font-weight: 900 !important;
+}
+
+/* Keep navigation cells and focus controls geometrically stable: only their
+   Korean text is compressed, never the interactive box itself. */
+html body #root .public-home .archive-nav a small[lang="ko"],
+html body #root .public-home .skip-to-archive > span[lang="ko"] {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body #root .public-home .archive-knowledge-grid :is(span, small)[lang="ko"] {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+html body #root .public-home.keeper-home :is(.keeper-field, .godmode-field) > :is(span, small)[lang="ko"],
+html body #root .public-home.keeper-home .keeper-id-reference summary > span[lang="ko"] {
+  display: inline-block !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+.constellation-selection p,
+.constellation-selection dd,
+.constellation-legend {
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.constellation-selection span,
+.constellation-selection dt {
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.constellation-selection dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.constellation-selection dl > div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.7rem;
+}
+
+.constellation-selection dd {
+  margin: 0;
+}
+
+.constellation-legend {
+  margin: 0;
+  opacity: 0.62;
+}
+
+@media (max-width: 720px) {
+  .constellation-field {
+    min-height: 38rem;
+    background-size: auto, 2rem 2rem, 2rem 2rem;
+  }
+
+  .constellation-node {
+    width: 6.8rem;
+    min-height: 4rem;
+    padding: 0.55rem;
+  }
+
+  .constellation-node[data-current="true"] {
+    width: 8.5rem;
+    min-height: 5.4rem;
+  }
+
+  .constellation-selection {
+    grid-template-columns: 1fr;
+  }
+
+  .constellation-selection .archive-cta {
+    width: 100%;
+  }
 }
