@@ -120,6 +120,14 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
 }
 
 function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; siteText: SiteText }) {
+  const declarationBreak = siteText.mastheadIntroEn.indexOf(',');
+  const declarationLines = declarationBreak >= 0
+    ? [
+        siteText.mastheadIntroEn.slice(0, declarationBreak + 1).trim(),
+        siteText.mastheadIntroEn.slice(declarationBreak + 1).trim(),
+      ]
+    : [siteText.mastheadIntroEn];
+
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
@@ -129,7 +137,9 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
         </figure>
       </div>
       <div className="masthead-index">
-        <p lang="en">{siteText.mastheadIntroEn}</p>
+        <p className="masthead-declaration" lang="en">
+          {declarationLines.map((line) => <span key={line}>{line}</span>)}
+        </p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
         <div className="orientation-ledger" aria-label="How to read this archive">
           <p className="orientation-kicker">
@@ -286,6 +296,7 @@ function PosterTile({
         <div className="poster-caption">
           <span>{event.edition}</span>
           <h2 lang={textLang(event.title)}>{event.title}</h2>
+          <small className="poster-subtitle" lang="ko">{event.shortDescription}</small>
           <p lang="ko">{event.shortDescription}</p>
           <ThemeList themes={event.themes.slice(0, 3)} />
         </div>

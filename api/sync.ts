@@ -1,6 +1,6 @@
 import { get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
-import { roleCanSync, verifyRoleSession, type AccessRole } from '../server/authCore';
+import { roleCanSync, verifyRoleSession, type AccessRole } from '../server/authCore.js';
 
 type SyncScope = 'members' | 'archive';
 

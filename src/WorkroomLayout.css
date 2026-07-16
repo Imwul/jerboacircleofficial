@@ -3916,3 +3916,76 @@ html body #root .public-home .editorial-plate--join img {
     width: min(64%, 13rem) !important;
   }
 }
+
+/* Counterweighted declaration and bilingual poster captions. Kept last so
+   the inherited catalogue experiments cannot pull the declaration back into
+   the first grid column. */
+html body #root .public-home.archive-home main > section.publication-masthead > div.masthead-index > p.masthead-declaration:first-child {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  grid-template-rows: auto auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  font-size: clamp(3.15rem, 5.2vw, 5.8rem) !important;
+  line-height: 0.88 !important;
+}
+
+html body #root .public-home .masthead-declaration > span {
+  display: block !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .masthead-declaration > span:first-child {
+  grid-column: 1 / 10 !important;
+  grid-row: 1 !important;
+  justify-self: start !important;
+}
+
+html body #root .public-home .masthead-declaration > span:nth-child(2) {
+  grid-column: 5 / -1 !important;
+  grid-row: 2 !important;
+  justify-self: end !important;
+  margin-top: -0.04em !important;
+  text-align: right !important;
+}
+
+html body #root .public-home .masthead-index > p:nth-child(2),
+html body #root .public-home .masthead-index > .orientation-ledger {
+  grid-column: 1 / -1 !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link .poster-caption > .poster-subtitle {
+  grid-column: 2 !important;
+  display: block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  margin-top: 0.08rem !important;
+  color: var(--rubric-paper, #f4eddc) !important;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.78rem, 0.82vw, 0.94rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  letter-spacing: -0.025em !important;
+  opacity: 0.82 !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: left center !important;
+}
+
+@media (max-width: 900px) {
+  html body #root .public-home.archive-home main > section.publication-masthead > div.masthead-index > p.masthead-declaration:first-child {
+    font-size: clamp(2.55rem, 12vw, 4.4rem) !important;
+    line-height: 0.94 !important;
+  }
+
+  html body #root .public-home .masthead-declaration > span:first-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home .masthead-declaration > span:nth-child(2) {
+    grid-column: 2 / -1 !important;
+  }
+}

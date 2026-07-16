@@ -3,7 +3,7 @@ import {
   isAccessRole,
   isRoleAuthConfigured,
   verifyRoleKey,
-} from '../server/authCore';
+} from '../server/authCore.js';
 
 const maxAuthBodyBytes = 10_000;
 
