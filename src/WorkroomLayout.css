@@ -2134,3 +2134,137 @@ html body #root .public-home.detail-home main.missing-record > h1[lang="ko"] {
     line-height: 1.18 !important;
   }
 }
+
+/* Closed controls --------------------------------------------------------
+   A control is an object, not the fragment of a shared table. Every visible
+   rectangular action therefore owns all four sides. Compact labels stay on
+   one line; longer editorial copy remains free to wrap outside controls. */
+
+html body #root .public-home :is(
+  .archive-view-switch > button,
+  .archive-view-switch > a,
+  .archive-filter-set > button,
+  .archive-bookmark,
+  .catalogue-export-actions button,
+  .keeper-mode-switch > button,
+  .keeper-new-record,
+  .keeper-sync-actions button,
+  .keeper-list > button
+) {
+  box-sizing: border-box !important;
+  border: 1.5px solid var(--ink, #050505) !important;
+  border-radius: 0 !important;
+}
+
+html body #root .public-home :is(
+  .archive-view-switch,
+  .archive-filter-set,
+  .keeper-mode-switch,
+  .keeper-list
+) {
+  border: 0 !important;
+  gap: 0.4rem !important;
+}
+
+html body #root .public-home :is(
+  .archive-view-switch > button,
+  .archive-view-switch > a,
+  .archive-filter-set > button,
+  .archive-bookmark,
+  .archive-cta,
+  .catalogue-export-actions button,
+  .keeper-mode-switch > button,
+  .keeper-new-record,
+  .keeper-sync-actions button
+) :is(span, small) {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+}
+
+html body #root .public-home .keeper-list {
+  padding-top: 0.4rem !important;
+}
+
+html body #root .public-home .keeper-list > button {
+  padding: 0.8rem !important;
+}
+
+html body #root .public-home.archive-home .poster-archive .archive-tools .archive-discovery .archive-filter-set > button {
+  border: 1.5px solid var(--ink, #050505) !important;
+  border-radius: 0 !important;
+}
+
+/* Catalogue controls form a compact finding aid: search first, taxonomy
+   second. Capping both rows keeps them useful on very wide screens. */
+html body #root .public-home.catalogue-home .catalogue-tools {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.85rem !important;
+  align-items: start !important;
+  padding: clamp(1rem, 1.6vw, 1.5rem) 0 !important;
+  border: 0 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools > label {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  width: min(100%, 48rem) !important;
+  min-height: 3.5rem !important;
+  padding: 0 !important;
+  border: 1.5px solid var(--ink, #050505) !important;
+  background: var(--signal-cream, #f4eddc) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools > label > span {
+  display: grid !important;
+  min-width: 5rem !important;
+  place-items: center !important;
+  padding: 0.6rem 0.85rem !important;
+  border-right: 1.5px solid var(--ink, #050505) !important;
+  font-size: clamp(1.2rem, 1.55vw, 1.55rem) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools input[type="search"] {
+  min-width: 0 !important;
+  min-height: 3.35rem !important;
+  padding: 0.65rem 0.85rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(5.5rem, 1fr)) !important;
+  gap: 0.4rem !important;
+  width: min(100%, 72rem) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button {
+  min-width: 0 !important;
+  min-height: 3rem !important;
+  padding: 0.55rem 0.65rem !important;
+  border: 1.5px solid var(--ink, #050505) !important;
+  background: var(--signal-olive, #98a45d) !important;
+  font-size: 0.92rem !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button:is(.is-active, [aria-pressed="true"]) {
+  background: var(--signal-gold, #d7a83d) !important;
+}
+
+@media (max-width: 640px) {
+  html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+}
