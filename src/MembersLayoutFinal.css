@@ -1287,3 +1287,107 @@ html body #root .members-archive .member-profile-account button {
     line-height: 1.45 !important;
   }
 }
+
+/* Monochrome rubrication -------------------------------------------------
+   The private register uses the same paper, ink and single vermilion rubric
+   as the public archive. User-uploaded seals and manuscript plates retain
+   their own colours because they are records, not interface chrome. */
+
+html body #root .members-archive {
+  --rubric-paper: #f4eddc;
+  --rubric-paper-muted: #ddd3bf;
+  --rubric-ink: #080706;
+  --rubric-red: #c65a46;
+  --register-paper: var(--rubric-paper) !important;
+  --register-ink: var(--rubric-ink) !important;
+  --register-red: var(--rubric-red) !important;
+  --register-gold: var(--rubric-paper) !important;
+  --register-salmon: var(--rubric-paper) !important;
+  --register-blue: var(--rubric-paper) !important;
+  --register-blue-soft: var(--rubric-paper-muted) !important;
+  --register-rose: var(--rubric-paper) !important;
+  --register-green: var(--rubric-paper) !important;
+  --register-sage: var(--rubric-paper) !important;
+}
+
+html body #root .members-archive :is(
+  .archive-sidebar,
+  .archive-sigil,
+  .archive-public-return,
+  .archive-godmode-link,
+  .archive-cabinet > button,
+  .archive-topbar,
+  .archive-context,
+  .member-next-actions,
+  .archive-main,
+  .archive-calendar-toolbar,
+  .archive-calendar-scroll,
+  .archive-mobile-tabs,
+  .archive-mobile-tabs > button,
+  .member-login,
+  .member-profile,
+  .archive-sync-ledger,
+  .member-schedule-integrity,
+  .habit-weekday,
+  .archive-topbar-actions > button,
+  .archive-calendar-nav,
+  .member-text-action,
+  .member-next-actions button
+) {
+  background-color: var(--rubric-paper) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(
+  .archive-cabinet > button:is(.is-active, [aria-pressed="true"]),
+  .archive-mobile-tabs > button:is(.is-active, [aria-current="page"]),
+  .archive-calendar-day:is(.is-selected, [aria-pressed="true"]),
+  .habit-weekday.is-selected,
+  .member-next-actions button
+) {
+  background-color: var(--rubric-red) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(
+  .archive-cabinet > button[aria-pressed="true"],
+  .archive-mobile-tabs > button[aria-current="page"],
+  .archive-calendar-day[aria-pressed="true"],
+  .habit-weekday.is-selected
+) :is(span, small, strong) {
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(
+  .archive-save-notice,
+  .archive-sync-ledger[data-sync-state="idle"],
+  .archive-sync-ledger[data-sync-state="local"],
+  .archive-sync-ledger[data-sync-state="pending"],
+  .archive-sync-ledger[data-sync-state="sealed"]
+) {
+  background-color: var(--rubric-paper-muted) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(
+  .archive-notice[role="alert"],
+  .archive-sync-ledger[data-sync-state="warning"],
+  .member-schedule-integrity[data-state="error"]
+) {
+  background-color: var(--rubric-red) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(input, textarea, select) {
+  background-color: var(--rubric-paper) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .members-archive :is(input, textarea, select):focus {
+  border-color: var(--rubric-red) !important;
+  outline-color: var(--rubric-red) !important;
+}
+
+html body #root .members-archive :is(button, a):focus-visible {
+  outline-color: var(--rubric-red) !important;
+}

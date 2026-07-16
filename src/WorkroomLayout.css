@@ -1234,6 +1234,167 @@ html body #root .members-archive .archive-main {
   }
 }
 
+/* Monochrome rubrication -------------------------------------------------
+   Interface colour follows the logic of a manuscript: paper and ink carry
+   the page; one vermilion rubric marks the current choice or required act.
+   Posters and sourced plates remain untouched as archival content. */
+
+html body #root .public-home {
+  --rubric-paper: #f4eddc;
+  --rubric-paper-muted: #ddd3bf;
+  --rubric-ink: #080706;
+  --rubric-red: #c65a46;
+  --paper: var(--rubric-paper) !important;
+  --ink: var(--rubric-ink) !important;
+  --signal-cream: var(--rubric-paper) !important;
+  --signal-pink: var(--rubric-paper) !important;
+  --signal-green: var(--rubric-paper) !important;
+  --signal-gold: var(--rubric-paper) !important;
+  --signal-blue: var(--rubric-paper) !important;
+  --signal-olive: var(--rubric-paper) !important;
+}
+
+html body #root .public-home :is(
+  .archive-header,
+  .archive-wordmark,
+  .archive-nav > a,
+  .publication-masthead,
+  .masthead-mark,
+  .masthead-index,
+  .orientation-ledger,
+  .orientation-kicker,
+  .orientation-routes > a,
+  .featured-copy,
+  .archive-section-title,
+  .archive-tools,
+  .archive-search,
+  .archive-select,
+  .archive-filter-set,
+  .archive-filter-set > button,
+  .archive-view-switch > button,
+  .archive-view-switch > a,
+  .manifesto-block,
+  .join-block,
+  .detail-copy,
+  .detail-meta,
+  .catalogue-room,
+  .catalogue-tools,
+  .catalogue-tools > label,
+  .catalogue-tools .archive-filter-set,
+  .catalogue-tools .archive-filter-set > button,
+  .catalogue-provenance,
+  .catalogue-relations,
+  .catalogue-programmes,
+  .keeper-register,
+  .keeper-editor,
+  .keeper-preview,
+  .godmode-preview,
+  .keeper-form,
+  .keeper-sync-panel,
+  .keeper-mode-switch > button,
+  .keeper-list > button,
+  .keeper-new-record
+) {
+  background-color: var(--rubric-paper) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home .archive-nav > a:hover,
+html body #root .public-home .archive-nav > a:focus-visible,
+html body #root .public-home :is(button, a):focus-visible {
+  background-color: color-mix(in srgb, var(--rubric-red) 14%, var(--rubric-paper)) !important;
+  outline-color: var(--rubric-red) !important;
+}
+
+html body #root .public-home :is(
+  .featured-copy > .section-kicker,
+  .detail-copy > .section-kicker,
+  .catalogue-detail > .section-kicker,
+  .archive-view-switch > button[aria-pressed="true"],
+  .archive-filter-set > button:is(.is-active, [aria-pressed="true"]),
+  .archive-bookmark[aria-pressed="true"],
+  .constellation-node[data-current="true"],
+  .constellation-node[data-selected="true"],
+  .keeper-mode-switch > button.is-active,
+  .keeper-list > button.is-selected,
+  .keeper-new-record,
+  .archive-cta
+) {
+  background-color: var(--rubric-red) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home .archive-view-switch > button[aria-pressed="true"] :is(span, small),
+html body #root .public-home .archive-filter-set > button[aria-pressed="true"] :is(span, small),
+html body #root .public-home .constellation-node:is([data-current="true"], [data-selected="true"]) :is(span, strong, small),
+html body #root .public-home .archive-cta :is(span, small) {
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home :is(
+  .archive-search,
+  .archive-select,
+  input,
+  textarea,
+  select
+) {
+  background-color: var(--rubric-paper) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home :is(input, textarea, select):focus {
+  border-color: var(--rubric-red) !important;
+  outline-color: var(--rubric-red) !important;
+}
+
+html body #root .public-home .keeper-actions .archive-cta {
+  background-color: var(--rubric-paper) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home .keeper-actions .archive-cta[type="submit"],
+html body #root .public-home .join-block > .archive-cta {
+  background-color: var(--rubric-red) !important;
+}
+
+html body #root .public-home.archive-home .poster-archive .archive-tools .archive-discovery .archive-filter-set > button[aria-pressed="true"],
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button[aria-pressed="true"] {
+  background-color: var(--rubric-red) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home.archive-home .poster-archive .archive-tools .archive-discovery .archive-filter-set > button[aria-pressed="true"] *,
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button[aria-pressed="true"] * {
+  color: var(--rubric-ink) !important;
+}
+
+/* The selected fill already communicates filter state. A second circular
+   marker repeats the same information and makes the compact ledger noisier. */
+html body #root .public-home .archive-filter-set > button {
+  grid-template-columns: auto !important;
+  gap: 0 !important;
+}
+
+html body #root .public-home .archive-filter-set > button::before {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .public-home :is(
+  .keeper-sync-conflict,
+  .detail-keeper-status[data-sync-state="warning"],
+  .detail-keeper-status[data-sync-state="error"],
+  .archive-empty-state[role="alert"]
+) {
+  background-color: var(--rubric-red) !important;
+  color: var(--rubric-ink) !important;
+}
+
+html body #root .public-home :is(.archive-results-count, .keeper-draft-count) {
+  background-color: var(--rubric-paper-muted) !important;
+  color: var(--rubric-ink) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html body #root .public-home *,
   html body #root .members-archive * {
@@ -2804,4 +2965,36 @@ html body #root .public-home .archive-section-title > :is(.section-kicker, h2) >
     font-size: clamp(2.4rem, 11vw, 3.1rem) !important;
     line-height: 1 !important;
   }
+}
+
+/* Compact catalogue filters ------------------------------------------------
+   Type is the information; the controls do not need to occupy a full ledger
+   row. Four-sided rules preserve the archive vocabulary while wrap keeps the
+   group readable on narrow screens. */
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 4.5rem !important;
+  min-height: 2.65rem !important;
+  padding: 0.45rem 0.8rem !important;
+  border: 1.5px solid var(--rubric-ink, #080706) !important;
+  background: var(--rubric-paper, #f4eddc) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button:is(.is-active, [aria-pressed="true"]) {
+  background: var(--rubric-red, #c65a46) !important;
+  color: var(--rubric-ink, #080706) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button::before {
+  content: none !important;
+  display: none !important;
 }
