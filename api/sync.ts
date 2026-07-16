@@ -55,10 +55,25 @@ async function readJsonBody(request: any) {
 }
 
 async function readBlobJson(pathname: string) {
-  const blob = await get(pathname, { access: 'private' });
-  if (!blob || blob.statusCode !== 200) return null;
-  const text = await new Response(blob.stream).text();
-  return JSON.parse(text);
+  try {
+    const blob = await get(pathname, { access: 'private' });
+    if (!blob || blob.statusCode !== 200) return null;
+    const text = await new Response(blob.stream).text();
+    return JSON.parse(text);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    const code = typeof error === 'object' && error !== null && 'code' in error
+      ? String(error.code).toLowerCase()
+      : '';
+    const unavailable = [message, code].some((value) => (
+      value.includes('not found')
+      || value.includes('no token')
+      || value.includes('store_not_found')
+      || value.includes('blob_not_found')
+    ));
+    if (unavailable) return null;
+    throw error;
+  }
 }
 
 function assertSyncKey(request: any) {

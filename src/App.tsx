@@ -34,11 +34,11 @@ function NotFoundPage() {
         <nav className="archive-nav" aria-label="Not found navigation">
           <a className="archive-nav-memory" href="/#archive">
             <span className="nav-en" lang="en">Memory</span>
-            <small lang="ko">기록벽으로 돌아가기</small>
+            <small lang="ko">공개 기록벽</small>
           </a>
           <a className="archive-private-door" href="/members/">
             <span className="nav-en" lang="en">Scriptorium</span>
-            <small lang="ko">비공개 장부</small>
+            <small lang="ko">참여자 장부</small>
           </a>
         </nav>
       </header>
@@ -51,9 +51,9 @@ function NotFoundPage() {
           </p>
           <h1 id="not-found-title" lang="ko">이 주소에는 아직 열린 기록이 없습니다.</h1>
           <p className="event-description" lang="ko">
-            기록벽에서 프로그램을 다시 찾거나, 비공개 장부로 돌아가 주세요.
+            공개 기록벽에서 판본을 다시 찾거나, 참여자 장부로 돌아가 주세요.
           </p>
-          <a className="archive-cta" href="/#archive"><span className="archive-cta-label" lang="ko">기록벽으로 돌아가기</span></a>
+          <a className="archive-cta" href="/#archive"><span className="archive-cta-label" lang="ko">공개 기록벽으로</span></a>
         </section>
       </main>
     </div>

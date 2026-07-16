@@ -77,7 +77,7 @@ function CatalogueHeader() {
       <nav className="archive-nav" aria-label="Catalogue navigation">
         <a className="archive-nav-memory" href="/#archive"><span className="nav-en">Memory</span><small lang="ko">프로그램 기록벽</small></a>
         <a className="archive-nav-fragments" href="/catalogue/" aria-current="page"><span className="nav-en">Catalogue</span><small lang="ko">자료의 계보</small></a>
-        <a className="archive-private-door" href="/members/"><span className="nav-en">Scriptorium</span><small lang="ko">비공개 장부</small></a>
+        <a className="archive-private-door" href="/members/"><span className="nav-en">Scriptorium</span><small lang="ko">참여자 장부</small></a>
       </nav>
     </header>
   );
@@ -167,8 +167,8 @@ export default function CataloguePage({ id }: { id?: string }) {
       <div className="public-home detail-home catalogue-home">
         <CatalogueHeader />
         <main className="missing-record">
-          <p className="section-kicker">Uncatalogued fragment / 없는 자료</p>
-          <h1 lang="ko">이 자료 노드는 아직 장부에 없습니다.</h1>
+          <p className="section-kicker">Uncatalogued fragment / 미필사 자료</p>
+          <h1 lang="ko">이 자료는 아직 장부에 필사되지 않았습니다.</h1>
           <a className="archive-cta" href="/catalogue/"><span className="archive-cta-label">자료 장부로 돌아가기</span></a>
         </main>
       </div>
@@ -211,8 +211,8 @@ export default function CataloguePage({ id }: { id?: string }) {
                   </dl>
                 )}
                 {selected.citationNote && <p><strong><BilingualLabel en="Citation" ko="인용" /></strong><span className={textLanguage(selected.citationNote) === 'en' ? 'archive-body-en' : undefined} lang={textLanguage(selected.citationNote)}>{selected.citationNote}</span></p>}
-                {selected.sourceUrl && <a href={selected.sourceUrl} rel="noreferrer" target="_blank"><span lang="ko">소장기관 원문 기록 열기</span></a>}
-                {selectedMedia && <a href={selectedMedia.rightsUrl} rel="noreferrer" target="_blank"><span lang="ko">이용 조건</span></a>}
+                {selected.sourceUrl && <a href={selected.sourceUrl} rel="noreferrer" target="_blank"><span lang="ko">소장기관 원문 보기</span></a>}
+                {selectedMedia && <a href={selectedMedia.rightsUrl} rel="noreferrer" target="_blank"><span lang="ko">도판 이용 조건 보기</span></a>}
               </section>
             )}
             <div className="catalogue-export-actions" aria-label="Citation and print actions">
@@ -230,7 +230,7 @@ export default function CataloguePage({ id }: { id?: string }) {
             )}
 
             <section className="catalogue-programmes" aria-labelledby="catalogue-programmes-title">
-              <h2 id="catalogue-programmes-title"><BilingualLabel en="Programmes" ko="프로그램" /></h2>
+              <h2 id="catalogue-programmes-title"><BilingualLabel en="Programmes" ko="연결된 프로그램" /></h2>
               {usedBy.length > 0 ? usedBy.map((event) => (
                 <a href={`/archive/${event.id}/`} key={event.id}>
                   <span className="archive-body-en" lang="en">{event.edition}</span><strong className={!/[가-힣]/.test(event.title) ? 'archive-body-en' : undefined} lang={/[가-힣]/.test(event.title) ? 'ko' : 'en'}>{event.title}</strong>
@@ -244,7 +244,7 @@ export default function CataloguePage({ id }: { id?: string }) {
             <header className="catalogue-intro">
               <p className="section-kicker"><span lang="en">Reference catalogue</span> / <span lang="ko">자료의 계보</span></p>
               <h1>Books, images, quotations,<br />places and recurring signs.</h1>
-              <p lang="ko">프로그램을 만든 책, 작품, 인용, 도판, 장소와 주제를 한 번 기록하고 여러 판본에서 다시 연결합니다.</p>
+              <p lang="ko">각 판본을 만든 책과 작품, 인용과 도판, 장소와 주제를 한 장부에서 서로 잇습니다.</p>
             </header>
             <div className="catalogue-tools" aria-label="자료 장부 검색과 종류 필터">
               <label><span>Find</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목, 저자, 설명 검색" /></label>
@@ -269,7 +269,11 @@ export default function CataloguePage({ id }: { id?: string }) {
                 );
               })}
             </div>
-            {visibleReferences.length === 0 && <div className="archive-empty-state" role="status">맞는 자료가 없습니다.</div>}
+            {visibleReferences.length === 0 && (
+              <div className="archive-empty-state" role="status">
+                아직 이 갈래에 놓인 자료가 없습니다. 검색의 폭을 넓히거나 다른 종류를 열어보세요.
+              </div>
+            )}
           </>
         )}
       </main>

@@ -16,6 +16,7 @@ import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
+import qabalisticSymbolism from '../assets/occult/qabalistic-symbolism-red.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
@@ -123,31 +124,13 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
         <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" decoding="async" width={591} height={591} />
-        <svg className="masthead-ring" viewBox="0 0 600 600" aria-hidden="true">
-          <defs>
-            <path
-              id="jerboaSealRingPath"
-              d="M300,300 m-284,0 a284,284 0 1,1 568,0 a284,284 0 1,1 -568,0"
-            />
-          </defs>
-          <text>
-            <textPath href="#jerboaSealRingPath" startOffset="2%">
-              {siteText.mastheadRing}
-            </textPath>
-          </text>
-        </svg>
-        <div className="masthead-seal-caption">
-          <span lang="en">{siteText.mastheadCaptionEn}</span>
-          <small lang="ko">{siteText.mastheadCaptionKo}</small>
-        </div>
+        <figure className="masthead-cabala" aria-hidden="true">
+          <img src={qabalisticSymbolism} alt="" decoding="async" width={1014} height={1547} />
+        </figure>
       </div>
       <div className="masthead-index">
         <p lang="en">{siteText.mastheadIntroEn}</p>
         <p lang="ko">{siteText.mastheadIntroKo}</p>
-        <EditorialPlate
-          className="editorial-plate--masthead"
-          asset={editorialPlates.masthead}
-        />
         <div className="orientation-ledger" aria-label="How to read this archive">
           <p className="orientation-kicker">
             <span lang="en">{siteText.orientationKickerEn}</span>
@@ -186,21 +169,6 @@ function statusLabel(status: ArchiveEvent['status'], siteText: SiteText) {
   if (status === 'current') return siteText.statusCurrent;
   if (status === 'upcoming') return siteText.statusUpcoming;
   return siteText.statusPast;
-}
-
-function EventMeta({ event, siteText }: { event: ArchiveEvent; siteText: SiteText }) {
-  return (
-    <dl className="event-meta" aria-label={`${event.title} metadata`}>
-      <div>
-        <dt lang={textLang(siteText.metaEdition)}>{siteText.metaEdition}</dt>
-        <dd lang={textLang(event.edition)}>{event.edition}</dd>
-      </div>
-      <div>
-        <dt lang={textLang(siteText.metaFormat)}>{siteText.metaFormat}</dt>
-        <dd lang={textLang(event.location)}>{event.location}</dd>
-      </div>
-    </dl>
-  );
 }
 
 function TextIndex({ title, items }: { title: string; items: string[] }) {
@@ -247,7 +215,6 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
           <TextIndex title={siteText.journeyLabel} items={featuredEvent.passage} />
           <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
         </div>
-        <EventMeta event={featuredEvent} siteText={siteText} />
         <a className="archive-cta" href={featuredEvent.ctaHref}>
           <span className="archive-cta-label" lang={textLang(featuredEvent.ctaLabel)}>{featuredEvent.ctaLabel}</span>
         </a>
@@ -298,19 +265,24 @@ function PosterTile({
 }) {
   return (
     <article className="poster-tile section-reveal">
-      <button
-        type="button"
-        className="archive-bookmark"
-        aria-pressed={isBookmarked}
-        aria-label={`${event.title} ${isBookmarked ? '북마크 해제' : '북마크'}`}
-        onClick={() => onToggleBookmark(event.id)}
-      >
-        <span aria-hidden="true">{isBookmarked ? 'Filed' : 'File'}</span>
-      </button>
-      <a href={event.ctaHref} aria-label={`Open archive record for ${event.title}`}>
-        <div className="poster-frame">
-          <img src={event.posterImage} alt={`${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
-        </div>
+      <div className="poster-visual">
+        <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`}>
+          <div className="poster-frame">
+            <img src={event.posterImage} alt={`${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
+          </div>
+        </a>
+        <button
+          type="button"
+          className="archive-bookmark"
+          aria-pressed={isBookmarked}
+          aria-label={`${event.title} ${isBookmarked ? '북마크 해제' : '북마크'}`}
+          title={isBookmarked ? '북마크 해제' : '북마크'}
+          onClick={() => onToggleBookmark(event.id)}
+        >
+          <span aria-hidden="true">{isBookmarked ? '✦' : '✧'}</span>
+        </button>
+      </div>
+      <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`}>
         <div className="poster-caption">
           <span>{event.edition}</span>
           <h2 lang={textLang(event.title)}>{event.title}</h2>
@@ -405,7 +377,7 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
   }, [statusFilter, seasonFilter, collectionFilter, archiveView, visibleEvents.length]);
 
   return (
-    <section className="poster-archive" id="archive">
+    <section className="poster-archive" data-empty-results={orderedVisibleEvents.length === 0 ? 'true' : undefined} id="archive">
       <div className="archive-section-title">
         <EditorialKicker en={siteText.archiveKickerEn} ko={siteText.archiveKickerKo} />
         <h2 className="ko-display"><span lang="ko">{siteText.archiveHeading}</span></h2>
@@ -525,7 +497,7 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
       ) : orderedVisibleEvents.length > 0 ? <ArchiveConstellation records={orderedVisibleEvents} references={references} /> : null}
       {orderedVisibleEvents.length === 0 && (
         <div className="archive-empty-state" role="status" lang="ko">
-          맞는 기록이 없습니다. 검색어를 줄이거나 상태 필터를 바꿔보세요.
+          아직 이 별자리에는 닿는 기록이 없습니다. 검색의 폭을 넓히거나 다른 판본을 열어보세요.
         </div>
       )}
     </section>

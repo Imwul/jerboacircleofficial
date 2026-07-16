@@ -93,7 +93,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
           <div className="text-xl font-black text-stone-900">{user.coins} <span className="text-xs text-stone-400">문장</span></div>
         </div>
         <div className="member-profile-metric bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
-          <div className="text-[10px] font-bold text-stone-400 mb-1">멤버십 기간</div>
+          <div className="text-[10px] font-bold text-stone-400 mb-1">참여 기간</div>
           <div className="text-xl font-black text-stone-900">
             {isExpired ? '만료됨' : remainingDays === 0 ? 'D-Day' : `D-${remainingDays}`}
             <span className="text-xs text-stone-400 ml-1">{isExpired || remainingDays === 0 ? '' : '남음'}</span>
@@ -116,7 +116,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
       </div>
 
       <div className="member-profile-account space-y-3">
-        <p className="text-xs font-bold text-stone-400 ml-1">계정 설정</p>
+        <p className="text-xs font-bold text-stone-400 ml-1">장부 설정</p>
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm divide-y divide-stone-50">
           <button onClick={onLogout} className="w-full p-4 flex items-center justify-between hover:bg-stone-50 transition-colors">
             <span className="text-sm font-bold text-stone-700">로그아웃</span>
@@ -161,7 +161,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
                 />
               </div>
 
-              <p className="text-[10px] font-bold text-stone-400">문장 선택</p>
+              <p className="text-[10px] font-bold text-stone-400">기호 선택</p>
               <div className="grid grid-cols-4 gap-3">
                 {AVATAR_ICONS.map(icon => (
                   <button 

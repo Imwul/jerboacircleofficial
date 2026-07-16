@@ -53,10 +53,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   };
 
   return (
-    <div className="member-login flex flex-col items-center justify-center min-h-full p-6 space-y-8 bg-white relative">
-      <div className="flex flex-col items-center space-y-4 text-center">
-        <div className="space-y-1">
-          <h1 className="text-4xl font-black text-stone-900" lang="en">
+    <div className="member-login">
+      <section className="member-login-hero" aria-labelledby="member-login-title">
+        <div className="member-login-title">
+          <h1 id="member-login-title" lang="en">
             Reader folios
           </h1>
         </div>
@@ -64,25 +64,28 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           <img src={entryImage} alt="" aria-hidden="true" />
         </figure>
         <div className="member-login-intent">
-          <p lang="ko"><span lang="ko">이름을 선택해 일정과 개인 기록으로 들어갑니다.</span></p>
+          <p lang="ko"><span lang="ko">이름을 선택해 열린 장과 자신의 기록으로 들어갑니다.</span></p>
         </div>
-      </div>
+      </section>
 
-      <div className="w-full space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] font-black text-stone-400" lang="ko">개인 장부 {users.length}개</p>
-          <div className="h-px flex-1 bg-stone-100 ml-4" />
-        </div>
-        <div className="grid grid-cols-1 gap-3">
-          {users.map(user => {
+      <section className="member-records" aria-labelledby="member-records-title">
+        <header className="member-records-header">
+          <h2 id="member-records-title" lang="ko">참여자 장부</h2>
+          <strong>{String(users.length).padStart(2, '0')}</strong>
+          <p lang="ko">이름을 열면 최근 흔적과 다음 장이 이어집니다.</p>
+        </header>
+        <div className="member-record-list">
+          {users.map((user, index) => {
             const journey = deriveParticipantJourney(user);
+            const completedToday = user.habitRecords?.[todayKey]?.status === 'success';
 
             return (
               <button
                 key={user.id}
                 onClick={() => onUserLogin(user)}
-                className="member-record-row p-5 bg-white hover:bg-stone-50 border border-stone-100 rounded-[2rem] transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
+                className="member-record-row"
               >
+                <span className="member-record-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                 <div
                   className="member-seal"
                   style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
@@ -93,28 +96,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                     <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
                   )}
                 </div>
-                <div className="record-title text-left space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <div className="font-black text-stone-900 text-base">{user.name}</div>
-                    <div className="px-2 py-0.5 bg-stone-50 text-stone-500 text-[8px] font-black border border-stone-200 rounded-md">
-                      {journey.label}
-                    </div>
-                    {user.habitRecords?.[todayKey]?.status === 'success' && (
-                      <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black border border-blue-200 rounded-md rotate-[-5deg] shadow-sm animate-in zoom-in-50 duration-300">
-                        수련 완료
-                      </div>
-                    )}
-                  </div>
-                  <div className="record-meta text-[9px] text-stone-400 font-black" lang="ko">{user.tier} / {journey.note}</div>
+                <div className="record-title">
+                  <strong>{user.name}</strong>
+                  <span lang="ko">{journey.label}</span>
                 </div>
-                <div className="record-arrow w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover:text-stone-900 group-hover:bg-white transition-all shadow-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                <p className="record-meta" lang="ko">
+                  <span>{user.tier}</span>
+                  <span>{journey.note}</span>
+                </p>
+                <span className="member-record-mark" data-complete={completedToday ? 'true' : 'false'} lang="ko">
+                  <i aria-hidden="true">{completedToday ? '✦' : '✧'}</i>
+                  {completedToday ? '오늘의 흔적 있음' : '다음 흔적을 기다림'}
+                </span>
+                <div className="record-arrow" aria-hidden="true">
+                  <span>→</span>
                 </div>
               </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
       <div className="member-login-actions">
         <button 

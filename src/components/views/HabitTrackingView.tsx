@@ -168,7 +168,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
       setPhotoStatus('사진을 장부에 맞게 줄이는 중');
       const compressedBase64 = await resizeImage(file, 1200, 1200);
       handleUpdateRecord({ photo: compressedBase64, mediaType: 'image' });
-      setPhotoStatus('인증 사진 저장됨');
+      setPhotoStatus('오늘의 도판 저장됨');
     } catch (error) {
       console.error('Habit photo upload failed:', error);
       setPhotoStatus('사진을 읽을 수 없음');
@@ -179,7 +179,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
 
   const clearPhoto = () => {
     handleUpdateRecord({ photo: undefined, mediaType: undefined });
-    setPhotoStatus('인증 사진 삭제됨');
+    setPhotoStatus('오늘의 도판 삭제됨');
   };
 
   return (
@@ -187,14 +187,14 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
       <div className="p-6 bg-white border-b border-stone-100 space-y-6">
         <div className="habit-register-heading flex justify-between items-start">
           <div className="space-y-1">
-            <h2 className="text-2xl font-black tracking-tighter text-stone-900">습관 트래킹</h2>
-            <p className="text-[10px] font-bold text-stone-400 tracking-widest">익일 새벽 2시까지 인증 가능</p>
+            <h2 className="text-2xl font-black tracking-tighter text-stone-900">오늘의 주석</h2>
+            <p className="text-[10px] font-bold text-stone-400 tracking-widest">오늘의 흔적은 다음 날 새벽 2시까지 남길 수 있습니다</p>
           </div>
         </div>
 
         <div className="bg-stone-50 p-4 rounded-2xl border border-stone-100 space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] font-bold text-stone-400 tracking-widest">나의 목표</span>
+            <span className="text-[10px] font-bold text-stone-400 tracking-widest">이번 장의 약속</span>
             {(canEdit || isAdmin) && <button onClick={() => setShowGoalInput(true)} className="member-text-action text-[10px] text-stone-400 hover:text-stone-600 underline underline-offset-2 font-bold">수정</button>}
           </div>
           {showGoalInput ? (
@@ -204,12 +204,12 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
                 value={tempGoal} 
                 onChange={e => setTempGoal(e.target.value)}
                 className="flex-1 bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-1 focus:ring-stone-300"
-                placeholder="목표를 입력하세요"
+                placeholder="이번 장에서 이어갈 약속"
               />
               <button onClick={handleSaveGoal} className="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold">저장</button>
             </div>
           ) : (
-            <p className="text-sm font-black tracking-tighter text-stone-800">{user.habitGoal || '목표가 설정되지 않았습니다'}</p>
+            <p className="text-sm font-black tracking-tighter text-stone-800">{user.habitGoal || '아직 정한 약속이 없습니다'}</p>
           )}
         </div>
 
@@ -252,21 +252,21 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
       <div className="p-6 space-y-8">
         {isAdmin && (
           <div className="space-y-4">
-            <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">관리자 수동 조정</h3>
+            <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">보관자 판정</h3>
             <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={() => handleUpdateRecord({ status: currentRecord.status === 'success' ? 'none' : 'success' })}
                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${currentRecord.status === 'success' ? 'bg-green-50 border-green-500 text-green-700 shadow-inner' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-200'}`}
               >
                 <div className="text-2xl">✅</div>
-                <span className="text-[10px] font-black tracking-tighter">성공 처리</span>
+                <span className="text-[10px] font-black tracking-tighter">완료로 봉인</span>
               </button>
               <button 
                 onClick={() => handleUpdateRecord({ status: currentRecord.status === 'fail' ? 'none' : 'fail' })}
                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${currentRecord.status === 'fail' ? 'bg-red-50 border-red-500 text-red-700 shadow-inner' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-200'}`}
               >
                 <div className="text-2xl">❌</div>
-                <span className="text-[10px] font-black tracking-tighter">실패 처리</span>
+                <span className="text-[10px] font-black tracking-tighter">미완으로 기록</span>
               </button>
             </div>
           </div>
@@ -274,7 +274,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
 
         <div className="space-y-6">
           <div className="space-y-4">
-            <h3 className="habit-proof-title text-sm font-black tracking-tighter text-stone-800 tracking-widest">인증 사진</h3>
+            <h3 className="habit-proof-title text-sm font-black tracking-tighter text-stone-800 tracking-widest">오늘의 도판</h3>
             <div className="habit-proof-uploader aspect-square bg-stone-100 rounded-3xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400 hover:bg-stone-200 transition-colors cursor-pointer overflow-hidden relative group">
               {currentRecord.photo ? (
                 <>
@@ -282,7 +282,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
                   {(canEdit || isAdmin) && (
                     <div className="habit-proof-overlay absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                       <label className="habit-proof-small-action">
-                        사진 교체
+                        도판 교체
                         <input
                           type="file"
                           accept="image/*"
@@ -297,7 +297,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
               ) : (
                 <label className={`w-full h-full flex flex-col items-center justify-center ${canEdit || isAdmin ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
                   <span className="habit-proof-mark">⚜</span>
-                  <span className="text-[10px] font-bold tracking-widest">사진 업로드</span>
+                  <span className="text-[10px] font-bold tracking-widest">도판 붙이기</span>
                   <small>오늘의 흔적을 한 장 남깁니다</small>
                   {(canEdit || isAdmin) && (
                     <input 
@@ -312,7 +312,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
             </div>
             {(canEdit || isAdmin) && currentRecord.photo && (
               <label className="habit-proof-replace">
-                인증 사진 다시 올리기
+                오늘의 도판 다시 붙이기
                 <input
                   type="file"
                   accept="image/*"
@@ -324,13 +324,13 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">한줄 코멘트 (25자)</h3>
+            <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">한 줄 주석 (25자)</h3>
             <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm space-y-2">
               <textarea 
                 value={comment}
                 onChange={(e) => setComment(e.target.value.slice(0, 25))}
                 disabled={!canEdit && !isAdmin}
-                placeholder="오늘의 습관을 기록해보세요"
+                placeholder="오늘 남길 한 문장"
                 className="w-full bg-stone-50 border border-stone-100 rounded-xl p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200 h-20 resize-none disabled:opacity-50"
               />
               {(canEdit || isAdmin) && (
@@ -338,7 +338,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
                   onClick={() => handleUpdateRecord({ comment })}
                   className="w-full py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg active:scale-95 transition-all"
                 >
-                  코멘트 저장
+                  주석 남기기
                 </button>
               )}
             </div>
@@ -346,7 +346,7 @@ export const HabitTrackingView: React.FC<HabitTrackingViewProps> = ({ user, onUp
 
           {currentRecord.status === 'success' && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">만족도 평가</h3>
+              <h3 className="text-sm font-black tracking-tighter text-stone-800 tracking-widest">오늘의 감응</h3>
               <div className="bg-white p-6 rounded-3xl border border-stone-100 shadow-sm">
                 <StarRating 
                   value={currentRecord.rating || 0} 

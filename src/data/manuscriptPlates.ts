@@ -6,15 +6,15 @@ function requiredMediaAsset(id: string) {
   return asset;
 }
 
-export const memberScribePlate = requiredMediaAsset('met-473633-st-luke');
-export const privateArchivePlate = requiredMediaAsset('met-466086-annunciation').src;
+export const memberScribePlate = requiredMediaAsset('wellcome-hermetic-androgyne');
+export const privateArchivePlate = requiredMediaAsset('wellcome-crowned-woman-alchemy').src;
 
 export const editorialPlates = {
-  masthead: requiredMediaAsset('met-466191-beatus-star'),
-  featured: requiredMediaAsset('met-466370-last-supper'),
-  archive: requiredMediaAsset('met-662941-armenian-bifolium'),
-  manifesto: requiredMediaAsset('met-466086-annunciation'),
-  join: requiredMediaAsset('met-446297-fixed-stars'),
-  detail: requiredMediaAsset('met-463605-singing-monks'),
-  privateRoom: requiredMediaAsset('met-466086-annunciation'),
+  masthead: requiredMediaAsset('wellcome-ripley-scroll-tree'),
+  featured: requiredMediaAsset('wellcome-golden-prince'),
+  archive: requiredMediaAsset('wellcome-crowned-woman-alchemy'),
+  manifesto: requiredMediaAsset('wellcome-hermetic-androgyne'),
+  join: requiredMediaAsset('wellcome-dragons-flowering-tree'),
+  detail: requiredMediaAsset('wellcome-three-headed-eagle'),
+  privateRoom: requiredMediaAsset('wellcome-ripley-scroll-tree'),
 };

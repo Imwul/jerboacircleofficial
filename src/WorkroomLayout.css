@@ -1234,6 +1234,315 @@ html body #root .members-archive .archive-main {
   }
 }
 
+/* Qabalistic masthead and final containment pass --------------------------
+   The seal and the supplied diagram form one asymmetric plate. Rubrication
+   behaves like marginal notes rather than another framed navigation bar. */
+html body #root .public-home .publication-masthead {
+  grid-template-columns: minmax(22rem, 0.9fr) minmax(0, 1.1fr) !important;
+}
+
+html body #root .public-home .masthead-mark {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  align-items: end !important;
+  min-height: clamp(31rem, 44vw, 38rem) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home .masthead-logo {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: clamp(1.25rem, 5vw, 4.5rem) !important;
+  bottom: clamp(1.25rem, 5vw, 4rem) !important;
+  width: min(46%, 19rem) !important;
+  margin: 0 !important;
+  filter: none !important;
+  transform: rotate(-5deg) !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .masthead-cabala {
+  position: absolute !important;
+  z-index: 1 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home .masthead-cabala img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+
+html body #root .public-home .editorial-plate {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .editorial-plate img {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  object-fit: cover !important;
+}
+
+html body #root .public-home .masthead-rubric {
+  position: absolute !important;
+  z-index: 5 !important;
+  inset: auto clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 2rem) !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.12rem !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--rubric-red, #c65a46) !important;
+  pointer-events: none !important;
+}
+
+html body #root .public-home .masthead-rubric > span {
+  display: block !important;
+  width: max-content !important;
+  max-width: 92% !important;
+  padding: 0.12rem 0.28rem 0.08rem !important;
+  color: var(--rubric-red, #c65a46) !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.02rem, 1.7vw, 1.72rem) !important;
+  line-height: 0.98 !important;
+  white-space: normal !important;
+  background: var(--rubric-paper, #f4eddc) !important;
+  transform-origin: left center !important;
+}
+
+html body #root .public-home .masthead-rubric > span::before {
+  content: "✦";
+  display: inline-block;
+  margin-right: 0.38rem;
+  font-family: Georgia, serif;
+  font-size: 0.72em;
+}
+
+html body #root .public-home .masthead-rubric > span:nth-child(1) {
+  margin-left: 2% !important;
+  transform: rotate(-1.5deg) !important;
+}
+
+html body #root .public-home .masthead-rubric > span:nth-child(2) {
+  margin-left: 13% !important;
+  transform: rotate(0.65deg) !important;
+}
+
+html body #root .public-home .masthead-rubric > span:nth-child(3) {
+  margin-left: 29% !important;
+  transform: rotate(-0.8deg) !important;
+}
+
+html body #root .public-home .masthead-rubric > span:nth-child(4) {
+  margin-left: 5% !important;
+  font-size: clamp(1.12rem, 1.95vw, 1.95rem) !important;
+  transform: rotate(1deg) !important;
+}
+
+html body #root .public-home .masthead-rubric > span:not(:last-child)::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .public-home .masthead-index {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .orientation-kicker {
+  align-self: start !important;
+}
+
+html body #root .public-home .orientation-kicker > span[lang="en"] {
+  font-size: clamp(1.3rem, 1.65vw, 1.7rem) !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .orientation-kicker > span[lang="ko"] {
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.35 !important;
+}
+
+/* Discovery controls have no latent ledger rows. Empty search results stay
+   compact and descriptive instead of exposing an empty outlined panel. */
+html body #root .public-home .archive-tools {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-rows: max-content !important;
+  gap: 0.78rem !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home .archive-discovery {
+  display: grid !important;
+  grid-template-columns: minmax(15rem, 1.45fr) minmax(22rem, 1.85fr) minmax(9rem, 0.7fr) minmax(9rem, 0.7fr) auto auto !important;
+  grid-auto-rows: max-content !important;
+  align-items: end !important;
+  gap: 0.55rem !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home :is(.archive-search, .archive-filter-set, .archive-select, .archive-results-count, .archive-filter-reset) {
+  height: auto !important;
+  min-height: 2.9rem !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home :is(.archive-results-count, .archive-filter-reset) {
+  align-self: end !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.45rem 0.7rem !important;
+  border: 1.5px solid var(--rubric-ink, #080706) !important;
+  background: transparent !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .archive-filter-reset {
+  color: var(--rubric-ink, #080706) !important;
+}
+
+html body #root .public-home .archive-empty-state {
+  width: min(100%, 48rem) !important;
+  min-height: 0 !important;
+  margin: clamp(2.5rem, 6vw, 5rem) auto !important;
+  padding: 1rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--rubric-red, #c65a46) !important;
+  border-bottom: 1px solid var(--rubric-red, #c65a46) !important;
+  background: transparent !important;
+  color: var(--rubric-ink, #080706) !important;
+  font-size: clamp(1rem, 1.3vw, 1.22rem) !important;
+  line-height: 1.65 !important;
+  text-align: center !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .archive-cta-label[lang="ko"] {
+  display: inline-block !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: center !important;
+}
+
+@media (max-width: 1100px) {
+  html body #root .public-home .publication-masthead {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    min-height: clamp(28rem, 75vw, 36rem) !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.65fr) repeat(2, minmax(8rem, 0.75fr)) !important;
+  }
+
+  html body #root .public-home :is(.archive-results-count, .archive-filter-reset) {
+    grid-column: span 2 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  html body #root .public-home .masthead-mark {
+    min-height: 29rem !important;
+    padding: 0 !important;
+  }
+
+  html body #root .public-home .masthead-cabala {
+    width: 100% !important;
+    opacity: 1 !important;
+  }
+
+  html body #root .public-home .masthead-logo {
+    left: 1rem !important;
+    bottom: 1.2rem !important;
+    width: min(48vw, 13rem) !important;
+    margin: 0 !important;
+  }
+
+  html body #root .public-home .masthead-rubric {
+    inset: auto 0.8rem 0.8rem 0.8rem !important;
+  }
+
+  html body #root .public-home .masthead-rubric > span {
+    max-width: 96% !important;
+    font-size: clamp(0.86rem, 4vw, 1.05rem) !important;
+  }
+
+  html body #root .public-home .masthead-rubric > span:nth-child(2) {
+    margin-left: 6% !important;
+  }
+
+  html body #root .public-home .masthead-rubric > span:nth-child(3) {
+    margin-left: 15% !important;
+  }
+
+  html body #root .public-home .masthead-rubric > span:nth-child(4) {
+    margin-left: 2% !important;
+    font-size: 1rem !important;
+  }
+
+  html body #root .public-home .orientation-kicker > span[lang="ko"] {
+    font-size: 0.84rem !important;
+  }
+
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home :is(.archive-results-count, .archive-filter-reset) {
+    grid-column: auto !important;
+  }
+
+  html body #root .public-home .archive-empty-state {
+    width: calc(100% - 2rem) !important;
+    margin: 2rem auto !important;
+    text-align: left !important;
+    transform-origin: left center !important;
+  }
+}
+
 /* Monochrome rubrication -------------------------------------------------
    Interface colour follows the logic of a manuscript: paper and ink carry
    the page; one vermilion rubric marks the current choice or required act.
@@ -2997,4 +3306,613 @@ html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set
 html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set > button::before {
   content: none !important;
   display: none !important;
+}
+
+/* Main-page containment and hierarchy ------------------------------------
+   Editorial headings are not controls. Let them sit in open space instead
+   of forcing display lettering into fixed decorative rectangles. */
+html body #root .public-home .section-kicker {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  gap: 0.12rem 0.38rem !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--rubric-ink, #080706) !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a):last-child {
+  border-right: 1.5px solid var(--rubric-ink, #080706) !important;
+}
+
+html body #root .public-home .section-kicker > * {
+  max-width: 100% !important;
+  color: inherit !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .featured-copy > .section-kicker {
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .masthead-index > p:first-child {
+  line-height: 0.94 !important;
+}
+
+html body #root .public-home .masthead-ring text {
+  fill: var(--rubric-red, #c65a46) !important;
+}
+
+html body #root .public-home .masthead-mark {
+  border-right: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .masthead-index {
+  border-left: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .masthead-rubric {
+  position: absolute !important;
+  z-index: 4 !important;
+  top: clamp(1.2rem, 2.7vw, 2.8rem) !important;
+  left: clamp(1.2rem, 2.7vw, 2.8rem) !important;
+  right: clamp(1.2rem, 2.7vw, 2.8rem) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.18rem 0.65rem !important;
+  margin: 0 !important;
+  padding: 0 0 0.65rem !important;
+  border-bottom: 1px solid var(--rubric-red, #c65a46) !important;
+  color: var(--rubric-red, #c65a46) !important;
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(0.88rem, 1.15vw, 1.16rem) !important;
+  line-height: 1.18 !important;
+  pointer-events: none !important;
+}
+
+html body #root .public-home .masthead-rubric > span {
+  color: inherit !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .masthead-rubric > span:not(:last-child)::after {
+  content: " /";
+  margin-left: 0.65rem;
+  color: var(--rubric-red, #c65a46) !important;
+}
+
+html body #root .public-home .orientation-kicker {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.28rem !important;
+  align-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .orientation-kicker > span {
+  position: static !important;
+  width: auto !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .orientation-kicker > span[aria-hidden="true"] {
+  display: none !important;
+}
+
+html body #root .public-home .orientation-kicker > span[lang="ko"] {
+  display: inline-block !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: left center !important;
+}
+
+/* The three first-reader routes follow the alchemical Tria Prima:
+   mercury, sulphur and salt. */
+html body #root .public-home .orientation-routes > a:nth-child(1)::after {
+  content: "☿" / "" !important;
+}
+
+html body #root .public-home .orientation-routes > a:nth-child(2)::after {
+  content: "🜍" / "" !important;
+}
+
+html body #root .public-home .orientation-routes > a:nth-child(3)::after {
+  content: "🜔" / "" !important;
+}
+
+html body #root .public-home a.archive-cta[href^="mailto:"]::after {
+  content: "☿" / "" !important;
+}
+
+html body #root .public-home a.archive-cta[href*="/archive"]::after,
+html body #root .public-home a.archive-cta[href*="#archive"]::after {
+  content: "🜍" / "" !important;
+}
+
+html body #root .public-home a.archive-cta[href*="/members"]::after {
+  content: "🜔" / "" !important;
+}
+
+html body #root .public-home .featured-copy .text-index-title {
+  background: var(--rubric-paper, #f4eddc) !important;
+  color: var(--rubric-ink, #080706) !important;
+}
+
+@media (min-width: 641px) {
+  html body #root .public-home .featured-event {
+    grid-template-columns: minmax(20rem, 0.82fr) minmax(0, 1.18fr) !important;
+  }
+}
+
+html body #root .public-home .featured-copy .constellation-grid {
+  gap: clamp(1.25rem, 2vw, 2.25rem) !important;
+  padding: 0.8rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid color-mix(in srgb, var(--rubric-ink, #080706) 40%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--rubric-ink, #080706) 40%, transparent) !important;
+  background: transparent !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home .featured-copy .text-index {
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  align-content: start !important;
+  border: 0 !important;
+  background: transparent !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .featured-copy .text-index > .text-index-title {
+  min-height: 0 !important;
+  padding: 0 0 0.35rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--rubric-ink, #080706) !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .featured-copy .text-index > ol {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.28rem 0.65rem !important;
+  padding: 0.5rem 0 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .public-home .featured-copy .text-index li {
+  display: inline-flex !important;
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .featured-copy .text-index li:not(:last-child)::after {
+  content: "/";
+  margin-left: 0.65rem;
+  color: var(--rubric-red, #c65a46);
+}
+
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2) {
+  height: auto !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+@media (min-width: 1101px) {
+  html body #root .public-home .archive-section-title {
+    grid-template-columns: minmax(15rem, 0.58fr) minmax(0, 1fr) minmax(20rem, 0.5fr) !important;
+  }
+
+  html body #root .public-home .archive-section-title .editorial-plate--archive {
+    width: 100% !important;
+    height: clamp(8rem, 9vw, 10rem) !important;
+  }
+}
+
+html body #root .public-home .archive-tools {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.75rem !important;
+}
+
+html body #root .public-home .archive-view-switch {
+  grid-template-columns: repeat(3, minmax(12rem, 1fr)) !important;
+  width: min(100%, 42rem) !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.65rem !important;
+  min-width: 0 !important;
+  border: 1.5px solid var(--rubric-ink, #080706) !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) > span[lang="en"] {
+  min-width: 0 !important;
+  font-size: clamp(1.15rem, 1.45vw, 1.4rem) !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) > small[lang="ko"] {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home .archive-bookmark {
+  grid-template-columns: auto !important;
+  gap: 0 !important;
+}
+
+html body #root .public-home .archive-bookmark::before {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .public-home .poster-tile .archive-bookmark {
+  top: auto !important;
+  right: 0.55rem !important;
+  bottom: 0.55rem !important;
+  display: grid !important;
+  width: 2.65rem !important;
+  height: 2.65rem !important;
+  min-width: 2.65rem !important;
+  min-height: 2.65rem !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1.5px solid var(--rubric-ink, #080706) !important;
+  background: var(--rubric-paper, #f4eddc) !important;
+  color: var(--rubric-ink, #080706) !important;
+  outline: 0 !important;
+}
+
+html body #root .public-home .poster-tile .archive-bookmark[aria-pressed="true"] {
+  background: var(--rubric-red, #c65a46) !important;
+}
+
+html body #root .public-home .poster-tile .archive-bookmark > span {
+  color: inherit !important;
+  font-family: Georgia, serif !important;
+  font-size: 1.45rem !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+html body #root .public-home .poster-tile .poster-visual {
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home .poster-tile .poster-image-link,
+html body #root .public-home .poster-tile > .poster-record-link {
+  display: block !important;
+  min-height: 0 !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link {
+  color: var(--rubric-paper, #f4eddc) !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link .poster-caption {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+  gap: 0.55rem !important;
+  min-height: 0 !important;
+  padding: 0.75rem 0 0 !important;
+  background: transparent !important;
+  color: var(--rubric-paper, #f4eddc) !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link .poster-caption > span {
+  grid-column: 1 !important;
+  color: var(--rubric-red, #c65a46) !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link .poster-caption > h2 {
+  grid-column: 2 !important;
+  color: var(--rubric-paper, #f4eddc) !important;
+}
+
+html body #root .public-home .poster-tile > .poster-record-link .poster-caption > :is(p, .theme-tags),
+html body #root .public-home .poster-tile > .poster-record-link .poster-open-tab {
+  display: none !important;
+}
+
+html body #root .public-home .archive-cta-label[lang="ko"] {
+  display: inline-block !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .poster-tile .poster-visual .archive-bookmark {
+  top: auto !important;
+  right: 0.55rem !important;
+  bottom: 0.55rem !important;
+}
+
+@media (max-width: 640px) {
+  html body #root .public-home .masthead-rubric {
+    top: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    gap: 0.12rem 0.45rem !important;
+    padding-bottom: 0.5rem !important;
+    font-size: 0.86rem !important;
+  }
+
+  html body #root .public-home .masthead-rubric > span:not(:last-child)::after {
+    margin-left: 0.45rem !important;
+  }
+
+  html body #root .public-home .poster-tile {
+    display: grid !important;
+    grid-template-columns: minmax(7.4rem, 0.72fr) minmax(0, 1.28fr) !important;
+    gap: 0.75rem !important;
+    align-items: start !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-visual {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  html body #root .public-home .poster-tile > .poster-record-link {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-visual .poster-frame {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 3 / 4 !important;
+  }
+
+  html body #root .public-home .poster-tile .poster-visual .poster-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+}
+
+html body #root .public-home :is(.manifesto-block, .join-block) {
+  grid-template-rows: auto auto auto !important;
+  grid-auto-rows: max-content !important;
+  height: auto !important;
+  min-height: 0 !important;
+  align-content: start !important;
+  padding-bottom: clamp(1.5rem, 2.8vw, 2.8rem) !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home :is(.manifesto-block, .join-block) .section-kicker {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+}
+
+html body #root .public-home :is(.manifesto-block, .join-block) :is(.editorial-plate--manifesto, .editorial-plate--join) {
+  position: relative !important;
+  inset: auto !important;
+  align-self: start !important;
+}
+
+html body #root .public-home .manifesto-block > p.ko-display,
+html body #root .public-home .join-block h2.ko-display {
+  height: auto !important;
+  min-height: max-content !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 640px) {
+  html body #root .public-home .masthead-index > p:first-child {
+    line-height: 1.02 !important;
+  }
+
+  html body #root .public-home .archive-view-switch {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) {
+    min-height: 3.15rem !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) > *,
+  html body #root .public-home .join-block > div > * {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+
+/* Final opening plate -----------------------------------------------------
+   Keep the supplied vermilion exactly as extracted. The seal is not a
+   neighbouring logo block: it trespasses across the image like a printer's
+   mark set over an illustration. This block stays last so earlier responsive
+   experiments cannot quietly separate the two again. */
+html body #root .public-home .masthead-mark {
+  position: relative !important;
+  align-self: start !important;
+  aspect-ratio: 1014 / 1547 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: var(--rubric-red, #c65a46) !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+html body #root .public-home .masthead-cabala {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .masthead-cabala img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+html body #root .public-home .masthead-logo {
+  position: absolute !important;
+  z-index: 4 !important;
+  left: clamp(-2.8rem, -4vw, -1.1rem) !important;
+  bottom: clamp(-2.2rem, -3.2vw, -0.8rem) !important;
+  width: min(64%, 13rem) !important;
+  height: auto !important;
+  margin: 0 !important;
+  opacity: 0.98 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  transform: rotate(-7deg) !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home :is(.editorial-plate--featured, .editorial-plate--archive) img {
+  border-inline: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body #root .public-home :is(
+  .editorial-plate--featured,
+  .editorial-plate--archive,
+  .editorial-plate--manifesto,
+  .editorial-plate--join
+) {
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+html body #root .public-home :is(
+  .editorial-plate--featured,
+  .editorial-plate--archive,
+  .editorial-plate--manifesto,
+  .editorial-plate--join
+) img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  object-fit: cover !important;
+  filter: none !important;
+  transform-origin: center !important;
+}
+
+html body #root .public-home .editorial-plate--featured img {
+  object-position: center 38% !important;
+  transform: scale(1.1) !important;
+}
+
+html body #root .public-home .editorial-plate--archive img {
+  object-position: center 39% !important;
+  transform: scale(1.16) !important;
+}
+
+html body #root .public-home .editorial-plate--manifesto img {
+  object-position: center 39% !important;
+  transform: scale(1.15) !important;
+}
+
+html body #root .public-home .editorial-plate--join img {
+  object-position: center 38% !important;
+  transform: scale(1.14) !important;
+}
+
+@media (min-width: 901px) {
+  html body #root .public-home .publication-masthead {
+    grid-template-columns: clamp(16rem, 22vw, 20rem) minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    padding-left: clamp(0.85rem, 1.35vw, 1.4rem) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body #root .public-home .publication-masthead {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    width: min(100%, 28rem) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  html body #root .public-home .masthead-cabala img {
+    object-position: center !important;
+  }
+
+  html body #root .public-home .masthead-logo {
+    left: -1.5rem !important;
+    bottom: -1.1rem !important;
+    width: min(64%, 13rem) !important;
+  }
 }

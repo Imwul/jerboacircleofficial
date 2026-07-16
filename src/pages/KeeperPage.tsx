@@ -145,9 +145,6 @@ const siteTextFields: Array<{
   { key: 'navJoinKo', label: '탭 4 한글' },
   { key: 'navMembersEn', label: '탭 5 영어' },
   { key: 'navMembersKo', label: '탭 5 한글' },
-  { key: 'mastheadRing', label: '인장 원형 문구', area: true },
-  { key: 'mastheadCaptionEn', label: '인장 캡션 영어' },
-  { key: 'mastheadCaptionKo', label: '인장 캡션 한글' },
   { key: 'mastheadIntroEn', label: '대문 영어 문장', area: true },
   { key: 'mastheadIntroKo', label: '대문 한글 설명', area: true },
   { key: 'orientationKickerEn', label: '첫 안내 영어 표제' },
@@ -217,7 +214,6 @@ function validateSiteTextForm(siteText: SiteText) {
     ['navManifestoEn', '탭 3 영어'],
     ['navJoinEn', '탭 4 영어'],
     ['navMembersEn', '탭 5 영어'],
-    ['mastheadCaptionEn', '인장 캡션 영어'],
     ['mastheadIntroKo', '대문 한글 설명'],
     ['archiveHeading', '아카이브 큰 문장'],
     ['manifestoBody', '소개 본문'],
@@ -949,7 +945,7 @@ export default function KeeperPage() {
           ) : (
             <div className="keeper-list">
               <button className="is-selected" type="button">
-                <span>⚜ Scriptorium</span>
+                <span>🜔 Scriptorium</span>
                 <strong>Text register</strong>
                 <small lang="ko">반복되는 문장</small>
               </button>
@@ -961,7 +957,7 @@ export default function KeeperPage() {
           <section className="keeper-editor godmode-editor" aria-label="Site text editor">
             <div className="keeper-preview godmode-preview">
               <div>
-                <span>⚜ Scriptorium</span>
+                <span>🜔 Scriptorium</span>
                 <h2>Text register</h2>
                 <p lang="ko">공개 기록벽에 반복해서 나타나는 문장을 이곳에서 직접 고칩니다.</p>
               </div>

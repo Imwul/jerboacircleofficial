@@ -5,6 +5,20 @@ import beatusStar from '../assets/manuscripts/beatus-star-met-466191.webp';
 import armenianBifolium from '../assets/manuscripts/armenian-bifolium-met-662941.webp';
 import fixedStars from '../assets/manuscripts/fixed-stars-met-446297.webp';
 import stLuke from '../assets/manuscripts/st-luke-met.webp';
+import cabalePage20 from '../assets/occult/cabale-sacree-page-20.webp';
+import cabalePage34 from '../assets/occult/cabale-sacree-page-34.webp';
+import cabalePage54 from '../assets/occult/cabale-sacree-page-54.webp';
+import cabalePage74 from '../assets/occult/cabale-sacree-page-74.webp';
+import cabalePage94 from '../assets/occult/cabale-sacree-page-94.webp';
+import cabalePage114 from '../assets/occult/cabale-sacree-page-114.webp';
+import alchemicalPeacock from '../assets/occult/alchemical-peacock-wellcome.webp';
+import crownedWoman from '../assets/occult/crowned-woman-wellcome.webp';
+import hermeticAndrogyne from '../assets/occult/hermetic-androgyne-wellcome.webp';
+import dragonsTree from '../assets/occult/dragons-tree-wellcome.webp';
+import ripleyTree from '../assets/occult/ripley-scroll-tree-wellcome.webp';
+import ripleyEagle from '../assets/occult/ripley-scroll-eagle-wellcome.webp';
+import threeHeadedEagle from '../assets/occult/three-headed-eagle-wellcome.webp';
+import goldenPrince from '../assets/occult/golden-prince-wellcome.webp';
 
 export interface ArchiveMediaAsset {
   id: string;
@@ -18,15 +32,236 @@ export interface ArchiveMediaAsset {
   repositoryObjectId: string;
   creditLine: string;
   sourceUrl: string;
-  rights: 'Public Domain';
+  rights: 'Public Domain' | 'CC BY 4.0';
   rightsUrl: string;
   altText: string;
 }
 
 const metRepository = 'The Metropolitan Museum of Art';
 const metOpenAccessUrl = 'https://www.metmuseum.org/about-the-met/policies-and-documents/open-access';
+const wellcomeRepository = 'Wellcome Collection';
+const wellcomeCabaleSourceUrl = 'https://wellcomecollection.org/works/vyewmamt';
+const publicDomainMarkUrl = 'https://creativecommons.org/publicdomain/mark/1.0/';
+const ccByUrl = 'https://creativecommons.org/licenses/by/4.0/';
 
 export const archiveMediaAssets: ArchiveMediaAsset[] = [
+  {
+    id: 'wellcome-golden-prince',
+    src: goldenPrince,
+    title: 'A Prince Clad in Gold Succeeds the King',
+    creator: 'Edith A. Ibbs, after Salomon Trismosin',
+    culture: 'British',
+    date: '1900–1909',
+    medium: 'Watercolour painting',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38704i',
+    creditLine: 'Wellcome Collection 38704i',
+    sourceUrl: 'https://wellcomecollection.org/works/vujg9ft8',
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '푸른 하늘과 산길 앞에 금빛 옷과 왕관을 쓴 왕자가 별 달린 홀과 황금 구체를 들고 서 있는 연금술 수채화.',
+  },
+  {
+    id: 'wellcome-three-headed-eagle',
+    src: threeHeadedEagle,
+    title: 'A Three-Headed Eagle in a Crowned Alchemical Flask',
+    creator: 'Edith A. Ibbs, after Salomon Trismosin',
+    culture: 'British',
+    date: '1900–1909',
+    medium: 'Watercolour painting',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38823i',
+    creditLine: 'Wellcome Collection 38823i',
+    sourceUrl: 'https://wellcomecollection.org/works/nq5v5cb5',
+    rights: 'CC BY 4.0',
+    rightsUrl: ccByUrl,
+    altText: '왕관을 두른 푸른 연금술 플라스크 안에서 세 머리의 흰 독수리가 날개를 펼친 수채화.',
+  },
+  {
+    id: 'wellcome-alchemical-peacock',
+    src: alchemicalPeacock,
+    title: 'A Peacock in a Crowned Alchemical Flask',
+    creator: 'Edith A. Ibbs, after Salomon Trismosin',
+    culture: 'British',
+    date: '1900–1909',
+    medium: 'Watercolour painting',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38825i',
+    creditLine: 'Wellcome Collection 38825i',
+    sourceUrl: 'https://wellcomecollection.org/works/pyhb4hmk',
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '금빛 왕관을 두른 유리 플라스크 안에 푸른 공작이 꼬리를 펼친 채 서 있는 연금술 수채화.',
+  },
+  {
+    id: 'wellcome-crowned-woman-alchemy',
+    src: crownedWoman,
+    title: 'A Crowned Woman with a Rose-Topped Caduceus',
+    culture: 'European',
+    date: 'ca. 18th century',
+    medium: 'Coloured etching',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38629i',
+    creditLine: 'Wellcome Collection 38629i',
+    sourceUrl: 'https://wellcomecollection.org/works/ckz6rqdz',
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '붉은 옷과 왕관을 쓴 여인이 장미가 핀 지팡이를 들고 푸른 물의 원 안에 떠 있는 채색 연금술 도판.',
+  },
+  {
+    id: 'wellcome-hermetic-androgyne',
+    src: hermeticAndrogyne,
+    title: 'The Hermetic Androgyne',
+    creator: 'Edith A. Ibbs',
+    culture: 'British',
+    date: '1900–1909',
+    medium: 'Watercolour painting',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38739i',
+    creditLine: 'Wellcome Collection 38739i',
+    sourceUrl: 'https://wellcomecollection.org/works/prmankg3',
+    rights: 'CC BY 4.0',
+    rightsUrl: ccByUrl,
+    altText: '붉고 푸른 한 쌍의 날개와 원형 거울을 지닌 헤르메스적 양성자가 산과 숲 앞에 선 채색 연금술 도판.',
+  },
+  {
+    id: 'wellcome-dragons-flowering-tree',
+    src: dragonsTree,
+    title: 'Dragons and Griffins around a Flowering Tree',
+    creator: 'After Nicolas Flamel',
+    culture: 'European',
+    date: 'ca. 17th century',
+    medium: 'Etching with watercolour',
+    repository: wellcomeRepository,
+    repositoryObjectId: '38032i',
+    creditLine: 'Wellcome Collection 38032i',
+    sourceUrl: 'https://wellcomecollection.org/works/sj4mu8bn',
+    rights: 'CC BY 4.0',
+    rightsUrl: ccByUrl,
+    altText: '높은 언덕의 흰 꽃나무를 향해 붉고 검은 용과 그리핀이 사방에서 날아드는 채색 연금술 도판.',
+  },
+  {
+    id: 'wellcome-ripley-scroll-tree',
+    src: ripleyTree,
+    title: 'Ripley Scroll: Alchemical Tree and Fountain',
+    creator: 'After George Ripley',
+    culture: 'British',
+    date: 'c. 1600',
+    medium: 'Ink and colour on parchment roll',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.692, panel 3',
+    creditLine: 'Wellcome Collection MS.692',
+    sourceUrl: 'https://wellcomecollection.org/works/b38k86ch',
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '채색 덩굴 테두리 안에서 태양과 달, 인물과 새가 연금술의 나무와 분수 주위에 층층이 놓인 리플리 두루마리.',
+  },
+  {
+    id: 'wellcome-ripley-scroll-eagle',
+    src: ripleyEagle,
+    title: 'Ripley Scroll: The Bird of Hermes',
+    creator: 'After George Ripley',
+    culture: 'British',
+    date: 'c. 1600',
+    medium: 'Ink and colour on parchment roll',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.692, panel 6',
+    creditLine: 'Wellcome Collection MS.692',
+    sourceUrl: 'https://wellcomecollection.org/works/b38k86ch',
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '황금 빗방울 아래 날개 달린 헤르메스의 새가 검은 구체 위에 서 있고 양옆을 채색 덩굴이 두른 리플리 두루마리.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-20',
+    src: cabalePage20,
+    title: 'Cabale Sacrée et Divine, p. 20: Character of the Angel Mahasiah',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 20',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '옅은 종이 위에 천사 마하시야의 이름과 기도문, 붉은 잉크로 그린 기호가 놓인 카발라 필사본 20쪽.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-34',
+    src: cabalePage34,
+    title: 'Cabale Sacrée et Divine, p. 34: Characters of the Angel Hariel',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 34',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '천사 하리엘의 이름 아래 붉은 잉크로 세 개의 서로 다른 시질이 나란히 그려진 카발라 필사본 34쪽.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-54',
+    src: cabalePage54,
+    title: 'Cabale Sacrée et Divine, p. 54: Character of the Angel Reiyel',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 54',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '천사 레이엘의 이름과 긴 기도문 사이에 붉은 계단 모양 시질이 놓인 카발라 필사본 54쪽.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-74',
+    src: cabalePage74,
+    title: 'Cabale Sacrée et Divine, p. 74: Character of the Angel Michael',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 74',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '천사 미카엘의 이름과 라틴어 구절 곁에 연한 붉은 선으로 네모난 시질이 그려진 카발라 필사본 74쪽.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-94',
+    src: cabalePage94,
+    title: 'Cabale Sacrée et Divine, p. 94: Divine Name and Solar Character',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 94',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '히브리어 신명과 태양의 움직임을 적은 문장 사이에 붉은 태양 기호가 놓인 카발라 필사본 94쪽.',
+  },
+  {
+    id: 'wellcome-cabale-sacree-page-114',
+    src: cabalePage114,
+    title: 'Cabale Sacrée et Divine, p. 114: Divine Name and Pisces',
+    culture: 'French',
+    date: 'c. 1775',
+    medium: 'Ink and red pigment on paper',
+    repository: wellcomeRepository,
+    repositoryObjectId: 'MS.1434, p. 114',
+    creditLine: 'Wellcome Collection, MS.1434',
+    sourceUrl: wellcomeCabaleSourceUrl,
+    rights: 'Public Domain',
+    rightsUrl: publicDomainMarkUrl,
+    altText: '물고기자리와 천사의 이름, 히브리어 신명을 가느다란 필체로 기록한 카발라 필사본 114쪽.',
+  },
   {
     id: 'met-466370-last-supper',
     src: lastSupper,

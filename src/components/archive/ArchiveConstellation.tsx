@@ -151,7 +151,7 @@ export default function ArchiveConstellation({ records, references: referenceRec
               data-current={record.status === 'current' || undefined}
               data-selected={isSelected || undefined}
               aria-pressed={isSelected}
-              aria-label={`${record.title}, ${record.edition}, ${record.status === 'current' ? '현재 열린 프로그램' : '보관된 프로그램'}`}
+              aria-label={`${record.title}, ${record.edition}, ${record.status === 'current' ? '지금 열린 판본' : '보존된 판본'}`}
               key={record.id}
               onClick={() => setSelectedId(record.id)}
               style={{ left: `${position.x}%`, top: `${position.y}%` }}
@@ -167,7 +167,7 @@ export default function ArchiveConstellation({ records, references: referenceRec
       {selected && (
         <div className="constellation-selection" aria-live="polite">
           <div>
-            <span>{selected.edition} / {selected.status === 'current' ? '현재 열린 프로그램' : '보관된 프로그램'}</span>
+            <span>{selected.edition} / {selected.status === 'current' ? '지금 열린 판본' : '보존된 판본'}</span>
             <h3>{selected.title}</h3>
             <p lang="ko">{selected.shortDescription}</p>
           </div>
@@ -177,12 +177,12 @@ export default function ArchiveConstellation({ records, references: referenceRec
               <dd>{selected.themes.join(' / ')}</dd>
             </div>
             <div>
-              <dt>자료 노드</dt>
-              <dd>{references.slice(0, 4).map((reference) => reference.title).join(' / ') || '아직 연결된 자료 없음'}</dd>
+              <dt>연결 자료</dt>
+              <dd>{references.slice(0, 4).map((reference) => reference.title).join(' / ') || '연결된 자료가 없습니다'}</dd>
             </div>
             <div>
               <dt>이어지는 판본</dt>
-              <dd>{selectedConnections.slice(0, 3).map((connection) => `${archiveConnectionDirectionLabel(connection.direction)} ${connection.event.edition}`).join(' / ') || '첫 연결점'}</dd>
+              <dd>{selectedConnections.slice(0, 3).map((connection) => `${archiveConnectionDirectionLabel(connection.direction)} ${connection.event.edition}`).join(' / ') || '아직 이어진 판본이 없습니다'}</dd>
             </div>
           </dl>
           <a className="archive-cta" href={selected.ctaHref}>
@@ -191,7 +191,7 @@ export default function ArchiveConstellation({ records, references: referenceRec
         </div>
       )}
       <p className="constellation-legend" lang="ko">
-        실선은 판본의 흐름, 긴 점선은 공통 자료, 짧은 점선은 공통 테마를 뜻합니다. 현재 열린 프로그램은 중심에서 강조됩니다.
+        실선은 판본의 흐름, 긴 점선은 공통 자료, 짧은 점선은 공통 주제를 뜻합니다. 지금 열린 판본은 붉게 강조됩니다.
       </p>
     </section>
   );

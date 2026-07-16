@@ -680,10 +680,10 @@ function App() {
       ? activeTab === 'admin' ? 'Keeper Desk' : 'Itinerary'
       : activeTab === 'habit' ? 'Marginalia' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
   const archiveSectionNote = !currentUser
-    ? '이름을 선택하면 개인 장부와 프로그램 기록으로 들어갑니다.'
+    ? '이름을 선택하면 참여자 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
       ? '프로그램 일정, 회원 기록, 공동 장부, 백업 파일을 정돈하는 보관자 책상입니다.'
-      : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 남기는 비공개 장부입니다.';
+      : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 잇는 참여자 장부입니다.';
 
   usePageMetadata({
     title: `${archiveSectionTitle} | Jerboa Circle Private Room`,
@@ -702,7 +702,7 @@ function App() {
           </a>
           <a className="archive-public-return" href="/">
             <span lang="en">Public archive</span>
-            <small lang="ko">메인 기록벽으로 돌아가기</small>
+            <small lang="ko">공개 기록벽으로</small>
           </a>
           {currentUser ? (
             <nav className="archive-cabinet" aria-label="Private room sequence">
@@ -725,14 +725,14 @@ function App() {
               {currentUser === 'admin' && (
                 <button aria-pressed={activeTab === 'admin'} className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
                   <span lang="en">Keeper Desk</span>
-                  <small lang="ko">보관자 필사실</small>
+                  <small lang="ko">보관자 책상</small>
                 </button>
               )}
             </nav>
           ) : null}
           <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en"><i aria-hidden="true">⚜</i> Keeper Desk</span>
-            <small lang="ko">보관자 문구실</small>
+            <span lang="en"><i aria-hidden="true">🜔</i> Keeper Desk</span>
+            <small lang="ko">보관자 책상</small>
           </a>
           <figure className="archive-source-plate">
             <img src={memberScribePlate.src} alt={memberScribePlate.altText} loading="lazy" decoding="async" />
@@ -746,7 +746,7 @@ function App() {
         </aside>
 
         <div className="archive-workbench">
-          <ConnectivityNotice context="비공개 장부" />
+          <ConnectivityNotice context="참여자 장부" />
           {currentUser && lastSaved && (
             <div className="archive-save-notice">
               로컬 초안 보관 중 / {lastSaved}
@@ -769,7 +769,6 @@ function App() {
           
           <header className="archive-topbar">
             <div className="archive-topbar-copy">
-              <p lang="en">Jerboa Circle / private room</p>
               <h1 lang="en">{archiveSectionTitle}</h1>
               {currentUser === 'admin' && <span lang="ko">{archiveSectionNote}</span>}
               <RegisterSyncStatus status={serverSyncStatus} />
@@ -915,7 +914,7 @@ function App() {
             <nav className="archive-mobile-tabs" aria-label="Mobile private room navigation">
               <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span lang="ko">여정함</span>
+                <span lang="ko">일정</span>
               </button>
               <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -923,7 +922,7 @@ function App() {
               </button>
               <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span lang="ko">표지</span>
+                <span lang="ko">개인 장부</span>
               </button>
             </nav>
           )}
@@ -938,7 +937,7 @@ function App() {
           />
           <ConfirmDialog
             open={Boolean(pendingMembersImport)}
-            title="검증된 비공개 장부를 적용할까요?"
+            title="검증된 참여자 장부를 적용할까요?"
             description={pendingMembersImport
               ? `회원 ${pendingMembersImport.data.users.length}명과 프로그램 ${pendingMembersImport.data.events.length}개를 확인했습니다. 현재 이 기기의 회원·일정·개인 기록은 가져온 장부로 교체됩니다.`
               : ''}
