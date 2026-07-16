@@ -5,16 +5,26 @@ import './index.css';
 import './JerboaFinalRepair.css';
 import './JerboaPolishFinal.css';
 import './EditorialRefinement.css';
-import './WorkroomLayout.css';
 
 const container = document.getElementById('root');
 if (container) {
   const root = createRoot(container);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  void import('./WorkroomLayout.css')
+    .then(() => {
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    })
+    .catch((error) => {
+      console.error('Editorial layout failed to load', error);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    });
 } else {
   console.error('root container NOT found');
 }

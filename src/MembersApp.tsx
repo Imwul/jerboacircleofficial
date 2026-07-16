@@ -706,24 +706,24 @@ function App() {
           </a>
           {currentUser ? (
             <nav className="archive-cabinet" aria-label="Private room sequence">
-              <button className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+              <button aria-pressed={activeTab === 'calendar'} className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
                 <span lang="en">Itinerary</span>
                 <small lang="ko">열린 장 {events.length}개</small>
               </button>
               {currentUser !== 'admin' && (
-                <button className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => setActiveTab('habit')}>
+                <button aria-pressed={activeTab === 'habit'} className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => setActiveTab('habit')}>
                   <span lang="en">Marginalia</span>
                   <small lang="ko">오늘의 주석 {completedToday}개</small>
                 </button>
               )}
               {currentUser !== 'admin' && (
-                <button className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')}>
+                <button aria-pressed={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')}>
                   <span lang="en">Folio</span>
                   <small lang="ko">개인 장부</small>
                 </button>
               )}
               {currentUser === 'admin' && (
-                <button className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
+                <button aria-pressed={activeTab === 'admin'} className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
                   <span lang="en">Keeper Desk</span>
                   <small lang="ko">보관자 필사실</small>
                 </button>

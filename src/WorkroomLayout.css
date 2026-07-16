@@ -2268,3 +2268,540 @@ html body #root .public-home.catalogue-home .catalogue-tools .archive-filter-set
     width: 100% !important;
   }
 }
+
+/* Exhibition-catalogue rhythm pass --------------------------------------
+   The pictures, display faces, palette and rough rules remain Jerboa's.
+   This layer only decides what is read first, what supports it, and where
+   whitespace can do the work that another frame previously did. */
+
+:root {
+  --jerboa-reading-measure: 60ch;
+  --jerboa-section-space: clamp(1.4rem, 2.6vw, 2.8rem);
+}
+
+html body #root .public-home :is(
+  .masthead-index > p:nth-child(2),
+  .event-description,
+  .detail-long,
+  .catalogue-intro > p:last-child,
+  .catalogue-detail > .event-subtitle,
+  .manifesto-block > p.ko-display,
+  .join-block h2.ko-display
+) {
+  max-width: var(--jerboa-reading-measure) !important;
+  line-height: 1.72 !important;
+}
+
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2),
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2) > * {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2)::before,
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2)::after,
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2) > *::before,
+html body #root .public-home .archive-section-title > :is(.section-kicker, h2) > *::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (min-width: 641px) {
+  /* Opening spread: the institutional sentence is the focal point; the seal,
+     plate and reading routes become its quieter supporting apparatus. */
+  html body #root .public-home .publication-masthead {
+    grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr) !important;
+    min-height: clamp(24rem, 34vw, 29rem) !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    min-height: clamp(24rem, 34vw, 29rem) !important;
+    padding: clamp(1.25rem, 2vw, 2rem) !important;
+  }
+
+  html body #root .public-home .masthead-ring {
+    width: min(74%, 22rem) !important;
+    height: min(74%, 22rem) !important;
+  }
+
+  html body #root .public-home .masthead-logo {
+    width: min(48%, 12rem) !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    grid-template-columns: minmax(0, 1.35fr) minmax(12rem, 0.65fr) !important;
+    gap: clamp(0.75rem, 1.2vw, 1.2rem) !important;
+    padding: clamp(1.35rem, 2.1vw, 2.2rem) !important;
+  }
+
+  html body #root .public-home .masthead-index > p:first-child {
+    max-width: 13ch !important;
+    font-size: clamp(3rem, 4.25vw, 4.75rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  html body #root .public-home .masthead-index > p:nth-child(2) {
+    max-width: 42ch !important;
+    font-size: clamp(1rem, 1vw, 1.12rem) !important;
+  }
+
+  html body #root .public-home .masthead-index .editorial-plate--masthead {
+    height: clamp(13rem, 19vw, 17rem) !important;
+    max-height: 17rem !important;
+  }
+
+  html body #root .public-home .orientation-ledger {
+    padding-top: 0.65rem !important;
+    border-top: 1px solid rgba(5, 5, 5, 0.24) !important;
+  }
+
+  /* Featured programme: poster first, title second, all metadata third. */
+  html body #root .public-home .featured-event {
+    grid-template-columns: minmax(18rem, 0.64fr) minmax(0, 1.36fr) !important;
+  }
+
+  html body #root .public-home .featured-copy {
+    grid-template-columns: minmax(0, 1.25fr) minmax(13rem, 0.75fr) !important;
+    row-gap: clamp(0.65rem, 0.9vw, 1rem) !important;
+    padding: var(--jerboa-section-space) !important;
+  }
+
+  html body #root .public-home .featured-copy > .section-kicker {
+    justify-self: start !important;
+    width: auto !important;
+    min-width: min(100%, 17rem) !important;
+    min-height: 0 !important;
+    padding: 0.55rem 0.75rem 0.45rem !important;
+  }
+
+  html body #root .public-home .featured-copy > h1 {
+    max-width: 12ch !important;
+    padding-top: 0.75rem !important;
+    font-size: clamp(3.6rem, 4.9vw, 5.6rem) !important;
+    line-height: 0.94 !important;
+  }
+
+  html body #root .public-home .featured-copy .editorial-plate--featured {
+    height: clamp(7.5rem, 9vw, 9.5rem) !important;
+  }
+
+  html body #root .public-home .featured-copy .event-description {
+    align-self: start !important;
+    font-size: clamp(1rem, 1vw, 1.12rem) !important;
+  }
+
+  /* Archive heading and finding aid: one quiet heading row, then controls.
+     Controls retain their four-sided outlines; their parent frames disappear. */
+  html body #root .public-home .archive-section-title {
+    grid-template-columns: minmax(11rem, 0.48fr) minmax(0, 1.32fr) minmax(9rem, 0.2fr) !important;
+    min-height: 0 !important;
+    padding: clamp(1.35rem, 2vw, 2.15rem) var(--jerboa-layout-gutter) !important;
+  }
+
+  html body #root .public-home .archive-section-title > h2 {
+    padding-left: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-size: clamp(1.35rem, 1.8vw, 1.85rem) !important;
+    line-height: 1.45 !important;
+  }
+
+  html body #root .public-home .archive-section-title > .section-kicker {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home .archive-section-title .editorial-plate--archive {
+    height: 4.75rem !important;
+    opacity: 0.82 !important;
+  }
+
+  html body #root .public-home .archive-tools {
+    grid-template-columns: minmax(19rem, 0.62fr) minmax(0, 1.38fr) !important;
+    padding-block: 0.75rem !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home .poster-caption h2 {
+    font-size: clamp(1.8rem, 2.55vw, 3.05rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  /* Closing institutional spread: colour and plate carry atmosphere, while
+     whitespace replaces nested label frames. */
+  html body #root .public-home :is(.manifesto-block, .join-block) {
+    min-height: 18rem !important;
+    gap: 1rem var(--jerboa-layout-gap) !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) .section-kicker {
+    justify-self: start !important;
+    width: auto !important;
+    min-width: min(100%, 15rem) !important;
+    min-height: 0 !important;
+    padding: 0 0 0.55rem !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.36) !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) :is(p.ko-display, h2.ko-display) {
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-size: clamp(1.05rem, 1.15vw, 1.26rem) !important;
+  }
+
+  /* Programme record: the title no longer competes with a full-width edition
+     banner, and related records read as a two-column bibliography. */
+  html body #root .public-home.detail-home .detail-record {
+    grid-template-columns: minmax(18rem, 0.66fr) minmax(0, 1.34fr) !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy {
+    padding: clamp(1.75rem, 2.7vw, 3rem) !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > .section-kicker {
+    display: inline-grid !important;
+    width: fit-content !important;
+    min-width: min(100%, 18rem) !important;
+    margin-bottom: 0.75rem !important;
+    padding: 0 0 0.6rem !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.34) !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > h1 {
+    max-width: 13ch !important;
+    padding: 0.7rem 0 0.2em !important;
+    font-size: clamp(3.7rem, 5vw, 5.7rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > h1.is-long-title {
+    max-width: 17ch !important;
+    font-size: clamp(2.8rem, 3.8vw, 4.25rem) !important;
+    line-height: 1.18 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > :is(.event-subtitle, .latin-line) {
+    max-width: 38ch !important;
+    font-size: clamp(1.35rem, 1.65vw, 1.75rem) !important;
+    line-height: 1.35 !important;
+  }
+
+  html body #root .public-home.detail-home .archive-connection-index ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Catalogue index: opening text becomes an introduction, not a billboard. */
+  html body #root .public-home.catalogue-home .catalogue-intro {
+    grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.45fr) !important;
+    grid-template-rows: auto auto !important;
+    min-height: 0 !important;
+    padding-bottom: clamp(1.3rem, 2vw, 2rem) !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > .section-kicker {
+    display: inline-grid !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-self: start !important;
+    width: auto !important;
+    min-width: min(100%, 16rem) !important;
+    padding: 0 0 0.55rem !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.34) !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > h1 {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    max-width: 13ch !important;
+    padding: 0.75rem 0 0.18em !important;
+    font-size: clamp(3.2rem, 4.4vw, 4.75rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    max-width: 32ch !important;
+    padding-bottom: 0.4rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-index > a {
+    min-height: 8.5rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > h1 {
+    max-width: 17ch !important;
+    font-size: clamp(3.2rem, 4.5vw, 5rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > h1.is-long-title {
+    max-width: 22ch !important;
+    font-size: clamp(2.35rem, 3vw, 3.45rem) !important;
+    line-height: 1.28 !important;
+  }
+
+  /* Keeper's desk: the editable form is the single working focal point.
+     The preview becomes a compact colophon above it instead of an empty
+     third column. */
+  html body #root .public-home.keeper-home .keeper-room {
+    grid-template-columns: minmax(19rem, 22rem) minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-register {
+    gap: 1rem !important;
+    padding: clamp(1.15rem, 1.7vw, 1.75rem) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-register h1 {
+    font-size: clamp(3rem, 4.1vw, 4.4rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-register p {
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-editor {
+    display: block !important;
+    height: auto !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-preview {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: clamp(1.15rem, 1.8vw, 1.8rem) !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--jerboa-layout-rule) !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-preview h2 {
+    margin: 0.4rem 0 !important;
+    font-size: clamp(2.5rem, 3.5vw, 3.8rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-preview p {
+    max-width: 48ch !important;
+    margin: 0 !important;
+    line-height: 1.65 !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-form {
+    width: 100% !important;
+    max-width: none !important;
+    padding: clamp(1.15rem, 1.8vw, 1.8rem) !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1100px) {
+  html body #root .public-home .archive-view-switch > :is(button, a) > span[lang="en"] {
+    font-size: clamp(1rem, 1.8vw, 1.22rem) !important;
+    line-height: 1.05 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Mobile pages should reveal both the focal point and its first piece of
+     context before demanding another full-screen scroll. */
+  html body #root .public-home .publication-masthead {
+    min-height: 0 !important;
+  }
+
+  html body #root .public-home .masthead-mark {
+    min-height: 21rem !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home .masthead-ring {
+    width: min(76%, 19rem) !important;
+    height: min(76%, 19rem) !important;
+  }
+
+  html body #root .public-home .masthead-logo {
+    width: min(46%, 10rem) !important;
+  }
+
+  html body #root .public-home .masthead-index {
+    padding: 1rem !important;
+    gap: 0.85rem !important;
+  }
+
+  html body #root .public-home .masthead-index > p:first-child {
+    max-width: 13ch !important;
+    font-size: clamp(2.55rem, 12vw, 3.25rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  html body #root .public-home .featured-copy {
+    padding: 1.05rem !important;
+    gap: 0.8rem !important;
+  }
+
+  html body #root .public-home .featured-copy > .section-kicker,
+  html body #root .public-home.detail-home .detail-copy > .section-kicker,
+  html body #root .public-home.catalogue-home .catalogue-intro > .section-kicker {
+    display: inline-grid !important;
+    width: auto !important;
+    min-height: 0 !important;
+    padding: 0 0 0.5rem !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.34) !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > .section-kicker {
+    display: inline-flex !important;
+    width: auto !important;
+    min-width: 10.5rem !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+  }
+
+  html body #root .public-home .featured-copy > h1 {
+    font-size: clamp(2.75rem, 13vw, 3.6rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  html body #root .public-home .archive-section-title {
+    gap: 0.55rem !important;
+    padding: 1.1rem !important;
+  }
+
+  html body #root .public-home .archive-section-title > h2 {
+    border: 0 !important;
+    background: transparent !important;
+    font-size: 1.16rem !important;
+    line-height: 1.5 !important;
+  }
+
+  html body #root .public-home .archive-section-title > .section-kicker {
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home .archive-tools {
+    gap: 0.65rem !important;
+    padding: 0.75rem 1rem !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) {
+    min-height: 3.2rem !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) {
+    gap: 0.8rem !important;
+    padding: 1.1rem !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) .section-kicker {
+    padding: 0 0 0.5rem !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.34) !important;
+    background: transparent !important;
+  }
+
+  html body #root .public-home :is(.manifesto-block, .join-block) :is(p.ko-display, h2.ko-display) {
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    font-size: 1rem !important;
+    line-height: 1.72 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-poster {
+    position: relative !important;
+    top: auto !important;
+    height: 58svh !important;
+    min-height: 25rem !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy {
+    min-height: 0 !important;
+    padding: 1.1rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > h1 {
+    max-width: 100% !important;
+    padding: 0.65rem 0 0.25em !important;
+    font-size: clamp(2.6rem, 12vw, 3.3rem) !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > h1.is-long-title {
+    font-size: clamp(2rem, 9vw, 2.45rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-room {
+    padding: 1rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > * {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > h1 {
+    max-width: 13ch !important;
+    padding: 0.6rem 0 0.15em !important;
+    font-size: clamp(2.65rem, 12vw, 3.25rem) !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-intro > p:last-child {
+    max-width: 36ch !important;
+    font-size: 0.98rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-index > a {
+    min-height: 7.5rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > h1 {
+    max-width: 100% !important;
+    font-size: clamp(2.45rem, 11vw, 3rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-detail > h1.is-long-title {
+    font-size: clamp(1.72rem, 7.6vw, 2.05rem) !important;
+    line-height: 1.34 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-register h1 {
+    font-size: clamp(2.8rem, 13vw, 3.7rem) !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-preview {
+    min-height: 0 !important;
+    padding: 1.05rem !important;
+  }
+
+  html body #root .public-home.keeper-home .godmode-preview h2 {
+    font-size: clamp(2.4rem, 11vw, 3.1rem) !important;
+    line-height: 1 !important;
+  }
+}

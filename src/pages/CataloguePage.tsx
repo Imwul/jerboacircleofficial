@@ -183,7 +183,9 @@ export default function CataloguePage({ id }: { id?: string }) {
           <article className="catalogue-detail">
             <p className="section-kicker"><span lang="en">{selected.kind}</span> / <span lang="ko">{archiveReferenceKindLabel(selected.kind)}</span></p>
             <h1 className={selected.title.length > 64 ? 'is-long-title' : undefined} lang={textLanguage(selected.title)}>{selected.title}</h1>
-            {selected.attribution && <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>}
+            {selected.attribution && (!selectedMedia || !selected.attribution.includes(selectedMedia.repositoryObjectId)) && (
+              <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>
+            )}
             {selectedMedia && (
               <figure className="catalogue-media-asset">
                 <img src={selectedMedia.src} alt={selectedMedia.altText} decoding="async" />

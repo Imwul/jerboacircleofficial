@@ -60,9 +60,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
   };
 
   return (
-    <div className="flex flex-col h-full bg-stone-50 p-6 space-y-8 overflow-y-auto">
+    <div className="member-profile flex flex-col h-full bg-stone-50 p-6 space-y-8 overflow-y-auto">
       {uploadError && <div className="archive-notice" role="alert" lang="ko">{uploadError}</div>}
-      <div className="flex flex-col items-center space-y-4">
+      <div className="member-profile-identity flex flex-col items-center space-y-4">
         <button
           type="button"
           aria-label="회원 표식 수정"
@@ -87,12 +87,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
+      <div className="member-profile-metrics grid grid-cols-2 gap-4">
+        <div className="member-profile-metric bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
           <div className="text-[10px] font-bold text-stone-400 mb-1">Marks held</div>
           <div className="text-xl font-black text-stone-900">{user.coins} <span className="text-xs text-stone-400">문장</span></div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
+        <div className="member-profile-metric bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
           <div className="text-[10px] font-bold text-stone-400 mb-1">멤버십 기간</div>
           <div className="text-xl font-black text-stone-900">
             {isExpired ? '만료됨' : remainingDays === 0 ? 'D-Day' : `D-${remainingDays}`}
@@ -101,7 +101,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
         </div>
       </div>
 
-      <div className="bg-white p-5 rounded-3xl border border-stone-100 shadow-sm space-y-2">
+      <div className="member-profile-journey bg-white p-5 rounded-3xl border border-stone-100 shadow-sm space-y-2">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-bold text-stone-400 mb-1">Journey state</div>
@@ -115,7 +115,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
         )}
       </div>
 
-      <div className="space-y-3">
+      <div className="member-profile-account space-y-3">
         <p className="text-xs font-bold text-stone-400 ml-1">계정 설정</p>
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm divide-y divide-stone-50">
           <button onClick={onLogout} className="w-full p-4 flex items-center justify-between hover:bg-stone-50 transition-colors">

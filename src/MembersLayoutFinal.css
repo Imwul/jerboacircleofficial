@@ -558,49 +558,732 @@ html body #root .members-archive :is(
 
 @media (max-width: 640px) {
   html body #root .members-archive .archive-sidebar {
-    grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr) !important;
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: auto auto !important;
+    gap: 0.45rem !important;
     width: 100% !important;
-    overflow: visible !important;
+    min-height: 0 !important;
+    padding: 0.5rem !important;
+    border: 0 !important;
+    border-bottom: 1.5px solid var(--register-ink, #050505) !important;
+    background: var(--register-sage, #98a45d) !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-sigil {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 4.5rem !important;
+    min-height: 4.5rem !important;
+    place-content: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    padding: 0.55rem 0.5rem !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-sigil span {
+    position: static !important;
+    display: inline-block !important;
+    width: auto !important;
+    margin: 0 !important;
+    font-size: clamp(1rem, 5.8vw, 1.35rem) !important;
+    line-height: 0.92 !important;
+    white-space: nowrap !important;
+    transform: none !important;
+  }
+
+  html body #root .members-archive .archive-public-return {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 4.5rem !important;
+    min-height: 4.5rem !important;
+    align-content: center !important;
+    justify-items: center !important;
+    gap: 0.12rem !important;
+    padding: 0.55rem 0.45rem !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    text-align: center !important;
   }
 
   html body #root .members-archive .archive-cabinet {
-    display: grid !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
     grid-column: 1 / -1 !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-auto-flow: row !important;
+    grid-row: 2 !important;
+    gap: 0.4rem !important;
     width: 100% !important;
-    overflow: visible !important;
+    padding: 0 0 0.15rem !important;
+    scroll-padding-inline: 0 !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  html body #root .members-archive .archive-cabinet::-webkit-scrollbar {
+    display: none !important;
   }
 
   html body #root .members-archive .archive-cabinet > button {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    align-items: center !important;
-    gap: 0.75rem !important;
-    width: 100% !important;
-    min-height: 4.25rem !important;
-    padding: 0.65rem 0.75rem !important;
+    flex: 0 0 clamp(8.75rem, 42vw, 10.5rem) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-content: center !important;
+    justify-items: start !important;
+    gap: 0.15rem !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 4.7rem !important;
+    aspect-ratio: auto !important;
+    padding: 0.65rem 0.8rem !important;
+    margin: 0 !important;
+    scroll-snap-align: start !important;
     text-align: left !important;
   }
 
   html body #root .members-archive .archive-cabinet > button span[lang="en"] {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
     justify-self: start !important;
-    font-size: clamp(1.05rem, 5.2vw, 1.4rem) !important;
-    line-height: 1 !important;
+    width: 100% !important;
+    font-size: clamp(1.05rem, 5.3vw, 1.35rem) !important;
+    line-height: 1.08 !important;
+    overflow: visible !important;
   }
 
   html body #root .members-archive .archive-cabinet > button small[lang="ko"] {
-    justify-self: end !important;
-    font-size: clamp(0.72rem, 3.5vw, 0.86rem) !important;
-    line-height: 1.25 !important;
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    justify-self: start !important;
+    width: 100% !important;
+    font-size: clamp(0.72rem, 3.3vw, 0.82rem) !important;
+    line-height: 1.35 !important;
+    text-align: left !important;
   }
 
   html body #root .members-archive .archive-public-return span[lang="en"] {
-    font-size: clamp(1rem, 5.7vw, 1.25rem) !important;
+    font-size: clamp(0.9rem, 4.7vw, 1.08rem) !important;
     line-height: 1.05 !important;
   }
 
   html body #root .members-archive .archive-public-return small[lang="ko"] {
-    font-size: clamp(0.66rem, 3.1vw, 0.78rem) !important;
+    font-size: clamp(0.62rem, 2.9vw, 0.72rem) !important;
+  }
+
+  html body #root .members-archive .archive-godmode-link,
+  html body #root .members-archive .archive-mobile-tabs {
+    display: none !important;
+  }
+}
+
+@media (max-width: 240px) {
+  html body #root .members-archive .archive-sidebar {
+    gap: 0.35rem !important;
+    padding: 0.4rem !important;
+  }
+
+  html body #root .members-archive .archive-sigil,
+  html body #root .members-archive .archive-public-return {
+    height: 3.8rem !important;
+    min-height: 3.8rem !important;
+  }
+
+  html body #root .members-archive .archive-sigil span {
+    font-size: 0.92rem !important;
+  }
+
+  html body #root .members-archive .archive-public-return span[lang="en"] {
+    font-size: 0.78rem !important;
+  }
+
+  html body #root .members-archive .archive-public-return small[lang="ko"] {
+    display: none !important;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 640px) {
+  html body #root .members-archive .archive-cabinet > button {
+    flex: 1 1 0 !important;
+    padding-inline: 0.55rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button span[lang="en"] {
+    font-size: 1rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button small[lang="ko"] {
+    font-size: 0.7rem !important;
+  }
+}
+
+@media (max-width: 359px) {
+  html body #root .members-archive .archive-cabinet {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: repeat(2, auto) !important;
+    grid-auto-flow: row !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button {
+    order: 0 !important;
+    width: 100% !important;
+    min-height: 4.25rem !important;
+    padding: 0.55rem 0.6rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button:nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button span[lang="en"] {
+    font-size: 0.9rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button small[lang="ko"] {
+    font-size: 0.66rem !important;
+  }
+}
+
+/* Wide private-room navigation -----------------------------------------
+   The former 210px cabinet rail forced every label into a narrow vertical
+   stack. On wide screens the same destinations now form one editorial index
+   above the workbench, leaving the page width to the member's actual record. */
+@media (min-width: 901px) {
+  html body #root .members-archive {
+    display: block !important;
+  }
+
+  html body #root .members-archive .archive-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 40 !important;
+    display: grid !important;
+    grid-template-columns: 10.75rem 12rem minmax(0, 1fr) 9.75rem !important;
+    grid-template-rows: 4.75rem !important;
+    align-items: stretch !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0.5rem !important;
+    border: 0 !important;
+    border-bottom: 1.5px solid var(--register-ink, #050505) !important;
+    background: var(--register-sage, #98a45d) !important;
+    overflow: visible !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) {
+    grid-template-columns: 10.75rem 12rem 9.75rem minmax(0, 1fr) !important;
+  }
+
+  html body #root .members-archive .archive-sigil {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    grid-template-rows: auto auto !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 0.55rem 0.75rem !important;
+    place-content: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-sigil span {
+    position: static !important;
+    width: auto !important;
+    margin: 0 !important;
+    font-size: 1.3rem !important;
+    line-height: 0.9 !important;
+    white-space: nowrap !important;
+    transform: none !important;
+  }
+
+  html body #root .members-archive .archive-public-return {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 0.55rem 0.7rem !important;
+    place-content: center !important;
+    justify-items: center !important;
+    gap: 0.08rem !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    text-align: center !important;
+  }
+
+  html body #root .members-archive .archive-public-return span[lang="en"] {
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .members-archive .archive-public-return small[lang="ko"] {
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  html body #root .members-archive .archive-cabinet {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    align-items: stretch !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-cabinet:has(> button:nth-child(3)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 0.55rem 0.75rem !important;
+    align-content: center !important;
+    justify-items: start !important;
+    gap: 0.08rem !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    text-align: left !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button span[lang="en"] {
+    width: 100% !important;
+    font-size: clamp(0.95rem, 1.25vw, 1.12rem) !important;
+    line-height: 1 !important;
+    text-align: left !important;
+    overflow: visible !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button small[lang="ko"] {
+    width: 100% !important;
+    font-size: clamp(0.64rem, 0.75vw, 0.7rem) !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
+  }
+
+  html body #root .members-archive .archive-godmode-link {
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 0.55rem 0.65rem !important;
+    place-content: center !important;
+    place-items: center !important;
+    gap: 0.08rem !important;
+    margin: 0 !important;
+    aspect-ratio: auto !important;
+    text-align: center !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-godmode-link {
+    grid-column: 3 !important;
+  }
+
+  html body #root .members-archive .archive-godmode-link span[lang="en"] {
+    font-size: 0.94rem !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .members-archive .archive-godmode-link small[lang="ko"] {
+    font-size: 0.66rem !important;
+    line-height: 1.3 !important;
+  }
+
+  html body #root .members-archive .archive-source-plate {
+    display: none !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate {
+    position: relative !important;
+    display: block !important;
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    border: 1.5px solid var(--register-ink, #050505) !important;
+    background: var(--register-paper, #f4ecd8) !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center 28% !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate figcaption {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    width: min(72%, 22rem) !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-top: 1.5px solid var(--register-ink, #050505) !important;
+    border-left: 1.5px solid var(--register-ink, #050505) !important;
+    background: color-mix(in srgb, var(--register-paper, #f4ecd8) 94%, transparent) !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate a {
+    display: grid !important;
+    gap: 0 !important;
+    padding: 0.28rem 0.4rem !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate span {
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate small {
+    font-size: 0.54rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+
+  html body #root .members-archive .archive-workbench {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Exhibition-catalogue rhythm pass --------------------------------------
+   The private room remains a register, but its masthead and status apparatus
+   should not delay the member's actual work. */
+
+html body #root .members-archive .archive-topbar {
+  min-height: 0 !important;
+  padding: clamp(0.9rem, 1.4vw, 1.25rem) clamp(1rem, 1.8vw, 1.6rem) !important;
+  align-items: start !important;
+}
+
+html body #root .members-archive .archive-topbar h1[lang="en"] {
+  max-width: 13ch !important;
+  margin: 0.15rem 0 0.25rem !important;
+  padding: 0.05em 0 0.08em !important;
+  font-size: clamp(2.8rem, 3.6vw, 4rem) !important;
+  line-height: 0.98 !important;
+}
+
+html body #root .members-archive .archive-topbar p[lang="en"] {
+  font-size: clamp(0.9rem, 1vw, 1.05rem) !important;
+}
+
+html body #root .members-archive .archive-sync-ledger:not(.is-compact) {
+  display: grid !important;
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  gap: 0.08rem 0.7rem !important;
+  width: min(100%, 36rem) !important;
+  margin-top: 0.4rem !important;
+  padding: 0.45rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(5, 5, 5, 0.4) !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+html body #root .members-archive .archive-sync-ledger:not(.is-compact) > span[lang="en"] {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  align-self: center !important;
+  font-size: clamp(0.95rem, 1.15vw, 1.2rem) !important;
+}
+
+html body #root .members-archive .archive-sync-ledger:not(.is-compact) > :is(strong, small)[lang="ko"] {
+  grid-column: 2 !important;
+  width: max-content !important;
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+}
+
+html body #root .members-archive .member-next-actions {
+  grid-template-columns: minmax(5rem, 0.18fr) repeat(2, minmax(0, 1fr)) !important;
+  gap: clamp(0.8rem, 1.4vw, 1.4rem) !important;
+  padding: 0.85rem clamp(1rem, 1.8vw, 1.6rem) !important;
+}
+
+html body #root .members-archive .member-next-actions article {
+  align-content: start !important;
+  gap: 0.28rem !important;
+}
+
+html body #root .members-archive .member-next-actions article strong {
+  font-size: clamp(0.9rem, 1vw, 1rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .members-archive .member-next-actions button {
+  box-sizing: border-box !important;
+  min-height: 2.4rem !important;
+  margin-top: 0.35rem !important;
+  padding: 0.42rem 0.65rem !important;
+  border: 1.5px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .members-archive .member-login {
+  gap: clamp(1.2rem, 2vw, 2rem) !important;
+  min-height: 0 !important;
+  padding: clamp(1.15rem, 2vw, 2rem) !important;
+}
+
+html body #root .members-archive .member-login-manuscript {
+  height: clamp(9rem, 16vw, 12rem) !important;
+}
+
+html body #root .members-archive .member-login-intent {
+  border: 0 !important;
+  border-top: 1.5px solid var(--register-ink) !important;
+  border-bottom: 1.5px solid var(--register-ink) !important;
+}
+
+html body #root .members-archive .member-login-intent > :is(span[lang="en"], p[lang="ko"], ol) {
+  background: transparent !important;
+}
+
+/* Folio: identity on the left, useful state on the right. Semantic classes
+   replace brittle utility-class targeting and remove the former empty field. */
+html body #root .members-archive .member-profile {
+  display: grid !important;
+  grid-template-columns: minmax(12rem, 0.52fr) minmax(0, 1.48fr) !important;
+  grid-template-rows: auto auto 1fr !important;
+  align-content: start !important;
+  gap: clamp(1rem, 1.8vw, 1.6rem) !important;
+  width: min(100%, 72rem) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: clamp(1.2rem, 2.2vw, 2.2rem) !important;
+  overflow: visible !important;
+  background: var(--register-paper) !important;
+}
+
+html body #root .members-archive .member-profile-identity {
+  grid-column: 1 !important;
+  grid-row: 1 / span 2 !important;
+  align-self: start !important;
+  gap: 0.8rem !important;
+  padding: 0 0 1rem !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.32) !important;
+}
+
+html body #root .members-archive .member-profile-identity .member-seal--large {
+  width: clamp(7.5rem, 12vw, 10rem) !important;
+  height: clamp(7.5rem, 12vw, 10rem) !important;
+}
+
+html body #root .members-archive .member-profile-identity h2 {
+  margin: 0 !important;
+  font-size: clamp(1.35rem, 1.8vw, 1.8rem) !important;
+  line-height: 1.2 !important;
+}
+
+html body #root .members-archive .member-profile-identity :is(span, h2) {
+  border-radius: 0 !important;
+}
+
+html body #root .members-archive .member-profile-metrics {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  gap: clamp(0.8rem, 1.4vw, 1.4rem) !important;
+}
+
+html body #root .members-archive .member-profile-metric,
+html body #root .members-archive .member-profile-journey {
+  border: 0 !important;
+  border-top: 1.5px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body #root .members-archive .member-profile-metric {
+  padding: 0.8rem 0 !important;
+}
+
+html body #root .members-archive .member-profile-journey {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  padding: 0.9rem 0 !important;
+}
+
+html body #root .members-archive .member-profile-journey p[lang="ko"] {
+  max-width: 54ch !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .members-archive .member-profile-account {
+  grid-column: 2 !important;
+  grid-row: 3 !important;
+  align-self: start !important;
+}
+
+html body #root .members-archive .member-profile-account > div:last-child {
+  display: grid !important;
+  gap: 0.4rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body #root .members-archive .member-profile-account button {
+  box-sizing: border-box !important;
+  min-height: 3rem !important;
+  padding: 0.7rem 0.85rem !important;
+  border: 1.5px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+@media (max-width: 720px) {
+  html body #root .members-archive .archive-topbar {
+    padding: 0.75rem 0.85rem 0.85rem !important;
+  }
+
+  html body #root .members-archive .archive-topbar h1[lang="en"] {
+    font-size: clamp(2.25rem, 12vw, 3rem) !important;
+    line-height: 1 !important;
+  }
+
+  html body #root .members-archive .archive-sync-ledger:not(.is-compact) {
+    grid-template-columns: 1fr !important;
+    gap: 0.08rem !important;
+  }
+
+  html body #root .members-archive .archive-sync-ledger:not(.is-compact) > span[lang="en"],
+  html body #root .members-archive .archive-sync-ledger:not(.is-compact) > :is(strong, small)[lang="ko"] {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  html body #root .members-archive .archive-sync-ledger:not(.is-compact) > small[lang="ko"] {
+    display: none !important;
+  }
+
+  html body #root .members-archive .member-next-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+    padding: 0.85rem !important;
+  }
+
+  html body #root .members-archive .member-next-actions > * {
+    padding-bottom: 0.65rem !important;
+  }
+
+  html body #root .members-archive .member-next-actions > div:first-child {
+    grid-column: 1 / -1 !important;
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  html body #root .members-archive .member-next-actions article {
+    min-width: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+  }
+
+  html body #root .members-archive .member-next-actions button {
+    width: 100% !important;
+    font-size: 0.7rem !important;
+  }
+
+  html body #root .members-archive .member-profile {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+  }
+
+  html body #root .members-archive :is(
+    .member-profile-identity,
+    .member-profile-metrics,
+    .member-profile-journey,
+    .member-profile-account
+  ) {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  html body #root .members-archive .member-profile-identity {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    align-items: center !important;
+    justify-items: start !important;
+    text-align: left !important;
+  }
+
+  html body #root .members-archive .member-profile-identity .member-seal--large {
+    width: 6.5rem !important;
+    height: 6.5rem !important;
+  }
+
+  html body #root .members-archive .member-profile-identity > div:last-child {
+    text-align: left !important;
+  }
+
+  html body #root .members-archive .member-login {
+    padding: 1rem !important;
+  }
+
+  html body #root .members-archive .member-login-manuscript {
+    height: 8.5rem !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html body #root .members-archive .member-next-actions article strong {
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
   }
 }
