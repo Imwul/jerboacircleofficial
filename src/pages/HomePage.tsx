@@ -107,6 +107,7 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
         <span>Jerboa</span>
         <span>Circle</span>
         <small lang="la">{siteText.wordmarkSmall}</small>
+        <img className="archive-wordmark-seal" src={jerboaSeal} alt="" aria-hidden="true" decoding="async" width={591} height={591} />
       </a>
       <nav className="archive-nav" aria-label="Primary navigation">
         <a className="archive-nav-threshold" href="#featured"><span className="nav-en" lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
@@ -131,7 +132,6 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
   return (
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
-        <img className="masthead-logo" src={jerboaSeal} alt="" aria-hidden="true" decoding="async" width={591} height={591} />
         <figure className="masthead-cabala" aria-hidden="true">
           <img src={qabalisticSymbolism} alt="" decoding="async" width={1014} height={1547} />
         </figure>

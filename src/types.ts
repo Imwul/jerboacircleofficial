@@ -77,6 +77,48 @@ export interface CalendarEvent {
   inheritArchiveContent?: boolean;
 }
 
+export type CuriosityVisibility = 'public' | 'private';
+
+export interface CuriositySource {
+  institution: string;
+  reference?: string;
+  url?: string;
+}
+
+export interface CuriosityEncounter {
+  place?: string;
+  dateLabel: string;
+  context?: string;
+}
+
+/**
+ * A Cabinet record preserves two histories: the object's provenance in
+ * `source`, and the collector's own encounter in `encountered`.
+ */
+export interface Curiosity {
+  id: string;
+  ownerId: string;
+  title: string;
+  maker?: string;
+  reflection: string;
+  notes?: string;
+  image: string;
+  imageAlt: string;
+  theme: string;
+  medium: string;
+  century: string;
+  region: string;
+  tags: string[];
+  source: CuriositySource;
+  encountered: CuriosityEncounter;
+  collectedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  lastViewedAt?: string;
+  bookmarkedBy: string[];
+  visibility: CuriosityVisibility;
+}
+
 export const TIER_COLORS = {
   [Tier.SILT]: 'bg-stone-300 text-stone-900 ring-1 ring-stone-400',
   [Tier.CREST]: 'bg-sky-500 text-white ring-1 ring-sky-600',

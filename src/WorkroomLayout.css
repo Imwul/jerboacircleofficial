@@ -1110,9 +1110,110 @@ html body #root .members-archive .archive-main {
   }
 }
 
+/* Final identity and small-type register ---------------------------------
+   The seal belongs to the masthead title, never on top of an illustration.
+   Quadrata is reserved for supporting English copy; display titles and the
+   primary navigation keep the established Jerboa face. */
+html body #root .public-home .archive-header {
+  grid-template-columns: clamp(13rem, 17vw, 17rem) minmax(0, 1fr) !important;
+}
+
+html body #root .public-home .archive-wordmark {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) clamp(2.5rem, 3.2vw, 3.5rem) !important;
+  grid-template-rows: auto auto auto !important;
+  column-gap: 0.55rem !important;
+  align-content: center !important;
+  align-items: center !important;
+  padding-right: 0.7rem !important;
+}
+
+html body #root .public-home .archive-wordmark > :is(span, small) {
+  grid-column: 1 !important;
+}
+
+html body #root .public-home .archive-wordmark > span:first-child {
+  grid-row: 1 !important;
+}
+
+html body #root .public-home .archive-wordmark > span:nth-child(2) {
+  grid-row: 2 !important;
+}
+
+html body #root .public-home .archive-wordmark > small {
+  grid-row: 3 !important;
+}
+
+html body #root .public-home .archive-wordmark-seal {
+  grid-column: 2 !important;
+  grid-row: 1 / -1 !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 3.5rem !important;
+  object-fit: contain !important;
+  mix-blend-mode: multiply !important;
+  filter: grayscale(1) contrast(1.35) !important;
+  transform: none !important;
+}
+
+html body #root .public-home .masthead-logo {
+  display: none !important;
+}
+
+html body #root .public-home.archive-home :is(
+  .event-subtitle[lang="en"],
+  .latin-line[lang="en"],
+  .masthead-latin,
+  .text-index li > span[lang="en"],
+  .theme-tags > li[lang="en"],
+  .poster-caption > span:first-child,
+  .poster-open-tab,
+  .archive-filter-label[lang="en"]
+) {
+  font-family: var(--font-editorial-small) !important;
+  font-style: normal !important;
+  text-transform: none !important;
+}
+
+html body #root .public-home.archive-home :is(
+  .orientation-kicker > span[lang="en"],
+  .orientation-routes .route-en,
+  .section-kicker .kicker-en,
+  .text-index-title [lang="en"]
+) {
+  font-family: var(--font-heavy-header) !important;
+  font-style: normal !important;
+}
+
+html body #root .public-home.archive-home .featured-copy .text-index li:not(:last-child)::after {
+  font-family: var(--font-editorial-small) !important;
+  font-style: normal !important;
+}
+
+html body #root .public-home [lang="en"] {
+  text-transform: none !important;
+}
+
+@media (max-width: 900px) {
+  html body #root .public-home .archive-header {
+    grid-template-columns: clamp(10.5rem, 34vw, 13rem) minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-wordmark {
+    grid-template-columns: minmax(0, 1fr) 2.35rem !important;
+    column-gap: 0.35rem !important;
+    padding-inline: 0.6rem !important;
+  }
+
+  html body #root .public-home .archive-wordmark-seal {
+    max-height: 2.7rem !important;
+  }
+}
+
 @media (max-width: 640px) {
   html body #root .public-home .archive-header {
-    grid-template-columns: 7.25rem minmax(0, 1fr) !important;
+    grid-template-columns: clamp(10rem, 42vw, 12rem) minmax(0, 1fr) !important;
   }
 
   html body #root .public-home .archive-wordmark {
@@ -3778,10 +3879,8 @@ html body #root .public-home .join-block h2.ko-display {
 }
 
 /* Final opening plate -----------------------------------------------------
-   Keep the supplied vermilion exactly as extracted. The seal is not a
-   neighbouring logo block: it trespasses across the image like a printer's
-   mark set over an illustration. This block stays last so earlier responsive
-   experiments cannot quietly separate the two again. */
+   Keep the supplied vermilion exactly as extracted and let the plate remain
+   unobscured. The seal now belongs to the wordmark in the navigation above. */
 html body #root .public-home .masthead-mark {
   position: relative !important;
   align-self: start !important;
@@ -3987,5 +4086,23 @@ html body #root .public-home .poster-tile > .poster-record-link .poster-caption 
 
   html body #root .public-home .masthead-declaration > span:nth-child(2) {
     grid-column: 2 / -1 !important;
+  }
+}
+
+/* A navigation title is a single word, even when the shelf scrolls on a
+   narrow screen. Give it a stable measure instead of breaking the lettering. */
+html body #root .public-home .archive-nav .nav-en {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+}
+
+@media (max-width: 900px) {
+  html body #root .public-home .archive-nav {
+    grid-auto-columns: minmax(10rem, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-nav .nav-en {
+    font-size: clamp(1rem, 3.2vw, 1.15rem) !important;
   }
 }

@@ -696,6 +696,96 @@ html body #root .members-archive :is(
   }
 }
 
+/* Final month register ----------------------------------------------------
+   A single outlined table with shared rules: every date reads as a complete
+   square, while the selected colour is clipped inside its own cell. */
+html body #root .members-archive .archive-calendar-scroll {
+  padding: clamp(0.6rem, 1vw, 0.9rem) !important;
+  overflow-x: auto !important;
+  background: var(--register-paper) !important;
+}
+
+html body #root .members-archive .archive-calendar-view .archive-calendar-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  gap: 0 !important;
+  min-width: 42rem !important;
+  padding: 0 !important;
+  border: 1px solid var(--register-ink) !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > :is(.archive-weekday, .archive-calendar-day) {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-right: 1px solid var(--register-ink) !important;
+  border-bottom: 1px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > :is(.archive-weekday, .archive-calendar-day):nth-child(7n) {
+  border-right: 0 !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day:nth-last-child(-n + 7) {
+  border-bottom: 0 !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-weekday {
+  display: grid !important;
+  height: 3rem !important;
+  min-height: 3rem !important;
+  padding: 0.35rem !important;
+  place-items: center !important;
+  background: var(--register-paper) !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day {
+  position: relative !important;
+  isolation: isolate !important;
+  min-height: 5.2rem !important;
+  padding: 0.58rem !important;
+  overflow: hidden !important;
+  background: var(--register-paper) !important;
+  background-clip: padding-box !important;
+  outline: 0 !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day::before,
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day::after {
+  display: none !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day > div {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--register-red) 12%, var(--register-paper)) !important;
+  box-shadow: inset 0 0 0 1px var(--register-ink) !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day:is(.is-selected, [aria-pressed="true"]) {
+  background: var(--register-red) !important;
+  background-clip: padding-box !important;
+  box-shadow: inset 0 0 0 1px var(--register-ink) !important;
+  color: var(--register-ink) !important;
+}
+
+html body #root .members-archive .archive-calendar-grid > .archive-calendar-day[aria-pressed="true"] .calendar-date-mark {
+  background: transparent !important;
+  color: var(--register-ink) !important;
+}
+
 @media (max-width: 240px) {
   html body #root .members-archive .archive-sidebar {
     gap: 0.35rem !important;
@@ -1692,4 +1782,247 @@ html body #root .members-archive .archive-topbar-copy > h1:first-child {
     grid-column: 4 !important;
     grid-row: 1 / 4 !important;
   }
+}
+
+/* Compact fallback navigation: a small 2 × 2 index instead of four long
+   ledger strips. This remains useful when the primary shelf is out of view. */
+html body #root .members-archive .archive-mobile-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  width: min(calc(100% - 2rem), 28rem) !important;
+  margin: 1rem auto 1.5rem !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border: 1.5px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  overflow: hidden !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-width: 0 !important;
+  min-height: 3.25rem !important;
+  margin: 0 !important;
+  padding: 0.55rem 0.7rem !important;
+  gap: 0.5rem !important;
+  align-items: center !important;
+  justify-items: center !important;
+  border: 0 !important;
+  border-right: 1px solid var(--register-ink) !important;
+  border-bottom: 1px solid var(--register-ink) !important;
+  border-radius: 0 !important;
+  background: var(--register-paper) !important;
+  color: var(--register-ink) !important;
+  text-align: left !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button:nth-child(2n) {
+  border-right: 0 !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button:nth-last-child(-n + 2) {
+  border-bottom: 0 !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button:is(.is-active, [aria-current="page"]) {
+  background: var(--register-red) !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button > :is(svg, .archive-mobile-cabinet-mark) {
+  display: none !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button > span:last-child {
+  grid-column: 1 !important;
+  min-width: 0 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+/* Navigation hierarchy -------------------------------------------------
+   Public archive is an exit from the private rooms, not a fifth room.
+   A dark utility tile separates that route while vermilion remains reserved
+   for the member room that is currently open. */
+html body #root .members-archive .archive-public-return {
+  background: var(--rubric-ink) !important;
+  color: var(--rubric-paper) !important;
+}
+
+html body #root .members-archive .archive-public-return :is(span, small) {
+  color: var(--rubric-paper) !important;
+}
+
+html body #root .members-archive .archive-public-return span[lang="en"] {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.15 !important;
+}
+
+html body #root .members-archive .archive-public-return small[lang="ko"] {
+  font-size: 0.64rem !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .members-archive .archive-godmode-link {
+  background: color-mix(in srgb, var(--rubric-paper) 88%, var(--rubric-ink)) !important;
+}
+
+html body #root .members-archive .archive-godmode-link span[lang="en"] {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.15 !important;
+}
+
+html body #root .members-archive .archive-godmode-link small[lang="ko"] {
+  font-size: 0.64rem !important;
+  line-height: 1.35 !important;
+}
+
+/* The plate caption is catalogue metadata: compact, but never crushed. */
+html body #root .members-archive .archive-source-plate a {
+  gap: 0.16rem !important;
+  padding: 0.42rem 0.5rem !important;
+}
+
+html body #root .members-archive .archive-source-plate span,
+html body #root .members-archive .archive-source-plate small {
+  font-family: var(--font-editorial-small) !important;
+  font-weight: 400 !important;
+  white-space: normal !important;
+}
+
+html body #root .members-archive .archive-source-plate span {
+  font-size: 0.73rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .members-archive .archive-source-plate small {
+  font-size: 0.57rem !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .members-archive .member-login-manuscript {
+  position: relative !important;
+}
+
+html body #root .members-archive .member-login-manuscript img {
+  object-position: center 72% !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  background: color-mix(in srgb, var(--rubric-paper) 94%, transparent) !important;
+  border-top: 1px solid var(--rubric-ink) !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption a {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 0.35rem 0.8rem !important;
+  padding: 0.42rem 0.55rem !important;
+  align-items: baseline !important;
+  color: var(--rubric-ink) !important;
+  text-decoration: none !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption :is(span, small) {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.66rem !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption small {
+  font-size: 0.55rem !important;
+  text-align: right !important;
+}
+
+@media (min-width: 901px) {
+  html body #root .members-archive .archive-sidebar:has(.archive-cabinet) {
+    grid-template-columns: 10.75rem 9.5rem minmax(0, 1fr) 8.75rem !important;
+    gap: 0.55rem !important;
+  }
+
+  html body #root .members-archive .archive-public-return {
+    padding-inline: 0.85rem !important;
+    place-content: center start !important;
+    justify-items: start !important;
+    text-align: left !important;
+  }
+
+  html body #root .members-archive .archive-cabinet {
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    border: 1.5px solid var(--rubric-ink) !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button {
+    border: 0 !important;
+    border-right: 1px solid var(--rubric-ink) !important;
+  }
+
+  html body #root .members-archive .archive-cabinet > button:last-child {
+    border-right: 0 !important;
+  }
+
+  html body #root .members-archive .archive-source-plate img,
+  html body #root .members-archive .member-login-manuscript img {
+    object-position: center 68% !important;
+  }
+}
+
+@media (max-width: 640px) {
+  html body #root .members-archive .member-login-manuscript figcaption a {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.08rem !important;
+  }
+
+  html body #root .members-archive .member-login-manuscript figcaption small {
+    text-align: left !important;
+  }
+}
+
+/* Cascade guard: global paper-colour rules load around the member module.
+   These role-specific surfaces must keep their intended hierarchy. */
+html body #root .members-archive .archive-sidebar .archive-public-return.archive-public-return {
+  background-color: #080706 !important;
+  background-image: none !important;
+  color: #f4eddc !important;
+}
+
+html body #root .members-archive .archive-sidebar .archive-public-return.archive-public-return :is(span, small) {
+  color: #f4eddc !important;
+}
+
+html body #root .members-archive .archive-sidebar .archive-godmode-link.archive-godmode-link {
+  background-color: #ddd3bf !important;
+  background-image: none !important;
+}
+
+html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate figcaption a {
+  gap: 0.12rem !important;
+  padding: 0.32rem 0.44rem !important;
+}
+
+html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate figcaption span {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.7rem !important;
+  font-weight: 400 !important;
+  line-height: 1.32 !important;
+  white-space: normal !important;
+}
+
+html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .archive-source-plate figcaption small {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.54rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
 }

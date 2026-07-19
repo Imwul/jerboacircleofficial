@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo, Component } from 'react';
 import { INITIAL_USERS, INITIAL_EVENTS } from './constants';
 import { User, CalendarEvent, ThemeColor } from './types';
+import type { Curiosity } from './types';
 import { LoginView } from './components/views/LoginView';
 import { CalendarView } from './components/views/CalendarView';
 import { ProfileView } from './components/views/ProfileView';
@@ -24,9 +25,12 @@ import ConfirmDialog from './components/ui/ConfirmDialog';
 import { parseMembersImport, type MembersSyncPayload } from './utils/membersImport';
 import { useDialogFocus } from './utils/useDialogFocus';
 import { memberScribePlate } from './data/manuscriptPlates';
+import { INITIAL_CURIOSITIES } from './data/cabinetCuriosities';
+import { CabinetView } from './components/cabinet/CabinetView';
 import './MembersArchive.css';
 import './MembersStability.css';
 import './MembersLayoutFinal.css';
+import './Cabinet.css';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -108,6 +112,7 @@ const STORAGE_KEYS = {
   USERS: 'jerboa_users',
   EVENTS: 'jerboa_events',
   THEMES: 'jerboa_themes',
+  CURIOSITIES: 'jerboa_cabinet_curiosities',
 };
 
 type SyncTone = 'idle' | 'pending' | 'sealed' | 'local' | 'warning';
@@ -177,11 +182,22 @@ function App() {
   });
 
   const [mainImage, setMainImage] = useState<string | null>(() => {
-    return localStorage.getItem('jerboa_main_image');
+    const storedImage = localStorage.getItem('jerboa_main_image');
+    return storedImage?.includes('crowned-woman-wellcome') ? null : storedImage;
+  });
+
+  const [curiosities, setCuriosities] = useState<Curiosity[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CURIOSITIES);
+      return saved ? JSON.parse(saved) : INITIAL_CURIOSITIES;
+    } catch (error) {
+      console.error('Error parsing Cabinet curiosities from localStorage', error);
+      return INITIAL_CURIOSITIES;
+    }
   });
 
   const [currentUser, setCurrentUser] = useState<User | 'admin' | null>(null);
-  const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'profile' | 'admin'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'cabinet' | 'profile' | 'admin'>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
@@ -210,9 +226,10 @@ function App() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const createMembersSyncPayload = (): MembersSyncPayload => ({
-    schemaVersion: 2,
+    schemaVersion: 3,
     users,
     events,
+    curiosities,
     themeNames,
     mainImage,
   });
@@ -229,6 +246,7 @@ function App() {
   const applyMembersSyncPayload = (payload: Partial<MembersSyncPayload>) => {
     if (payload.users) setUsers(payload.users);
     if (payload.events) setEvents(payload.events);
+    if (payload.curiosities) setCuriosities(payload.curiosities);
     if (payload.themeNames) setThemeNames({ ...DEFAULT_THEME_NAMES, ...payload.themeNames });
     setMainImage(payload.mainImage || null);
   };
@@ -341,6 +359,7 @@ function App() {
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
       localStorage.setItem(STORAGE_KEYS.THEMES, JSON.stringify(themeNames));
+      localStorage.setItem(STORAGE_KEYS.CURIOSITIES, JSON.stringify(curiosities));
       if (mainImage) {
         localStorage.setItem('jerboa_main_image', mainImage);
       } else {
@@ -358,7 +377,7 @@ function App() {
       return;
     }
     triggerSaveNotification();
-  }, [users, events, themeNames, mainImage, memberSyncKey]);
+  }, [users, events, curiosities, themeNames, mainImage, memberSyncKey]);
 
   useEffect(() => {
     if (!hasServerHydrated.current) return;
@@ -372,7 +391,7 @@ function App() {
     return () => {
       if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current);
     };
-  }, [users, events, themeNames, mainImage, hasServerConflict]);
+  }, [users, events, curiosities, themeNames, mainImage, hasServerConflict]);
 
   useEffect(() => {
     if (lastSaved) {
@@ -396,7 +415,7 @@ function App() {
   const syncCodeDialogRef = useDialogFocus<HTMLDivElement>(Boolean(syncCodeToDisplay), () => setSyncCodeToDisplay(null));
 
   const handleExportAllData = () => {
-    const allData = { users, events, themeNames, mainImage, exportedAt: new Date().toISOString() };
+    const allData = { users, events, curiosities, themeNames, mainImage, exportedAt: new Date().toISOString() };
     const base64Code = btoa(encodeURIComponent(JSON.stringify(allData)));
     try {
       navigator.clipboard.writeText(base64Code);
@@ -501,7 +520,7 @@ function App() {
     const activeUser = stampParticipantActivity(latestUser);
     setUsers(prev => prev.map(u => u.id === activeUser.id ? activeUser : u));
     setCurrentUser(activeUser);
-    setActiveTab('calendar');
+    setActiveTab(new URLSearchParams(window.location.search).get('room') === 'cabinet' ? 'cabinet' : 'calendar');
   };
 
   const handleAdminLogin = () => {
@@ -512,6 +531,21 @@ function App() {
   const handleLogout = () => {
     setCurrentUser(null);
     setActiveTab('calendar');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('room');
+    url.searchParams.delete('curiosity');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  const chooseTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === 'cabinet') url.searchParams.set('room', 'cabinet');
+    else {
+      url.searchParams.delete('room');
+      url.searchParams.delete('curiosity');
+    }
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
   // 현재 로그인한 유저의 최신 데이터를 가져오는 헬퍼
@@ -678,12 +712,14 @@ function App() {
     ? 'Antecamera'
     : currentUser === 'admin'
       ? activeTab === 'admin' ? 'Keeper Desk' : 'Itinerary'
-      : activeTab === 'habit' ? 'Marginalia' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
+      : activeTab === 'habit' ? 'Marginalia' : activeTab === 'cabinet' ? 'Cabinet' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
   const archiveSectionNote = !currentUser
     ? '이름을 선택하면 참여자 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
       ? '프로그램 일정, 회원 기록, 공동 장부, 백업 파일을 정돈하는 보관자 책상입니다.'
-      : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 잇는 참여자 장부입니다.';
+      : activeTab === 'cabinet'
+        ? '출처와 만남의 순간을 함께 보존하는 개인 경이 장부입니다.'
+        : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 잇는 참여자 장부입니다.';
 
   usePageMetadata({
     title: `${archiveSectionTitle} | Jerboa Circle Private Room`,
@@ -706,24 +742,30 @@ function App() {
           </a>
           {currentUser ? (
             <nav className="archive-cabinet" aria-label="Private room sequence">
-              <button aria-pressed={activeTab === 'calendar'} className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => setActiveTab('calendar')}>
+              <button aria-pressed={activeTab === 'calendar'} className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => chooseTab('calendar')}>
                 <span lang="en">Itinerary</span>
                 <small lang="ko">열린 장 {events.length}개</small>
               </button>
               {currentUser !== 'admin' && (
-                <button aria-pressed={activeTab === 'habit'} className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => setActiveTab('habit')}>
+                <button aria-pressed={activeTab === 'habit'} className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => chooseTab('habit')}>
                   <span lang="en">Marginalia</span>
                   <small lang="ko">오늘의 주석 {completedToday}개</small>
                 </button>
               )}
               {currentUser !== 'admin' && (
-                <button aria-pressed={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')}>
+                <button aria-pressed={activeTab === 'cabinet'} className={activeTab === 'cabinet' ? 'is-active' : ''} onClick={() => chooseTab('cabinet')}>
+                  <span lang="en">Cabinet</span>
+                  <small lang="ko">수집한 경이 {curiosities.filter((item) => item.ownerId === currentUser.id).length}개</small>
+                </button>
+              )}
+              {currentUser !== 'admin' && (
+                <button aria-pressed={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => chooseTab('profile')}>
                   <span lang="en">Folio</span>
                   <small lang="ko">개인 장부</small>
                 </button>
               )}
               {currentUser === 'admin' && (
-                <button aria-pressed={activeTab === 'admin'} className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => setActiveTab('admin')}>
+                <button aria-pressed={activeTab === 'admin'} className={activeTab === 'admin' ? 'is-active' : ''} onClick={() => chooseTab('admin')}>
                   <span lang="en">Keeper Desk</span>
                   <small lang="ko">보관자 책상</small>
                 </button>
@@ -731,15 +773,15 @@ function App() {
             </nav>
           ) : null}
           <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en"><i aria-hidden="true">🜔</i> Keeper Desk</span>
+            <span lang="en">Keeper Desk</span>
             <small lang="ko">보관자 책상</small>
           </a>
           <figure className="archive-source-plate">
             <img src={memberScribePlate.src} alt={memberScribePlate.altText} loading="lazy" decoding="async" />
             <figcaption>
               <a href={memberScribePlate.sourceUrl} target="_blank" rel="noreferrer">
-                <span lang="en">St Luke, c. 1275–1325</span>
-                <small>{memberScribePlate.repository} · {memberScribePlate.rights}</small>
+                <span lang="en">{memberScribePlate.title}</span>
+                <small>{memberScribePlate.date} · {memberScribePlate.repository} · {memberScribePlate.rights}</small>
               </a>
             </figcaption>
           </figure>
@@ -767,15 +809,15 @@ function App() {
             </div>
           )}
           
-          <header className="archive-topbar">
+          <header className={`archive-topbar${activeTab === 'cabinet' ? ' is-cabinet' : ''}`}>
             <div className="archive-topbar-copy">
-              <h1 lang="en">{archiveSectionTitle}</h1>
+              {activeTab !== 'cabinet' && <h1 lang="en">{archiveSectionTitle}</h1>}
               {currentUser === 'admin' && <span lang="ko">{archiveSectionNote}</span>}
               <RegisterSyncStatus status={serverSyncStatus} />
             </div>
             <div className="archive-topbar-actions">
               {currentUser === 'admin' && (
-                <button onClick={() => setActiveTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
+                <button onClick={() => chooseTab(activeTab === 'calendar' ? 'admin' : 'calendar')}>
                   <span lang="en">{activeTab === 'calendar' ? 'Scriptorium' : 'Itinerary'}</span>
                 </button>
               )}
@@ -825,7 +867,7 @@ function App() {
             </section>
           )}
 
-          {activeUserData && (
+          {activeUserData && activeTab !== 'cabinet' && (
             <section className="member-next-actions" aria-labelledby="member-next-actions-title">
               <div>
                 <h2 id="member-next-actions-title" lang="ko">다음</h2>
@@ -836,19 +878,19 @@ function App() {
                   <>
                     <strong>{nextMemberProgramme.title}</strong>
                     <span lang="ko">{format(parseISO(nextMemberProgramme.date), 'M월 d일 HH:mm')}</span>
-                    <button type="button" onClick={() => setActiveTab('calendar')}><span lang="ko">일정에서 열기</span></button>
+                    <button type="button" onClick={() => chooseTab('calendar')}><span lang="ko">일정에서 열기</span></button>
                   </>
                 ) : (
                   <>
                     <strong lang="ko">신청한 다음 프로그램이 없습니다.</strong>
-                    <button type="button" onClick={() => setActiveTab('calendar')}><span lang="ko">열린 장 살펴보기</span></button>
+                    <button type="button" onClick={() => chooseTab('calendar')}><span lang="ko">열린 장 살펴보기</span></button>
                   </>
                 )}
               </article>
               <article>
                 <small lang="ko">개인 기록</small>
                 <strong lang="ko">{todayReflectionComplete ? '오늘의 주석을 남겼습니다.' : '아직 끝내지 않은 주석이 있습니다.'}</strong>
-                <button type="button" onClick={() => setActiveTab('habit')}><span lang="ko">{todayReflectionComplete ? '기록 다시 보기' : '이어서 기록하기'}</span></button>
+                <button type="button" onClick={() => chooseTab('habit')}><span lang="ko">{todayReflectionComplete ? '기록 다시 보기' : '이어서 기록하기'}</span></button>
               </article>
             </section>
           )}
@@ -900,6 +942,16 @@ function App() {
                 onUpdateUser={handleUpdateUser} 
                 isAdmin={false}
               />
+            ) : activeTab === 'cabinet' ? (
+              <CabinetView
+                user={activeUserData!}
+                users={users}
+                curiosities={curiosities}
+                onChange={setCuriosities}
+                onNotice={setNotice}
+                syncKey={memberSyncKey}
+                authSession={roleSessionToken('member-admin')}
+              />
             ) : (
               <ProfileView 
                 user={activeUserData!} 
@@ -912,15 +964,19 @@ function App() {
           
           {currentUser && currentUser !== 'admin' && (
             <nav className="archive-mobile-tabs" aria-label="Mobile private room navigation">
-              <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => setActiveTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
+              <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => chooseTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 <span lang="ko">일정</span>
               </button>
-              <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => setActiveTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
+              <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => chooseTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <span lang="ko">주석</span>
               </button>
-              <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
+              <button aria-current={activeTab === 'cabinet' ? 'page' : undefined} onClick={() => chooseTab('cabinet')} className={activeTab === 'cabinet' ? 'is-active' : ''}>
+                <span aria-hidden="true" className="archive-mobile-cabinet-mark">🜔</span>
+                <span lang="en">Cabinet</span>
+              </button>
+              <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => chooseTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 <span lang="ko">개인 장부</span>
               </button>

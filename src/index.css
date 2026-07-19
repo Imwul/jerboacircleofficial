@@ -32,6 +32,14 @@
     U+D7B0-D7FF;
 }
 
+@font-face {
+  font-family: "Jerboa Quadrata";
+  src: url("./assets/fonts/1492_Quadrata_lim.TTF") format("truetype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 @theme {
   --font-sans: "Jerboa Deigrat", "Jerboa Pretendard", ui-serif, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
@@ -62,6 +70,7 @@
   --font-heavy-header: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-display: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-body-archive: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-editorial-small: "Jerboa Quadrata", "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-ko: "Jerboa Pretendard", "Jerboa Deigrat", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 

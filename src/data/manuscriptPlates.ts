@@ -7,7 +7,7 @@ function requiredMediaAsset(id: string) {
 }
 
 export const memberScribePlate = requiredMediaAsset('wellcome-hermetic-androgyne');
-export const privateArchivePlate = requiredMediaAsset('wellcome-crowned-woman-alchemy').src;
+export const privateArchivePlate = requiredMediaAsset('wellcome-alchemical-peacock');
 
 export const editorialPlates = {
   masthead: requiredMediaAsset('wellcome-ripley-scroll-tree'),

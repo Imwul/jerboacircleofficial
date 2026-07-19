@@ -31,7 +31,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
   };
 
   const todayKey = getTodayKey();
-  const entryImage = mainImage || privateArchivePlate;
+  const entryImage = mainImage || privateArchivePlate.src;
 
   const handleAdminLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +61,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
           </h1>
         </div>
         <figure className="member-login-manuscript">
-          <img src={entryImage} alt="" aria-hidden="true" />
+          <img
+            src={entryImage}
+            alt={mainImage ? '' : privateArchivePlate.altText}
+            aria-hidden={mainImage ? 'true' : undefined}
+          />
+          {!mainImage && (
+            <figcaption>
+              <a href={privateArchivePlate.sourceUrl} target="_blank" rel="noreferrer">
+                <span lang="en">{privateArchivePlate.title}</span>
+                <small lang="en">{privateArchivePlate.date} · {privateArchivePlate.repository} · {privateArchivePlate.rights}</small>
+              </a>
+            </figcaption>
+          )}
         </figure>
         <div className="member-login-intent">
           <p lang="ko"><span lang="ko">이름을 선택해 열린 장과 자신의 기록으로 들어갑니다.</span></p>
