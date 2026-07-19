@@ -273,8 +273,10 @@ function CabinetCard({
             {isBookmarked ? '✦' : '✧'}
           </button>
         </div>
-        {item.maker && <p className="cabinet-maker" lang={contentLanguage(item.maker)}>{item.maker}</p>}
-        <p className="cabinet-reflection" lang="ko">{item.reflection}</p>
+        <div className="cabinet-card-intro">
+          {item.maker && <p className="cabinet-maker" lang={contentLanguage(item.maker)}>{item.maker}</p>}
+          <p className="cabinet-reflection" lang="ko">{item.reflection}</p>
+        </div>
         <ul className="cabinet-tags" aria-label="표본의 표식">
           {item.tags.slice(0, 4).map((tag) => <li key={tag}><span lang={contentLanguage(tag)}>{tag}</span></li>)}
         </ul>

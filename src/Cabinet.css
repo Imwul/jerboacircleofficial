@@ -1986,3 +1986,26 @@ html body #root .members-archive .cabinet-provenance dd .cabinet-encounter-conte
   font-weight: 450 !important;
   line-height: 1.42 !important;
 }
+
+/* Keep the object's attribution and the collector's comment as two distinct
+   editorial lines. Global paragraph rules must never merge these histories. */
+html body #root .members-archive .cabinet-card-intro {
+  display: grid !important;
+  width: 100% !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.5rem !important;
+  margin-top: 0.7rem !important;
+}
+
+html body #root .members-archive .cabinet-card-intro > :is(.cabinet-maker, .cabinet-reflection) {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  float: none !important;
+  clear: both !important;
+}
+
+html body #root .members-archive .cabinet-card-intro > .cabinet-reflection {
+  padding-top: 0.08rem !important;
+}
