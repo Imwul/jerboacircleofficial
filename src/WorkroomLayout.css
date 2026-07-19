@@ -710,6 +710,40 @@ html body #root .public-home.detail-home .archive-knowledge-grid :is(.text-index
   border-bottom: 1px solid rgba(5, 5, 5, 0.22) !important;
 }
 
+/* Supporting English belongs to the quiet editorial hand, not the display
+   face. Themes and linked references read as catalogue tags. */
+html body #root .public-home :is(
+  .constellation-grid .text-index li > span[lang="en"],
+  .archive-knowledge-grid strong[lang="en"],
+  .archive-knowledge-grid small[lang="en"],
+  .constellation-selection dd,
+  .constellation-selection .constellation-tag
+) {
+  font-family: var(--font-editorial-small) !important;
+  font-weight: 400 !important;
+}
+
+html body #root .public-home .constellation-selection .constellation-tag-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  gap: 0.38rem !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home .constellation-selection .constellation-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  min-height: 1.85rem !important;
+  padding: 0.22rem 0.52rem !important;
+  border: 1px solid rgba(5, 5, 5, 0.48) !important;
+  background: rgba(198, 90, 70, 0.08) !important;
+  color: var(--ink) !important;
+  font-size: clamp(0.86rem, 0.84vw, 0.98rem) !important;
+  line-height: 1.25 !important;
+}
+
 html body #root .public-home.detail-home .detail-meta {
   clear: both !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1112,7 +1146,7 @@ html body #root .members-archive .archive-main {
 
 /* Final identity and small-type register ---------------------------------
    The seal belongs to the masthead title, never on top of an illustration.
-   Quadrata is reserved for supporting English copy; display titles and the
+   A restrained book serif is reserved for supporting English copy; display titles and the
    primary navigation keep the established Jerboa face. */
 html body #root .public-home .archive-header {
   grid-template-columns: clamp(13rem, 17vw, 17rem) minmax(0, 1fr) !important;
@@ -4104,5 +4138,293 @@ html body #root .public-home .archive-nav .nav-en {
 
   html body #root .public-home .archive-nav .nav-en {
     font-size: clamp(1rem, 3.2vw, 1.15rem) !important;
+  }
+}
+
+/* This stays at the end because the historical stylesheet contains earlier
+   display-face experiments for relation cards. Bibliographic English always
+   resolves to the selected editorial text face. */
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid :is(
+  strong[lang="en"],
+  small[lang="en"]
+) {
+  font-family: var(--font-editorial-small) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid strong[lang="en"] {
+  font-size: clamp(1rem, 0.94vw, 1.1rem) !important;
+  line-height: 1.32 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid small[lang="en"] {
+  font-size: clamp(0.84rem, 0.8vw, 0.94rem) !important;
+  line-height: 1.4 !important;
+}
+
+/* Final archive registers -------------------------------------------------
+   These rules intentionally live last. Earlier catalogue experiments use
+   card-by-card borders; the finished register uses one frame, one continuous
+   spine, and compact rows. */
+html body #root .public-home.detail-home .detail-archive-context {
+  gap: 0.8rem !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.8rem !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid > :is(
+  .archive-reference-index,
+  .archive-connection-index
+) {
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  min-height: 0 !important;
+  border: 1px solid rgba(5, 5, 5, 0.72) !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid > :is(
+  .archive-reference-index,
+  .archive-connection-index
+) > .text-index-title {
+  min-height: 0 !important;
+  padding: 0.58rem 0.9rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.72) !important;
+  background: var(--signal-gold) !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context :is(
+  .archive-reference-index,
+  .archive-connection-index
+) ol {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context :is(
+  .archive-reference-index,
+  .archive-connection-index
+) ol::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 2 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  width: 0 !important;
+  border-left: 1px solid rgba(5, 5, 5, 0.58) !important;
+  pointer-events: none !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context :is(
+  .archive-reference-index,
+  .archive-connection-index
+) li {
+  display: block !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-reference-index li:nth-child(n + 3) {
+  border-top: 1px solid rgba(5, 5, 5, 0.28) !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li:nth-child(n + 3) {
+  border-top: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li:nth-child(2n + 3) {
+  position: relative !important;
+  border-top: 1px solid rgba(5, 5, 5, 0.28) !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li:nth-child(2n + 3)::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 3 !important;
+  top: -1px !important;
+  left: 100% !important;
+  width: 100% !important;
+  border-top: 1px solid rgba(5, 5, 5, 0.28) !important;
+  pointer-events: none !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid :is(
+  .archive-reference-index,
+  .archive-connection-index
+) li > a {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(6.25rem, 0.28fr) minmax(0, 1fr) !important;
+  gap: 0.18rem 0.9rem !important;
+  align-items: start !important;
+  min-height: 100% !important;
+  padding: 0.62rem 1rem !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li > a {
+  padding-right: 2.75rem !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li > a::after {
+  top: auto !important;
+  right: 0.75rem !important;
+  bottom: 0.7rem !important;
+  width: auto !important;
+  height: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid :is(
+  strong[lang="en"],
+  small[lang="en"]
+) {
+  font-family: var(--font-editorial-small) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid strong[lang="en"] {
+  font-size: clamp(1rem, 0.94vw, 1.1rem) !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid small[lang="en"] {
+  font-size: clamp(0.84rem, 0.8vw, 0.94rem) !important;
+  line-height: 1.35 !important;
+}
+
+/* The four record facts form one compact ledger. Padding replaces the loose
+   empty cells, while the central and row rules keep the pairs legible. */
+html body #root .public-home.detail-home .detail-copy > .detail-meta {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  height: auto !important;
+  margin: 0.8rem 0 1.25rem !important;
+  padding: 0 !important;
+  border: 1px solid rgba(5, 5, 5, 0.72) !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta > div {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto auto !important;
+  align-content: start !important;
+  row-gap: 0.28rem !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta > div:nth-child(even) {
+  border-left: 1px solid rgba(5, 5, 5, 0.58) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta > div:nth-child(n + 3) {
+  border-top: 1px solid rgba(5, 5, 5, 0.28) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta :is(dt, dd) {
+  grid-column: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta dt {
+  grid-row: 1 !important;
+  padding: 0.62rem 0.95rem 0 !important;
+  color: rgba(5, 5, 5, 0.62) !important;
+  font-size: 0.82rem !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta dd {
+  grid-row: 2 !important;
+  padding: 0.28rem 0.95rem 0.7rem !important;
+  font-size: clamp(0.94rem, 0.9vw, 1.05rem) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > .detail-meta :is(dt, dd)[lang="ko"] {
+  max-width: calc(100% / var(--ko-ritual-scale-x)) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) !important;
+  transform-origin: left center !important;
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home.detail-home .detail-archive-context :is(
+    .archive-reference-index,
+    .archive-connection-index
+  ) ol,
+  html body #root .public-home.detail-home .detail-copy > .detail-meta {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home.detail-home .detail-archive-context :is(
+    .archive-reference-index,
+    .archive-connection-index
+  ) ol::after {
+    display: none !important;
+  }
+
+  html body #root .public-home.detail-home .detail-archive-context :is(
+    .archive-reference-index,
+    .archive-connection-index
+  ) li:nth-child(n + 2),
+  html body #root .public-home.detail-home .detail-copy > .detail-meta > div:nth-child(n + 2) {
+    border-top: 1px solid rgba(5, 5, 5, 0.28) !important;
+  }
+
+  html body #root .public-home.detail-home .detail-archive-context .archive-connection-index li:nth-child(2n + 3)::before {
+    display: none !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy > .detail-meta > div:nth-child(even) {
+    border-left: 0 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-archive-context .archive-knowledge-grid :is(
+    .archive-reference-index,
+    .archive-connection-index
+  ) li > a {
+    grid-template-columns: minmax(5.2rem, 0.28fr) minmax(0, 1fr) !important;
+    padding: 0.62rem 0.8rem !important;
   }
 }

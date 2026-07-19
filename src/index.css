@@ -32,12 +32,24 @@
     U+D7B0-D7FF;
 }
 
+/* Junicode was drawn for medieval scholarship. This compact Latin subset is
+   the quiet reading face; the more theatrical Deigrat remains the title face. */
 @font-face {
-  font-family: "Jerboa Quadrata";
-  src: url("./assets/fonts/1492_Quadrata_lim.TTF") format("truetype");
-  font-display: swap;
+  font-family: "Jerboa Junicode";
+  src: url("./assets/fonts/JunicodeJerboa.woff2") format("woff2");
+  font-weight: 500;
   font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2000-206F;
+}
+
+@font-face {
+  font-family: "Jerboa Junicode Italic";
+  src: url("./assets/fonts/JunicodeJerboaItalic.woff2") format("woff2");
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-024F, U+1E00-1EFF, U+2000-206F;
 }
 
 @theme {
@@ -70,7 +82,7 @@
   --font-heavy-header: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-display: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
   --font-body-archive: "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
-  --font-editorial-small: "Jerboa Quadrata", "Jerboa Deigrat", "Jerboa Pretendard", Georgia, serif;
+  --font-editorial-small: "Jerboa Junicode Italic", "Jerboa Junicode", Georgia, "Times New Roman", "Jerboa Pretendard", serif;
   --font-ko: "Jerboa Pretendard", "Jerboa Deigrat", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 

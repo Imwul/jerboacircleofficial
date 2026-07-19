@@ -174,11 +174,17 @@ export default function ArchiveConstellation({ records, references: referenceRec
           <dl>
             <div>
               <dt>테마</dt>
-              <dd>{selected.themes.join(' / ')}</dd>
+              <dd className="constellation-tag-list">
+                {selected.themes.map((theme) => <span className="constellation-tag" key={theme}>{theme}</span>)}
+              </dd>
             </div>
             <div>
               <dt>연결 자료</dt>
-              <dd>{references.slice(0, 4).map((reference) => reference.title).join(' / ') || '연결된 자료가 없습니다'}</dd>
+              <dd className="constellation-tag-list">
+                {references.length > 0
+                  ? references.slice(0, 4).map((reference) => <span className="constellation-tag" key={reference.id}>{reference.title}</span>)
+                  : <span lang="ko">연결된 자료가 없습니다</span>}
+              </dd>
             </div>
             <div>
               <dt>이어지는 판본</dt>

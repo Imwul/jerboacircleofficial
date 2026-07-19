@@ -155,10 +155,10 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   font-weight: 400 !important;
   letter-spacing: 0.12em !important;
   line-height: 1.2 !important;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
-.members-archive .cabinet-owner h3[lang="en"] {
+.members-archive .cabinet-owner h3 {
   margin: 0 !important;
   font-size: clamp(2.7rem, 5vw, 5.4rem) !important;
   font-weight: 400 !important;
@@ -192,7 +192,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   font-family: var(--font-cabinet-text);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .members-archive .cabinet-owner dd,
@@ -385,7 +385,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   font-family: var(--font-cabinet-text);
   font-size: 0.66rem;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .members-archive .cabinet-view .cabinet-facets select {
@@ -482,12 +482,17 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 .members-archive .cabinet-card h3[lang="en"] {
   max-width: 100%;
   margin: 0 !important;
-  font-size: clamp(1.8rem, 3vw, 3rem) !important;
+  font-size: clamp(1.85rem, 2.35vw, 2.85rem) !important;
   font-weight: 400 !important;
-  line-height: 1.06 !important;
+  line-height: 1.2 !important;
   white-space: normal !important;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   word-break: normal !important;
+}
+
+.members-archive .cabinet-card h3[lang="en"][data-title-length="long"] {
+  font-size: clamp(1.65rem, 2vw, 2.35rem) !important;
+  line-height: 1.22 !important;
 }
 
 .members-archive .cabinet-bookmark {
@@ -532,7 +537,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 .members-archive .cabinet-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.8rem;
+  gap: 0.38rem;
   margin: 0 0 1.25rem !important;
   padding: 0 !important;
   list-style: none;
@@ -540,16 +545,17 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 
 .members-archive .cabinet-tags li {
   position: relative;
-  color: var(--cabinet-muted);
+  padding: 0.28rem 0.52rem;
+  border: 1px solid color-mix(in srgb, var(--cabinet-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--cabinet-accent) 9%, var(--cabinet-paper));
+  color: var(--cabinet-ink);
   font-family: var(--font-cabinet-text) !important;
-  font-size: 0.68rem !important;
-  line-height: 1.3 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.15 !important;
 }
 
 .members-archive .cabinet-tags li::before {
-  content: '·';
-  margin-right: 0.3rem;
-  color: var(--cabinet-accent);
+  content: none;
 }
 
 .members-archive .cabinet-provenance {
@@ -571,7 +577,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   font-family: var(--font-cabinet-text);
   font-size: 0.62rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .members-archive .cabinet-provenance dd {
@@ -763,7 +769,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   white-space: pre-line;
   font-size: clamp(1rem, 1.4vw, 1.22rem) !important;
   font-weight: 450 !important;
-  line-height: 1.95 !important;
+  line-height: 1.32 !important;
 }
 
 .members-archive .cabinet-detail-body > aside {
@@ -850,7 +856,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 
 .members-archive .cabinet-related small {
   color: var(--cabinet-muted);
-  font-family: Georgia, serif;
+  font-family: var(--font-cabinet-text);
   font-size: 0.7rem;
 }
 
@@ -942,10 +948,10 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 }
 
 .members-archive .cabinet-editor label > span {
-  font-family: Georgia, serif;
+  font-family: var(--font-ko);
   font-size: 0.68rem;
   letter-spacing: 0.07em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .members-archive .cabinet-editor :is(input, select, textarea) {
@@ -955,7 +961,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   border: 1px solid var(--cabinet-rule) !important;
   background: transparent !important;
   color: var(--cabinet-ink) !important;
-  font-family: Georgia, var(--font-ko), serif !important;
+  font-family: var(--font-cabinet-text), var(--font-ko), serif !important;
   font-size: 0.9rem !important;
   line-height: 1.5 !important;
 }
@@ -997,7 +1003,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   border: 1px solid var(--cabinet-rule);
 }
 
-.members-archive .cabinet-history-fields h3[lang="en"] {
+.members-archive .cabinet-history-fields h3 {
   margin: 0 !important;
   font-size: 2.1rem !important;
   font-weight: 400 !important;
@@ -1280,6 +1286,11 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   row-gap: 0.7rem;
 }
 
+.members-archive .cabinet-card-foot span:last-child {
+  max-width: 58%;
+  text-align: right;
+}
+
 .members-archive .cabinet-opening h2[lang="en"] {
   font-size: clamp(4.8rem, 8vw, 8.25rem) !important;
   line-height: 0.76 !important;
@@ -1313,8 +1324,9 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
   align-items: center;
 }
 
-.members-archive .cabinet-owner h3[lang="en"] {
+.members-archive .cabinet-owner h3 {
   font-size: clamp(2.6rem, 3.8vw, 4.25rem) !important;
+  line-height: 1.05 !important;
 }
 
 .members-archive .cabinet-owner strong {
@@ -1341,6 +1353,55 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 .members-archive .cabinet-owner dd,
 .members-archive .cabinet-object-facts dd {
   font-size: 1rem;
+}
+
+.members-archive .cabinet-owner :is(h3, strong, dt):lang(ko),
+.members-archive .cabinet-ko-line:lang(ko) {
+  font-family: var(--font-ko) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+}
+
+.members-archive .cabinet-owner :is(h3, strong, dt):lang(ko) {
+  max-width: calc(100% / var(--ko-ritual-scale-x));
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.members-archive .cabinet-ko-line:lang(ko) {
+  display: inline-block;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y));
+  transform-origin: left center;
+}
+
+.members-archive .cabinet-owner-link {
+  display: inline !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  line-height: inherit !important;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--cabinet-soft-rule);
+  text-underline-offset: 0.18em;
+}
+
+.members-archive .cabinet-owner-link:hover,
+.members-archive .cabinet-owner-link:focus-visible {
+  text-decoration-color: var(--cabinet-accent);
+}
+
+html body #root .members-archive .cabinet-owner button.cabinet-owner-link {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .members-archive .cabinet-rediscovery,
@@ -1373,8 +1434,8 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
 
 .members-archive .cabinet-rediscovery h3[lang="en"] {
   margin-bottom: 0.8rem !important;
-  font-size: clamp(2.7rem, 4.2vw, 4.75rem) !important;
-  line-height: 0.93 !important;
+  font-size: clamp(2.4rem, 3vw, 3.65rem) !important;
+  line-height: 1.08 !important;
 }
 
 .members-archive .cabinet-rediscovery p[lang="ko"] {
@@ -1458,7 +1519,8 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
 }
 
 .members-archive .cabinet-maker {
-  font-size: 0.85rem !important;
+  font-size: 0.92rem !important;
+  line-height: 1.4 !important;
 }
 
 .members-archive .cabinet-reflection {
@@ -1473,21 +1535,32 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
 }
 
 .members-archive .cabinet-tags li {
-  font-size: 0.78rem !important;
+  font-size: 0.92rem !important;
 }
 
 .members-archive .cabinet-provenance dt,
 .members-archive .cabinet-card-foot {
-  font-size: 0.72rem !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
 }
 
 .members-archive .cabinet-provenance dd {
-  font-size: 0.86rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.members-archive .cabinet-empty a {
+  margin: -0.45rem 0 1.15rem;
+  color: var(--cabinet-ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.95rem;
+  text-decoration-color: var(--cabinet-accent);
+  text-underline-offset: 0.22em;
 }
 
 .members-archive .cabinet-provenance small,
 .members-archive .cabinet-card-foot span[lang="ko"] {
-  font-size: 0.76rem !important;
+  font-size: 0.92rem !important;
 }
 
 .members-archive .cabinet-pagination {
@@ -1569,17 +1642,22 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
   }
 
   .members-archive .cabinet-rediscovery h3[lang="en"] {
-    font-size: clamp(2.8rem, 4vw, 3.4rem) !important;
+    font-size: clamp(2.55rem, 3.4vw, 3.2rem) !important;
   }
 }
 
 @media (min-width: 1500px) {
   .members-archive .cabinet-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .members-archive .cabinet-card h3[lang="en"] {
-    font-size: clamp(2.2rem, 2.25vw, 3.35rem) !important;
+    font-size: clamp(2rem, 1.65vw, 2.75rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  .members-archive .cabinet-card h3[lang="en"][data-title-length="long"] {
+    font-size: clamp(1.8rem, 1.4vw, 2.35rem) !important;
   }
 
   html body #root .members-archive .archive-sidebar:has(.archive-cabinet) {
@@ -1634,7 +1712,7 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
     gap: 1.1rem;
   }
 
-  .members-archive .cabinet-owner h3[lang="en"] {
+  .members-archive .cabinet-owner h3 {
     font-size: clamp(2.6rem, 12vw, 3.5rem) !important;
   }
 
@@ -1664,7 +1742,7 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
   .members-archive .cabinet-rediscovery h3[lang="en"] {
     margin-bottom: 0.6rem !important;
     font-size: clamp(1.85rem, 7.5vw, 2.35rem) !important;
-    line-height: 0.98 !important;
+    line-height: 1.12 !important;
   }
 
   .members-archive .cabinet-rediscovery p[lang="ko"] {
@@ -1698,4 +1776,213 @@ html body #root .members-archive .cabinet-rediscovery button:focus-visible {
     min-height: 18rem;
     max-height: 52vh;
   }
+}
+
+/* Cabinet language register: titles keep the original Jerboa display face.
+   All supporting English uses the book-serif register, while Korean—including digits
+   inside Korean phrases—uses the compressed Korean register. */
+.members-archive :is(.cabinet-view, .cabinet-detail) [lang="en"]:not(h1):not(h2):not(h3),
+.members-archive :is(.cabinet-view, .cabinet-detail) .cabinet-editor :is(input, select, textarea) {
+  font-family: var(--font-cabinet-text) !important;
+}
+
+.members-archive :is(.cabinet-view, .cabinet-detail) [lang="ko"] {
+  font-family: var(--font-ko) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+  word-spacing: var(--ko-word-compensation) !important;
+  transform: scaleX(var(--ko-ritual-scale-x)) scaleY(var(--ko-ritual-scale-y)) !important;
+  transform-origin: left center !important;
+}
+
+.members-archive :is(.cabinet-view, .cabinet-detail) :is(.cabinet-owner-link, .cabinet-related button > span)[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+}
+
+.members-archive .cabinet-editor :is(legend, label > span),
+.members-archive .cabinet-history-fields h3[lang="ko"] {
+  font-family: var(--font-ko) !important;
+  letter-spacing: var(--ko-letter-tight) !important;
+}
+
+/* Artifact and room titles remain in Jerboa's original display hand. */
+html body #root .members-archive :is(
+  .cabinet-opening h2[lang="en"],
+  .cabinet-card h3[lang="en"],
+  .cabinet-detail-header h2[lang="en"],
+  .cabinet-related button > span[lang="en"],
+  .cabinet-owner-link[lang="en"]
+) {
+  font-family: var(--font-heavy-header) !important;
+  font-weight: 400 !important;
+}
+
+/* Cabinet.css loads last in the member room; keep the four room tabs optically
+   centred here so no earlier navigation experiment can pull them left again. */
+html body #root .members-archive .archive-cabinet > button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+html body #root .members-archive .archive-cabinet > button > :is(span[lang="en"], small[lang="ko"]) {
+  width: 100% !important;
+  text-align: center !important;
+  transform-origin: center center !important;
+}
+
+html body #root .members-archive .cabinet-detail-body > article {
+  padding-top: clamp(1.15rem, 1.8vw, 1.6rem) !important;
+}
+
+/* Private navigation now has three purposes: itinerary, Cabinet and folio.
+   The old Marginalia room is represented by Cabinet's reflection fields. */
+html body #root .members-archive .archive-cabinet:has(> button:nth-child(3)) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+html body #root .members-archive .archive-sigil {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 0 !important;
+  padding: 0.4rem !important;
+}
+
+html body #root .members-archive .archive-sigil img {
+  display: block !important;
+  width: auto !important;
+  height: min(4.6rem, 82%) !important;
+  max-width: 82% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: translateY(0.45rem) !important;
+}
+
+html body #root .members-archive .member-avatar-symbol {
+  background: var(--register-paper) !important;
+}
+
+html body #root .members-archive .member-avatar-symbol.is-selected {
+  background: var(--rubric-red) !important;
+}
+
+html body #root .members-archive .member-avatar-symbol .member-seal__mark {
+  font-family: "Times New Roman", serif !important;
+  font-size: 1.45rem !important;
+}
+
+html body #root .members-archive .member-avatar-color {
+  background: var(--seal-color) !important;
+}
+
+html body #root .members-archive :is(
+  .member-profile-identity .member-seal,
+  .member-record-row .member-seal
+):not(:has(img)) {
+  background: var(--seal-color, var(--register-paper)) !important;
+}
+
+html body #root .members-archive .member-avatar-color__check {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  color: #080706 !important;
+  font-size: 1.1rem !important;
+}
+
+html body #root .members-archive .member-avatar-editor-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.65rem !important;
+  padding-top: 0.5rem !important;
+}
+
+html body #root .members-archive .member-avatar-editor-actions button {
+  min-height: 3rem !important;
+  border: 2px solid var(--register-ink) !important;
+  background: var(--register-paper) !important;
+  font-family: var(--font-ko) !important;
+  font-weight: 800 !important;
+}
+
+html body #root .members-archive .member-avatar-editor-actions button.is-primary {
+  background: var(--rubric-red) !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  width: min(calc(100% - 2rem), 42rem) !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button {
+  border-right: 1px solid var(--register-ink) !important;
+  border-bottom: 0 !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button:nth-child(2n) {
+  border-right: 1px solid var(--register-ink) !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button:last-child {
+  border-right: 0 !important;
+}
+
+html body #root .members-archive .archive-undated-events {
+  gap: 1rem !important;
+}
+
+html body #root .members-archive .archive-undated-events > div {
+  display: grid !important;
+  gap: 0.35rem !important;
+}
+
+html body #root .members-archive .archive-undated-events h4[lang="ko"] {
+  font-size: 1.02rem !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .members-archive .archive-undated-events p[lang="ko"] {
+  max-width: 28rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+  color: rgba(8, 7, 6, 0.68) !important;
+}
+
+html body #root .members-archive .archive-undated-events ul {
+  gap: 0 !important;
+  padding-top: 0.15rem !important;
+  border-top: 1px solid rgba(8, 7, 6, 0.28) !important;
+}
+
+html body #root .members-archive .archive-undated-events li {
+  padding-block: 0.55rem !important;
+  border-top: 0 !important;
+  border-bottom: 1px solid rgba(8, 7, 6, 0.18) !important;
+}
+
+/* Provenance is one metadata voice across languages. Only the field names
+   carry extra emphasis; sources, dates and encounter notes share one measure. */
+html body #root .members-archive .cabinet-provenance dt[lang="ko"] {
+  font-size: 0.92rem !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .members-archive .cabinet-provenance dd :is(a, span, small) {
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .members-archive .cabinet-provenance dd .cabinet-encounter-context {
+  margin-top: 0.3rem !important;
+  color: var(--cabinet-muted) !important;
+  font-size: 0.78rem !important;
+  font-weight: 450 !important;
+  line-height: 1.42 !important;
 }

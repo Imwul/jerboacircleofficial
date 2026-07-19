@@ -7,7 +7,6 @@ import { LoginView } from './components/views/LoginView';
 import { CalendarView } from './components/views/CalendarView';
 import { ProfileView } from './components/views/ProfileView';
 import { AdminView } from './components/views/AdminView';
-import { HabitTrackingView } from './components/views/HabitTrackingView';
 import { EventFormModal, type EventRecurrence } from './components/modals/EventFormModal';
 import { generateRecurringEvents } from './utils/dateUtils';
 import { format, parseISO, setHours, setMinutes, addHours } from 'date-fns';
@@ -27,6 +26,7 @@ import { useDialogFocus } from './utils/useDialogFocus';
 import { memberScribePlate } from './data/manuscriptPlates';
 import { INITIAL_CURIOSITIES } from './data/cabinetCuriosities';
 import { CabinetView } from './components/cabinet/CabinetView';
+import jerboaSeal from './assets/identity/jerboa-seal-transparent.webp';
 import './MembersArchive.css';
 import './MembersStability.css';
 import './MembersLayoutFinal.css';
@@ -197,7 +197,7 @@ function App() {
   });
 
   const [currentUser, setCurrentUser] = useState<User | 'admin' | null>(null);
-  const [activeTab, setActiveTab] = useState<'calendar' | 'habit' | 'cabinet' | 'profile' | 'admin'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'cabinet' | 'profile' | 'admin'>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
@@ -520,7 +520,14 @@ function App() {
     const activeUser = stampParticipantActivity(latestUser);
     setUsers(prev => prev.map(u => u.id === activeUser.id ? activeUser : u));
     setCurrentUser(activeUser);
-    setActiveTab(new URLSearchParams(window.location.search).get('room') === 'cabinet' ? 'cabinet' : 'calendar');
+    const requestedRoom = new URLSearchParams(window.location.search).get('room');
+    const requestedTab = requestedRoom === 'cabinet' || requestedRoom === 'marginalia' ? 'cabinet' : 'calendar';
+    setActiveTab(requestedTab);
+    if (requestedRoom === 'marginalia') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', 'cabinet');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    }
   };
 
   const handleAdminLogin = () => {
@@ -702,7 +709,6 @@ function App() {
       .filter((event) => activeUserData.enrolledEventIds.includes(event.id) && parseISO(event.endDate || event.date).getTime() >= Date.now())
       .sort((a, b) => a.date.localeCompare(b.date))[0]
     : undefined;
-  const todayReflectionComplete = activeUserData?.habitRecords?.[todayKeyForArchive]?.status === 'success';
   const completedToday = users.filter(user => user.habitRecords?.[todayKeyForArchive]?.status === 'success').length;
   const totalEnrollments = users.reduce((sum, user) => sum + user.enrolledEventIds.length, 0);
   const journeySummaries = users.map((user) => deriveParticipantJourney(user));
@@ -712,7 +718,7 @@ function App() {
     ? 'Antecamera'
     : currentUser === 'admin'
       ? activeTab === 'admin' ? 'Keeper Desk' : 'Itinerary'
-      : activeTab === 'habit' ? 'Marginalia' : activeTab === 'cabinet' ? 'Cabinet' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
+      : activeTab === 'cabinet' ? 'Cabinet' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
   const archiveSectionNote = !currentUser
     ? '이름을 선택하면 참여자 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
@@ -733,8 +739,7 @@ function App() {
       <div className="members-archive min-h-screen text-stone-900 font-sans">
         <aside className="archive-sidebar" aria-label="Private archive navigation">
           <a className="archive-sigil" href="/">
-            <span>Jerboa</span>
-            <span>Circle</span>
+            <img src={jerboaSeal} alt="저보아 서클" />
           </a>
           <a className="archive-public-return" href="/">
             <span lang="en">Public archive</span>
@@ -746,12 +751,6 @@ function App() {
                 <span lang="en">Itinerary</span>
                 <small lang="ko">열린 장 {events.length}개</small>
               </button>
-              {currentUser !== 'admin' && (
-                <button aria-pressed={activeTab === 'habit'} className={activeTab === 'habit' ? 'is-active' : ''} onClick={() => chooseTab('habit')}>
-                  <span lang="en">Marginalia</span>
-                  <small lang="ko">오늘의 주석 {completedToday}개</small>
-                </button>
-              )}
               {currentUser !== 'admin' && (
                 <button aria-pressed={activeTab === 'cabinet'} className={activeTab === 'cabinet' ? 'is-active' : ''} onClick={() => chooseTab('cabinet')}>
                   <span lang="en">Cabinet</span>
@@ -888,9 +887,9 @@ function App() {
                 )}
               </article>
               <article>
-                <small lang="ko">개인 기록</small>
-                <strong lang="ko">{todayReflectionComplete ? '오늘의 주석을 남겼습니다.' : '아직 끝내지 않은 주석이 있습니다.'}</strong>
-                <button type="button" onClick={() => chooseTab('habit')}><span lang="ko">{todayReflectionComplete ? '기록 다시 보기' : '이어서 기록하기'}</span></button>
+                <small lang="ko">개인 수장고</small>
+                <strong lang="ko">문장과 발견을 출처와 함께 수장고에 남깁니다.</strong>
+                <button type="button" onClick={() => chooseTab('cabinet')}><span lang="ko">수장고 열기</span></button>
               </article>
             </section>
           )}
@@ -936,12 +935,6 @@ function App() {
               )
             ) : activeTab === 'calendar' ? (
               <CalendarView events={resolvedEvents} user={activeUserData} users={users} onJoinEvent={joinEvent} onCancelEvent={cancelEvent} isAdmin={false} />
-            ) : activeTab === 'habit' ? (
-              <HabitTrackingView 
-                user={activeUserData!} 
-                onUpdateUser={handleUpdateUser} 
-                isAdmin={false}
-              />
             ) : activeTab === 'cabinet' ? (
               <CabinetView
                 user={activeUserData!}
@@ -967,10 +960,6 @@ function App() {
               <button aria-current={activeTab === 'calendar' ? 'page' : undefined} onClick={() => chooseTab('calendar')} className={activeTab === 'calendar' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 <span lang="ko">일정</span>
-              </button>
-              <button aria-current={activeTab === 'habit' ? 'page' : undefined} onClick={() => chooseTab('habit')} className={activeTab === 'habit' ? 'is-active' : ''}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span lang="ko">주석</span>
               </button>
               <button aria-current={activeTab === 'cabinet' ? 'page' : undefined} onClick={() => chooseTab('cabinet')} className={activeTab === 'cabinet' ? 'is-active' : ''}>
                 <span aria-hidden="true" className="archive-mobile-cabinet-mark">🜔</span>

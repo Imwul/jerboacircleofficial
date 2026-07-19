@@ -119,12 +119,6 @@ export interface Curiosity {
   visibility: CuriosityVisibility;
 }
 
-export const TIER_COLORS = {
-  [Tier.SILT]: 'bg-stone-300 text-stone-900 ring-1 ring-stone-400',
-  [Tier.CREST]: 'bg-sky-500 text-white ring-1 ring-sky-600',
-  [Tier.ERG]: 'bg-amber-500 text-white ring-1 ring-amber-600',
-};
-
 export const THEME_CONFIG = {
   [ThemeColor.SAGE]: { 
     base: 'sage', 
@@ -188,7 +182,9 @@ export const THEME_CONFIG = {
   },
 };
 
-export const AVATAR_ICONS = ['⚜', '✦', '✧', '⚜', '⚜', '✶', '✷', '❖'];
+// A small, legible cabinet of astronomical and manuscript marks. Keep every
+// mark distinct so the selector reads as a choice rather than decoration.
+export const AVATAR_ICONS = ['☿', '♄', '♃', '☉', '☽', '✠', '❦', '✧'];
 export const AVATAR_COLORS = [
   '#cf6f8c', '#e57758', '#8f9b57', '#d4a23e', '#979bc8', '#111111', '#f7efdd', '#b86b4f'
 ];

@@ -1,6 +1,9 @@
 
 import { Tier, User, CalendarEvent, ThemeColor } from './types';
 import { addDays, addHours, format, startOfToday } from 'date-fns';
+import crownedWomanProfile from './assets/occult/crowned-woman-wellcome.webp';
+import goldenPrinceProfile from './assets/occult/golden-prince-wellcome.webp';
+import peacockProfile from './assets/occult/alchemical-peacock-wellcome.webp';
 
 const today = startOfToday();
 
@@ -18,7 +21,8 @@ export const INITIAL_USERS: User[] = [
     firstJoinedAt: format(addDays(today, -6), 'yyyy-MM-dd'),
     lastActiveAt: format(today, 'yyyy-MM-dd'),
     avatarIcon: '⚜',
-    avatarColor: '#cf6f8c'
+    avatarColor: '#cf6f8c',
+    profileImage: crownedWomanProfile,
   },
   {
     id: '2',
@@ -33,7 +37,8 @@ export const INITIAL_USERS: User[] = [
     firstJoinedAt: format(addDays(today, -5), 'yyyy-MM-dd'),
     lastActiveAt: format(addDays(today, -1), 'yyyy-MM-dd'),
     avatarIcon: '⭑',
-    avatarColor: '#979bc8'
+    avatarColor: '#979bc8',
+    profileImage: goldenPrinceProfile,
   },
   {
     id: '3',
@@ -46,7 +51,8 @@ export const INITIAL_USERS: User[] = [
     journeyStage: 'invited',
     invitedAt: format(addDays(today, -2), 'yyyy-MM-dd'),
     avatarIcon: '✦',
-    avatarColor: '#d4a23e'
+    avatarColor: '#d4a23e',
+    profileImage: peacockProfile,
   }
 ];
 

@@ -1840,6 +1840,38 @@ html body #root .members-archive .archive-mobile-tabs > button > span:last-child
   white-space: nowrap !important;
 }
 
+/* Final reading register: utility destinations keep the established Jerboa
+   title face, while the login plate remains readable at catalogue size. */
+html body #root .members-archive :is(.archive-public-return, .archive-godmode-link) span[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.05rem, 1.15vw, 1.35rem) !important;
+  line-height: 1.05 !important;
+}
+
+html body #root .members-archive :is(.archive-public-return, .archive-godmode-link) small[lang="ko"] {
+  font-size: clamp(0.78rem, 0.72vw, 0.9rem) !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption :is(span, small) {
+  font-size: 0.88rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption small {
+  font-size: 0.76rem !important;
+}
+
+html body #root .members-archive .member-login-intent p[lang="ko"] {
+  font-size: clamp(1.05rem, 1.05vw, 1.2rem) !important;
+  line-height: 1.42 !important;
+}
+
+html body #root .members-archive .archive-undated-events p[lang="ko"] {
+  font-size: clamp(0.94rem, 0.86vw, 1.02rem) !important;
+  line-height: 1.36 !important;
+}
+
 /* Navigation hierarchy -------------------------------------------------
    Public archive is an exit from the private rooms, not a fifth room.
    A dark utility tile separates that route while vermilion remains reserved
@@ -2039,4 +2071,55 @@ html body #root .members-archive .archive-mobile-tabs > button {
 html body #root .members-archive .archive-mobile-tabs > button > span:last-child {
   font-size: inherit !important;
   line-height: 1.25 !important;
+}
+
+/* Final cascade lock: these two destinations are architectural titles, not
+   catalogue metadata. They always retain the original Jerboa display face. */
+html body #root .members-archive .archive-sidebar :is(.archive-public-return, .archive-godmode-link) span[lang="en"] {
+  font-family: var(--font-heavy-header) !important;
+  font-size: clamp(1.05rem, 1.15vw, 1.35rem) !important;
+  font-weight: 400 !important;
+  line-height: 1.05 !important;
+}
+
+html body #root .members-archive .archive-sidebar :is(.archive-public-return, .archive-godmode-link) small[lang="ko"] {
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.78rem, 0.72vw, 0.9rem) !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption span {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption small {
+  font-family: var(--font-editorial-small) !important;
+  font-size: 0.76rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption a {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.1rem !important;
+  align-items: start !important;
+}
+
+html body #root .members-archive .member-login-manuscript figcaption small {
+  text-align: left !important;
+}
+
+/* The four private rooms form one centred sequence. */
+html body #root .members-archive .archive-cabinet > button {
+  place-content: center !important;
+  place-items: center !important;
+  justify-items: center !important;
+  text-align: center !important;
+}
+
+html body #root .members-archive .archive-cabinet > button > :is(span, small) {
+  width: 100% !important;
+  text-align: center !important;
+  transform-origin: center center !important;
 }

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Tier, TIER_COLORS, type CalendarEvent, type ParticipantJourneyStage } from '../../types';
+import { User, Tier, type CalendarEvent, type ParticipantJourneyStage } from '../../types';
 import { resizeImage } from '../../utils/imageUtils';
 import { HabitTrackingView } from './HabitTrackingView';
 import { format, isBefore, isValid, parseISO, startOfDay, subDays } from 'date-fns';
@@ -116,14 +116,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [activeTab, setActiveTab] = useState<'operations' | 'users' | 'settings'>('operations');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [viewingHabitUser, setViewingHabitUser] = useState<User | null>(null);
-  const [bulkEditDateModalOpen, setBulkEditDateModalOpen] = useState(false);
-  const [bulkEndDate, setBulkEndDate] = useState('');
   const [journeyFilter, setJourneyFilter] = useState<ParticipantJourneyStage | 'all'>('all');
   const [rosterBaseline, setRosterBaseline] = useState(() => readRosterSnapshot());
   const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null);
   const [imageUploadError, setImageUploadError] = useState('');
   const editorDialogRef = useDialogFocus<HTMLDivElement>(Boolean(editingUser), () => setEditingUser(null));
-  const bulkDialogRef = useDialogFocus<HTMLDivElement>(bulkEditDateModalOpen, () => setBulkEditDateModalOpen(false));
   const journeyStages: ParticipantJourneyStage[] = ['first-visit', 'invited', 'active', 'returning', 'lapsed', 'season-complete'];
 
   const getTodayKey = () => {
@@ -204,16 +201,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
     link.click();
     URL.revokeObjectURL(url);
   }
-
-  const handleBulkEditSave = () => {
-    if (bulkEndDate) {
-      users.forEach(user => {
-        onUpdateUser({ ...user, tierEndDate: bulkEndDate });
-      });
-      setBulkEditDateModalOpen(false);
-      setBulkEndDate('');
-    }
-  };
 
   const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -411,12 +398,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
               <h3 className="text-xs font-bold text-stone-400 ml-1">등록된 회원 / {users.length}</h3>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => setBulkEditDateModalOpen(true)}
-                  className="text-[10px] bg-stone-100 text-stone-600 px-3 py-1 rounded-full font-bold hover:bg-stone-200 transition-colors"
-                >
-                  <span className="archive-ko-label">종료일 표시</span>
-                </button>
-                <button 
                   onClick={() => setEditingUser({
                     id: Math.random().toString(36).substr(2, 9),
                     name: '',
@@ -472,7 +453,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="font-black text-stone-900 text-base">{user.name}</div>
+                        <div lang="ko" className="font-black text-stone-900 text-base">{user.name}</div>
                         <span className="px-2 py-0.5 bg-stone-100 text-stone-500 text-[8px] font-black border border-stone-200 rounded-md">
                           {journey.label}
                         </span>
@@ -483,7 +464,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         )}
                       </div>
                       <div className="flex gap-2 items-center">
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${TIER_COLORS[user.tier]}`}>{user.tier}</span>
                         <span className="text-[10px] text-stone-400 font-bold tracking-tight">{user.coins} <span className="text-[8px] opacity-60">문장</span></span>
                         <span className="text-[10px] text-stone-400 font-bold tracking-tight">{journey.note}</span>
                       </div>
@@ -646,34 +626,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 tracking-widest">단계</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[Tier.SILT, Tier.CREST, Tier.ERG].map(t => (
-                    <button 
-                      key={t}
-                      onClick={() => setEditingUser({...editingUser, tier: t})}
-                      className={`py-2 rounded-xl text-[10px] font-bold tracking-widest transition-all ${editingUser.tier === t ? TIER_COLORS[t] : 'bg-stone-50 text-stone-400 hover:bg-stone-100'}`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
                 <label className="text-[10px] font-bold text-stone-400 tracking-widest">문장 수</label>
                 <input 
                   type="number" 
                   value={editingUser.coins} 
                   onChange={e => setEditingUser({...editingUser, coins: parseInt(e.target.value) || 0})}
-                  className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-stone-400 tracking-widest">마감일</label>
-                <input 
-                  type="date" 
-                  value={editingUser.tierEndDate || ''} 
-                  onChange={e => setEditingUser({...editingUser, tierEndDate: e.target.value})}
                   className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
                 />
               </div>
@@ -706,27 +663,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <div className="flex gap-2">
               <button onClick={() => setEditingUser(null)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl"><span className="archive-ko-label">취소</span></button>
               <button onClick={handleSaveUser} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg"><span className="archive-ko-label">기록 저장</span></button>
-            </div>
-          </div>
-        </div>
-      )}
-      {bulkEditDateModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-date-title">
-          <div ref={bulkDialogRef} className="bg-white w-full max-w-sm rounded-3xl p-6 space-y-6 animate-in zoom-in-95 duration-300 shadow-2xl">
-            <h3 id="bulk-date-title" className="text-lg font-black text-stone-900">마감일 표시</h3>
-            <p className="text-xs text-stone-500">모든 회원 기록에 같은 마감일을 적용합니다</p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-400 tracking-widest">마감일</label>
-              <input 
-                type="date" 
-                value={bulkEndDate} 
-                onChange={e => setBulkEndDate(e.target.value)}
-                className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-stone-200"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setBulkEditDateModalOpen(false)} className="flex-1 py-3 bg-stone-100 text-stone-500 text-xs font-bold rounded-xl"><span className="archive-ko-label">취소</span></button>
-              <button onClick={handleBulkEditSave} className="flex-1 py-3 bg-stone-900 text-white text-xs font-bold rounded-xl shadow-lg"><span className="archive-ko-label">적용</span></button>
             </div>
           </div>
         </div>

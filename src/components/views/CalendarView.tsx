@@ -374,7 +374,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <section className="archive-undated-events" aria-labelledby="undated-events-title">
             <div>
               <h4 id="undated-events-title" lang="ko">날짜 확인이 필요한 프로그램</h4>
-              <p lang="ko">이전 장부에서 날짜를 읽을 수 없는 기록입니다. 오늘 일정에는 포함하지 않았습니다.</p>
+              <p lang="ko">이전 장부에서 날짜를 읽지 못해 오늘 일정에서 잠시 제외했습니다.</p>
             </div>
             <ul>
               {undatedEvents.map((event) => (

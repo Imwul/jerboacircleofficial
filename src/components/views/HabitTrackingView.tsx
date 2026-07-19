@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, subDays, isAfter, startOfDay, addDays, addHours, isBefore, differenceInDays } from 'date-fns';
-import { User, HabitRecord, TIER_COLORS } from '../../types';
+import { User, HabitRecord } from '../../types';
 import { StarRating } from '../ui/StarRating';
 import { resizeImage } from '../../utils/imageUtils';
 import { deriveParticipantJourney } from '../../utils/participantJourney';

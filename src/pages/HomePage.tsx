@@ -15,6 +15,7 @@ import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
+import { readArchiveBookmarks, writeArchiveBookmarks } from '../utils/readingMarks';
 import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
 import qabalisticSymbolism from '../assets/occult/qabalistic-symbolism-red.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
@@ -39,23 +40,6 @@ interface ArchiveSyncPayload {
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
 type ArchiveTaxonomyFilter = string | 'all';
-
-const archiveBookmarkStorageKey = 'jerboa-circle-archive-bookmarks';
-function readArchiveBookmarks() {
-  if (typeof window === 'undefined') return [];
-
-  try {
-    const raw = window.localStorage.getItem(archiveBookmarkStorageKey);
-    return raw ? (JSON.parse(raw) as string[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeArchiveBookmarks(ids: string[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(archiveBookmarkStorageKey, JSON.stringify(ids));
-}
 
 function readArchiveQueryState() {
   const params = new URLSearchParams(window.location.search);

@@ -42,7 +42,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Jerboa Circle',
       dateLabel: 'July 2026',
-      context: 'Read during the Fire Cycle',
+      context: '불의 순환을 읽던 중',
     },
     collectedAt: '2026-07-03',
     createdAt: '2026-07-03T10:00:00.000Z',
@@ -66,7 +66,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Seoul',
       dateLabel: 'Summer 2026',
-      context: 'Found while preparing the Forest Cycle',
+      context: '숲의 순환을 준비하던 중',
     },
     collectedAt: '2026-06-18',
     createdAt: '2026-06-18T08:30:00.000Z',
@@ -89,7 +89,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Online archive',
       dateLabel: 'March 2025',
-      context: 'First encountered while reading about angelic alphabets',
+      context: '천사 문자에 관한 책을 읽다가 처음 만남',
     },
     collectedAt: '2025-03-22',
     createdAt: '2025-03-22T15:40:00.000Z',
@@ -112,7 +112,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Jerboa Circle',
       dateLabel: 'Week IV · 2026',
-      context: 'Shared after a reading on symbolic doubles',
+      context: '상징적 분신에 관한 낭독 뒤 함께 나눔',
     },
     collectedAt: '2026-07-16',
     createdAt: '2026-07-16T12:00:00.000Z',
@@ -136,7 +136,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Jerboa Circle',
       dateLabel: 'Forest Cycle · 2026',
-      context: 'Chosen for the opening folio',
+      context: '첫 장을 위해 고른 표본',
     },
     collectedAt: '2026-05-09',
     createdAt: '2026-05-09T09:20:00.000Z',
@@ -159,7 +159,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'London',
       dateLabel: 'October 2024',
-      context: 'Seen after visiting a manuscript room',
+      context: '필사본 열람실을 다녀온 뒤 만남',
     },
     collectedAt: '2024-10-12',
     createdAt: '2024-10-12T14:00:00.000Z',
@@ -180,7 +180,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Online archive',
       dateLabel: 'January 2026',
-      context: 'Collected while studying the Rose Cycle',
+      context: '장미 순환을 공부하던 중 수집',
     },
     collectedAt: '2026-01-20',
     createdAt: '2026-01-20T11:00:00.000Z',
@@ -202,7 +202,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     encountered: {
       place: 'Jerboa Circle',
       dateLabel: 'July 2026',
-      context: 'Found on a first visit',
+      context: '첫 방문에서 발견',
     },
     collectedAt: '2026-07-17',
     createdAt: '2026-07-17T16:00:00.000Z',

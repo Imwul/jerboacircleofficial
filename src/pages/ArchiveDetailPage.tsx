@@ -382,8 +382,8 @@ function ArchiveReferenceIndex({
           <li key={reference.id}>
             <a href={`${detailRootHref()}catalogue/${reference.id}/`}>
               <span className="archive-knowledge-kind" lang="ko">{kindLabel(reference.kind)}</span>
-              <strong>{reference.title}</strong>
-              <small lang="ko">
+              <strong lang={detailTextLang(reference.title)}>{reference.title}</strong>
+              <small lang={detailTextLang([reference.attribution, reference.locator].filter(Boolean).join(' · '))}>
                 {[
                   reference.attribution,
                   reference.locator,

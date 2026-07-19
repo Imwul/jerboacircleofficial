@@ -105,15 +105,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
                   {user.profileImage ? (
                     <img src={user.profileImage} alt={user.name} />
                   ) : (
-                    <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
+                    <span className="member-seal__mark">{user.avatarIcon || user.name.slice(0, 1)}</span>
                   )}
                 </div>
                 <div className="record-title">
-                  <strong>{user.name}</strong>
+                  <strong lang="ko">{user.name}</strong>
                   <span lang="ko">{journey.label}</span>
                 </div>
                 <p className="record-meta" lang="ko">
-                  <span>{user.tier}</span>
                   <span>{journey.note}</span>
                 </p>
                 <span className="member-record-mark" data-complete={completedToday ? 'true' : 'false'} lang="ko">

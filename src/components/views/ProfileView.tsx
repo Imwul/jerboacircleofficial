@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Tier, TIER_COLORS, AVATAR_ICONS, AVATAR_COLORS } from '../../types';
-import { differenceInDays, parseISO, addWeeks, startOfDay } from 'date-fns';
+import { User, AVATAR_ICONS, AVATAR_COLORS } from '../../types';
 import { resizeImage } from '../../utils/imageUtils';
 import { deriveParticipantJourney } from '../../utils/participantJourney';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -16,31 +15,22 @@ interface ProfileViewProps {
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, onLogout, onDeleteAccount }) => {
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [draftAvatarIcon, setDraftAvatarIcon] = useState(user.avatarIcon || AVATAR_ICONS[0]);
+  const [draftAvatarColor, setDraftAvatarColor] = useState(user.avatarColor || AVATAR_COLORS[0]);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const avatarDialogRef = useDialogFocus<HTMLDivElement>(isEditingAvatar, () => setIsEditingAvatar(false));
 
-  const getRemainingDays = () => {
-    const today = startOfDay(new Date());
-    let endDate: Date;
-    
-    if (user.tierEndDate) {
-      endDate = startOfDay(parseISO(user.tierEndDate));
-    } else {
-      const startDate = startOfDay(parseISO(user.tierStartDate));
-      endDate = addWeeks(startDate, user.tierDurationWeeks);
-    }
-    
-    const diff = differenceInDays(endDate, today);
-    return diff;
-  };
-
-  const remainingDays = getRemainingDays();
-  const isExpired = remainingDays < 0;
   const journey = deriveParticipantJourney(user);
 
-  const handleUpdateAvatar = (icon: string, color: string) => {
-    onUpdateUser({ ...user, avatarIcon: icon, avatarColor: color, profileImage: undefined });
+  const openAvatarEditor = () => {
+    setDraftAvatarIcon(user.avatarIcon || AVATAR_ICONS[0]);
+    setDraftAvatarColor(user.avatarColor || AVATAR_COLORS[0]);
+    setIsEditingAvatar(true);
+  };
+
+  const handleUpdateAvatar = () => {
+    onUpdateUser({ ...user, avatarIcon: draftAvatarIcon, avatarColor: draftAvatarColor, profileImage: undefined });
     setIsEditingAvatar(false);
   };
 
@@ -68,36 +58,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
           aria-label="회원 표식 수정"
           className="member-seal member-seal--large group cursor-pointer"
           style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
-          onClick={() => setIsEditingAvatar(true)}
+          onClick={openAvatarEditor}
         >
           {user.profileImage ? (
             <img src={user.profileImage} alt={user.name} />
           ) : (
-            <span className="member-seal__initial">{user.name.slice(0, 1)}</span>
+            <span className="member-seal__mark">{user.avatarIcon || user.name.slice(0, 1)}</span>
           )}
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </div>
         </button>
         <div className="text-center">
-          <h2 className="text-2xl font-black text-stone-900">{user.name}</h2>
-          <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold mt-1 ${TIER_COLORS[user.tier]}`}>
-            {user.tier} 단계
-          </span>
+          <h2 lang="ko" className="text-2xl font-black text-stone-900">{user.name}</h2>
         </div>
       </div>
 
-      <div className="member-profile-metrics grid grid-cols-2 gap-4">
+      <div className="member-profile-metrics grid grid-cols-1 gap-4">
         <div className="member-profile-metric bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
           <div className="text-[10px] font-bold text-stone-400 mb-1">Marks held</div>
           <div className="text-xl font-black text-stone-900">{user.coins} <span className="text-xs text-stone-400">문장</span></div>
-        </div>
-        <div className="member-profile-metric bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
-          <div className="text-[10px] font-bold text-stone-400 mb-1">참여 기간</div>
-          <div className="text-xl font-black text-stone-900">
-            {isExpired ? '만료됨' : remainingDays === 0 ? 'D-Day' : `D-${remainingDays}`}
-            <span className="text-xs text-stone-400 ml-1">{isExpired || remainingDays === 0 ? '' : '남음'}</span>
-          </div>
         </div>
       </div>
 
@@ -163,12 +143,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
               <p className="text-[10px] font-bold text-stone-400">기호 선택</p>
               <div className="grid grid-cols-4 gap-3">
-                {AVATAR_ICONS.map(icon => (
+                {AVATAR_ICONS.map((icon, index) => (
                   <button 
                     key={icon}
-                    onClick={() => handleUpdateAvatar(icon, user.avatarColor || AVATAR_COLORS[0])}
-                    className={`member-seal transition-all ${user.avatarIcon === icon ? 'is-selected' : ''}`}
-                    style={{ '--seal-color': user.avatarColor || '#e57758' } as React.CSSProperties}
+                    type="button"
+                    aria-label={`${index + 1}번 중세 표식 ${icon}`}
+                    aria-pressed={draftAvatarIcon === icon}
+                    onClick={() => setDraftAvatarIcon(icon)}
+                    className={`member-seal member-avatar-symbol transition-all ${draftAvatarIcon === icon ? 'is-selected' : ''}`}
+                    style={{ '--seal-color': draftAvatarColor } as React.CSSProperties}
                   >
                     <span className="member-seal__mark">{icon}</span>
                   </button>
@@ -177,16 +160,23 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onUpdateUser, on
 
               <p className="text-[10px] font-bold text-stone-400 pt-2">인장색 선택</p>
               <div className="grid grid-cols-4 gap-3">
-                {AVATAR_COLORS.map(color => (
+                {AVATAR_COLORS.map((color, index) => (
                   <button 
                     key={color}
-                    onClick={() => handleUpdateAvatar(user.avatarIcon || AVATAR_ICONS[0], color)}
-                    className={`member-seal transition-all relative ${user.avatarColor === color ? 'is-selected' : ''}`}
-                    style={{ '--seal-color': color } as React.CSSProperties}
+                    type="button"
+                    aria-label={`${index + 1}번 인장색`}
+                    aria-pressed={draftAvatarColor === color}
+                    onClick={() => setDraftAvatarColor(color)}
+                    className={`member-seal member-avatar-color transition-all relative ${draftAvatarColor === color ? 'is-selected' : ''}`}
+                    style={{ '--seal-color': color, backgroundColor: color } as React.CSSProperties}
                   >
-                    {user.avatarColor === color && <div className="absolute inset-0 flex items-center justify-center">✓</div>}
+                    {draftAvatarColor === color && <span className="member-avatar-color__check" aria-hidden="true">✓</span>}
                   </button>
                 ))}
+              </div>
+              <div className="member-avatar-editor-actions">
+                <button type="button" onClick={() => setIsEditingAvatar(false)}>취소</button>
+                <button type="button" className="is-primary" onClick={handleUpdateAvatar}>표식 적용</button>
               </div>
             </div>
           </div>
