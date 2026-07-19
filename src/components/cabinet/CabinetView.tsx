@@ -39,7 +39,9 @@ interface CuriosityFormState {
   visibility: Curiosity['visibility'];
 }
 
-const PAGE_SIZE = 6;
+// Three objects make one deliberate catalogue leaf and prevent the repository
+// from turning into a long feed, especially on narrow screens.
+const PAGE_SIZE = 3;
 
 function emptyForm(): CuriosityFormState {
   return {

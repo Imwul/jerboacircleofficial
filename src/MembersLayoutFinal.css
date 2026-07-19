@@ -2026,3 +2026,17 @@ html body #root .members-archive .archive-sidebar:not(:has(.archive-cabinet)) .a
   line-height: 1.4 !important;
   white-space: normal !important;
 }
+
+/* Compact private-room switcher: readable at a glance without becoming a
+   second banner. The previous sub-11px labels disappeared on wide displays. */
+html body #root .members-archive .archive-mobile-tabs > button {
+  min-height: 3.65rem !important;
+  padding: 0.72rem 0.9rem !important;
+  font-size: clamp(0.92rem, 2.8vw, 1.05rem) !important;
+  font-weight: 650 !important;
+}
+
+html body #root .members-archive .archive-mobile-tabs > button > span:last-child {
+  font-size: inherit !important;
+  line-height: 1.25 !important;
+}

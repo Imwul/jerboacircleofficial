@@ -1254,3 +1254,433 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
     border: 0 !important;
   }
 }
+
+/* Cabinet reading-density pass -------------------------------------------
+   The repository should open like a catalogue, not ask the reader to cross
+   several full-page title leaves before reaching its objects. This final
+   layer keeps every section while compressing their vertical footprint and
+   establishes a legible type floor on large displays. */
+.members-archive .cabinet-view,
+.members-archive .cabinet-detail,
+.members-archive .cabinet-editor {
+  --cabinet-paper: #f7efdd !important;
+  --cabinet-ink: #050505 !important;
+  --cabinet-muted: #6b655b !important;
+  --cabinet-accent: #cf5d49 !important;
+  color: var(--cabinet-ink) !important;
+  color-scheme: light !important;
+  background-color: var(--cabinet-paper) !important;
+}
+
+.members-archive .cabinet-opening {
+  min-height: 0;
+  padding: clamp(1.25rem, 2vw, 2rem) clamp(1.25rem, 4vw, 5rem);
+  grid-template-columns: minmax(7rem, 0.38fr) minmax(18rem, 1.62fr);
+  column-gap: clamp(1.5rem, 4vw, 5rem);
+  row-gap: 0.7rem;
+}
+
+.members-archive .cabinet-opening h2[lang="en"] {
+  font-size: clamp(4.8rem, 8vw, 8.25rem) !important;
+  line-height: 0.76 !important;
+}
+
+.members-archive .cabinet-opening > div > p[lang="en"] {
+  margin-top: 0.8rem !important;
+  font-size: clamp(1.25rem, 1.8vw, 1.75rem) !important;
+}
+
+.members-archive .cabinet-opening blockquote[lang="ko"] {
+  font-size: clamp(1.05rem, 1.25vw, 1.3rem) !important;
+  line-height: 1.55 !important;
+}
+
+.members-archive .cabinet-owner,
+.members-archive .cabinet-catalogue,
+.members-archive .cabinet-related,
+.members-archive .cabinet-detail-header,
+.members-archive .cabinet-detail-body,
+.members-archive .cabinet-detail-nav,
+.members-archive .cabinet-librarian-note,
+.members-archive .cabinet-contribute {
+  width: min(100% - clamp(2rem, 6vw, 7rem), 112rem);
+}
+
+.members-archive .cabinet-owner {
+  padding-block: clamp(1.35rem, 2.2vw, 2rem);
+  grid-template-columns: minmax(17rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: clamp(1.5rem, 4vw, 5rem);
+  align-items: center;
+}
+
+.members-archive .cabinet-owner h3[lang="en"] {
+  font-size: clamp(2.6rem, 3.8vw, 4.25rem) !important;
+}
+
+.members-archive .cabinet-owner strong {
+  margin-top: 0.55rem;
+  font-size: 1.05rem;
+}
+
+.members-archive .cabinet-owner dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.members-archive .cabinet-owner dl > div {
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  padding-top: 0.55rem;
+}
+
+.members-archive .cabinet-owner dt,
+.members-archive .cabinet-object-facts dt {
+  font-size: 0.78rem;
+}
+
+.members-archive .cabinet-owner dd,
+.members-archive .cabinet-object-facts dd {
+  font-size: 1rem;
+}
+
+.members-archive .cabinet-rediscovery,
+.members-archive .cabinet-rediscovery figure {
+  min-height: 0;
+  height: clamp(17rem, 29vh, 20rem);
+}
+
+html body #root .members-archive .cabinet-rediscovery {
+  color: var(--cabinet-paper) !important;
+}
+
+html body #root .members-archive .cabinet-rediscovery :is(p, h3, small, button) {
+  color: var(--cabinet-paper) !important;
+}
+
+html body #root .members-archive .cabinet-rediscovery button:hover,
+html body #root .members-archive .cabinet-rediscovery button:focus-visible {
+  background: var(--cabinet-paper) !important;
+  color: var(--cabinet-ink) !important;
+}
+
+.members-archive .cabinet-rediscovery {
+  grid-template-columns: minmax(0, 1.28fr) minmax(20rem, 0.72fr);
+}
+
+.members-archive .cabinet-rediscovery > div {
+  padding: clamp(1.4rem, 2.5vw, 2.75rem);
+}
+
+.members-archive .cabinet-rediscovery h3[lang="en"] {
+  margin-bottom: 0.8rem !important;
+  font-size: clamp(2.7rem, 4.2vw, 4.75rem) !important;
+  line-height: 0.93 !important;
+}
+
+.members-archive .cabinet-rediscovery p[lang="ko"] {
+  margin-bottom: 0.8rem !important;
+  font-size: clamp(1rem, 1.15vw, 1.18rem) !important;
+  line-height: 1.55 !important;
+}
+
+.members-archive .cabinet-rediscovery small {
+  margin-bottom: 1rem;
+  font-size: 0.86rem;
+}
+
+.members-archive .cabinet-rediscovery button,
+.members-archive .cabinet-contribute > button,
+.members-archive .cabinet-text-action,
+.members-archive .cabinet-empty button,
+.members-archive .cabinet-editor footer > button[type="submit"],
+.members-archive .cabinet-scope button,
+.members-archive .cabinet-shelves button,
+.members-archive .cabinet-pagination button,
+.members-archive .cabinet-result-line button,
+.members-archive .cabinet-detail-nav button,
+.members-archive .cabinet-delete button {
+  min-height: 2.85rem;
+  font-size: 0.95rem !important;
+}
+
+.members-archive .cabinet-catalogue {
+  padding-block: clamp(2rem, 3vw, 3.25rem);
+}
+
+.members-archive .cabinet-catalogue > header {
+  gap: 1.25rem;
+}
+
+.members-archive .cabinet-owner p,
+.members-archive .cabinet-catalogue > header p,
+.members-archive .cabinet-related > header p,
+.members-archive .cabinet-contribute p:first-child,
+.members-archive .cabinet-rediscovery > div > p:first-child,
+.members-archive .cabinet-detail-index,
+.members-archive .cabinet-editor header p {
+  font-size: 0.8rem !important;
+}
+
+.members-archive .cabinet-tools {
+  margin-top: 1.25rem;
+  padding-block: 0.9rem;
+  gap: 0.8rem;
+}
+
+.members-archive .cabinet-facets label > span {
+  font-size: 0.76rem;
+}
+
+.members-archive .cabinet-view .cabinet-facets select,
+.members-archive .cabinet-view .cabinet-search input {
+  font-size: 1rem !important;
+}
+
+.members-archive .cabinet-result-line {
+  min-height: 3.25rem;
+}
+
+.members-archive .cabinet-result-line p,
+.members-archive .cabinet-pagination span {
+  font-size: 0.9rem !important;
+}
+
+.members-archive .cabinet-grid {
+  gap: clamp(2rem, 3vw, 3rem) clamp(1.4rem, 2.5vw, 2.75rem);
+}
+
+.members-archive .cabinet-card-image {
+  aspect-ratio: 16 / 10;
+}
+
+.members-archive .cabinet-card-copy {
+  padding-top: 0.8rem;
+}
+
+.members-archive .cabinet-maker {
+  font-size: 0.85rem !important;
+}
+
+.members-archive .cabinet-reflection {
+  min-height: 0;
+  margin: 0.75rem 0 0.9rem !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+.members-archive .cabinet-tags {
+  margin-bottom: 0.9rem !important;
+}
+
+.members-archive .cabinet-tags li {
+  font-size: 0.78rem !important;
+}
+
+.members-archive .cabinet-provenance dt,
+.members-archive .cabinet-card-foot {
+  font-size: 0.72rem !important;
+}
+
+.members-archive .cabinet-provenance dd {
+  font-size: 0.86rem;
+}
+
+.members-archive .cabinet-provenance small,
+.members-archive .cabinet-card-foot span[lang="ko"] {
+  font-size: 0.76rem !important;
+}
+
+.members-archive .cabinet-pagination {
+  margin-top: 2rem;
+}
+
+.members-archive .cabinet-contribute {
+  margin-bottom: 2.5rem;
+  padding-block: 1.75rem;
+}
+
+.members-archive .cabinet-detail {
+  padding-bottom: clamp(3.5rem, 6vw, 6rem);
+}
+
+.members-archive .cabinet-detail-nav {
+  min-height: 4rem;
+}
+
+.members-archive .cabinet-detail-image {
+  min-height: 22rem;
+  max-height: 58vh;
+  padding: clamp(0.8rem, 2vw, 2rem);
+}
+
+.members-archive .cabinet-detail-image img {
+  max-height: calc(58vh - 4rem);
+}
+
+.members-archive .cabinet-detail-header {
+  padding-block: clamp(2.5rem, 5vw, 5rem);
+}
+
+.members-archive .cabinet-detail-header h2[lang="en"] {
+  font-size: clamp(3.8rem, 7vw, 7.5rem) !important;
+}
+
+.members-archive .cabinet-detail-reflection[lang="ko"] {
+  margin-top: clamp(1.75rem, 3vw, 3rem) !important;
+}
+
+@media (min-width: 721px) and (max-width: 980px) {
+  .members-archive .cabinet-opening {
+    min-height: 0;
+    grid-template-columns: 6rem minmax(0, 1fr);
+  }
+
+  .members-archive .cabinet-owner {
+    grid-template-columns: minmax(15rem, 0.8fr) minmax(20rem, 1.2fr);
+    gap: 2rem;
+  }
+
+  .members-archive .cabinet-rediscovery,
+  .members-archive .cabinet-rediscovery figure {
+    height: 20rem;
+  }
+
+  .members-archive .cabinet-rediscovery {
+    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+  }
+
+  .members-archive .cabinet-rediscovery > div {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .members-archive .cabinet-rediscovery h3[lang="en"] {
+    font-size: clamp(2.35rem, 5vw, 3rem) !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  .members-archive .cabinet-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .members-archive .cabinet-card h3[lang="en"] {
+    font-size: clamp(2.2rem, 2.25vw, 3.35rem) !important;
+  }
+
+  html body #root .members-archive .archive-sidebar:has(.archive-cabinet) {
+    min-height: 5.75rem !important;
+  }
+
+  html body #root .members-archive .archive-cabinet:has(> button:nth-child(4)) > button span[lang="en"] {
+    font-size: clamp(1.2rem, 1.25vw, 1.55rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  html body #root .members-archive .archive-cabinet:has(> button:nth-child(4)) > button small[lang="ko"] {
+    font-size: clamp(0.78rem, 0.7vw, 0.94rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  html body #root .members-archive :is(.archive-public-return, .archive-godmode-link) span[lang="en"] {
+    font-size: 1rem !important;
+  }
+
+  html body #root .members-archive :is(.archive-public-return, .archive-godmode-link) small[lang="ko"] {
+    font-size: 0.76rem !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .members-archive .cabinet-opening {
+    min-height: 0;
+    padding: 1.25rem 1rem 1.5rem;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 0.7rem;
+  }
+
+  .members-archive .cabinet-opening h2[lang="en"] {
+    font-size: clamp(3.9rem, 20vw, 5.4rem) !important;
+  }
+
+  .members-archive .cabinet-opening > div > p[lang="en"] {
+    margin-top: 0.55rem !important;
+    font-size: 1.15rem !important;
+  }
+
+  .members-archive .cabinet-opening blockquote[lang="ko"] {
+    margin-top: 0.35rem !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .members-archive .cabinet-owner {
+    padding-block: 1.5rem;
+    gap: 1.1rem;
+  }
+
+  .members-archive .cabinet-owner h3[lang="en"] {
+    font-size: clamp(2.6rem, 12vw, 3.5rem) !important;
+  }
+
+  .members-archive .cabinet-owner dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .members-archive .cabinet-owner dl > div {
+    grid-template-columns: 1fr;
+  }
+
+  .members-archive .cabinet-rediscovery {
+    height: 20rem;
+    grid-template-columns: minmax(8rem, 0.38fr) minmax(0, 0.62fr);
+  }
+
+  .members-archive .cabinet-rediscovery figure {
+    min-height: 0;
+    height: 20rem;
+    max-height: none;
+  }
+
+  .members-archive .cabinet-rediscovery > div {
+    padding: 1rem;
+  }
+
+  .members-archive .cabinet-rediscovery h3[lang="en"] {
+    margin-bottom: 0.6rem !important;
+    font-size: clamp(1.85rem, 7.5vw, 2.35rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  .members-archive .cabinet-rediscovery p[lang="ko"] {
+    margin-bottom: 0.6rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .members-archive .cabinet-rediscovery small {
+    margin-bottom: 0.7rem;
+    font-size: 0.76rem;
+  }
+
+  .members-archive .cabinet-catalogue {
+    padding-block: 1.75rem;
+  }
+
+  .members-archive .cabinet-catalogue > header {
+    gap: 0.9rem;
+  }
+
+  .members-archive .cabinet-tools {
+    margin-top: 1rem;
+  }
+
+  .members-archive .cabinet-grid {
+    gap: 2.75rem;
+  }
+
+  .members-archive .cabinet-detail-image {
+    min-height: 18rem;
+    max-height: 52vh;
+  }
+}
