@@ -192,7 +192,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
-        <img src={featuredEvent.posterImage} alt={`${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
+        <img src={featuredEvent.posterImage} alt={featuredEvent.posterAlt ?? `${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
@@ -262,7 +262,7 @@ function PosterTile({
       <div className="poster-visual">
         <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`}>
           <div className="poster-frame">
-            <img src={event.posterImage} alt={`${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
+            <img src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
           </div>
         </a>
         <button

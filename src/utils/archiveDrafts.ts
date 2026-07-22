@@ -21,6 +21,7 @@ export type ArchiveEventDraft = Partial<
     | 'date'
     | 'status'
     | 'posterImage'
+    | 'posterAlt'
     | 'shortDescription'
     | 'longDescription'
     | 'passage'
@@ -33,6 +34,8 @@ export type ArchiveEventDraft = Partial<
     | 'ctaHref'
     | 'publishedAt'
     | 'updatedAt'
+    | 'publishAt'
+    | 'unpublishAt'
   >
 > & {
   createdAt?: string;
@@ -199,6 +202,7 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     date: draft.date || '새 기록',
     status: draft.status || 'upcoming',
     posterImage: draft.posterImage || fallback.posterImage,
+    posterAlt: draft.posterAlt || fallback.posterAlt,
     shortDescription: draft.shortDescription || '',
     longDescription: draft.longDescription || '',
     passage: listFromDraft(draft.passage, []),
@@ -211,6 +215,8 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     ctaHref: draft.ctaHref || `./archive/${id}/`,
     publishedAt: draft.publishedAt || fallback.publishedAt || new Date().toISOString().slice(0, 10),
     updatedAt: draft.updatedAt || fallback.updatedAt || new Date().toISOString().slice(0, 10),
+    publishAt: draft.publishAt || fallback.publishAt,
+    unpublishAt: draft.unpublishAt || fallback.unpublishAt,
   };
 }
 

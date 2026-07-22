@@ -24,6 +24,7 @@ export interface ArchiveRecordFormState {
   date: string;
   status: EventStatus;
   posterImage: string;
+  posterAlt: string;
   shortDescription: string;
   longDescription: string;
   passageText: string;
@@ -33,10 +34,26 @@ export interface ArchiveRecordFormState {
   relatedEventIdsText: string;
   location: string;
   ctaLabel: string;
+  publishAt: string;
+  unpublishAt: string;
 }
 
 export function splitArchiveFormList(value: string) {
   return value.split(/\n|\//).map((item) => item.trim()).filter(Boolean);
+}
+
+function toLocalDateTimeInput(value?: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value.slice(0, 16);
+  const localTime = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 16);
+}
+
+function toScheduledIso(value: string) {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
 }
 
 export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState {
@@ -54,6 +71,7 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
     date: event.date,
     status: event.status,
     posterImage: event.posterImage,
+    posterAlt: event.posterAlt ?? `${event.title} 포스터`,
     shortDescription: event.shortDescription,
     longDescription: event.longDescription,
     passageText: event.passage.join(' / '),
@@ -63,6 +81,8 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
     relatedEventIdsText: event.relatedEventIds.join(' / '),
     location: event.location,
     ctaLabel: event.ctaLabel,
+    publishAt: toLocalDateTimeInput(event.publishAt),
+    unpublishAt: toLocalDateTimeInput(event.unpublishAt),
   };
 }
 
@@ -81,6 +101,7 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
     date: form.date,
     status: form.status,
     posterImage: form.posterImage,
+    posterAlt: form.posterAlt || undefined,
     shortDescription: form.shortDescription,
     longDescription: form.longDescription,
     passage: splitArchiveFormList(form.passageText),
@@ -90,6 +111,8 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
     relatedEventIds: splitArchiveFormList(form.relatedEventIdsText),
     location: form.location,
     ctaLabel: form.ctaLabel,
+    publishAt: toScheduledIso(form.publishAt),
+    unpublishAt: toScheduledIso(form.unpublishAt),
     ...(event ? { ctaHref: event.ctaHref || `./archive/${event.id}/` } : {}),
   };
 }
@@ -145,6 +168,11 @@ export function validateArchiveRecordForm(
   if (splitArchiveFormList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
   if (splitArchiveFormList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
   if (splitArchiveFormList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
+  if (form.publishAt && Number.isNaN(new Date(form.publishAt).getTime())) return '공개 시작 시각을 확인하세요';
+  if (form.unpublishAt && Number.isNaN(new Date(form.unpublishAt).getTime())) return '공개 종료 시각을 확인하세요';
+  if (form.publishAt && form.unpublishAt && new Date(form.publishAt) >= new Date(form.unpublishAt)) {
+    return '공개 종료 시각은 공개 시작 시각보다 뒤여야 합니다';
+  }
 
   const knownReferenceIds = new Set(references.map((reference) => reference.id));
   const missingReference = splitArchiveFormList(form.referenceIdsText).find((id) => !knownReferenceIds.has(id));

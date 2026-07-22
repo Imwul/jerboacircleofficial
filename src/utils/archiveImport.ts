@@ -2,10 +2,12 @@ import type { ArchiveDraftMap, ArchiveEventDraft } from './archiveDrafts';
 import type { ArchiveReference, ArchiveReferenceKind } from '../data/archiveKnowledge';
 import type { ArchiveReferenceDraftMap } from './archiveReferenceDrafts';
 import type { ArchivePublicationManifest, ArchivePublicationMap } from './publicationLedger';
+import type { SiteText } from '../data/siteText';
+import type { ArchiveAuditEntry, ArchiveAuditAction } from './archiveAudit';
 
 const stringFields = new Set<keyof ArchiveEventDraft>([
-  'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage',
-  'shortDescription', 'longDescription', 'location', 'ctaLabel', 'ctaHref', 'publishedAt', 'updatedAt', 'createdAt', 'deletedAt',
+  'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage', 'posterAlt',
+  'shortDescription', 'longDescription', 'location', 'ctaLabel', 'ctaHref', 'publishedAt', 'updatedAt', 'createdAt', 'deletedAt', 'publishAt', 'unpublishAt',
 ]);
 const listFields = new Set<keyof ArchiveEventDraft>([
   'collectionIds', 'passage', 'materials', 'themes', 'referenceIds', 'relatedEventIds',
@@ -32,7 +34,7 @@ function assert(condition: unknown, message: string): asserts condition {
 
 function readDraftCandidate(payload: unknown) {
   assert(isRecord(payload), '파일의 최상위 구조가 올바르지 않습니다.');
-  if (typeof payload.version === 'number') assert(payload.version === 1 || payload.version === 2, '지원하지 않는 백업 파일 버전입니다.');
+  if (typeof payload.version === 'number') assert(payload.version === 1 || payload.version === 2 || payload.version === 3, '지원하지 않는 백업 파일 버전입니다.');
   if (typeof payload.type === 'string') {
     assert(
       payload.type === 'jerboa-archive-drafts' || payload.type === 'jerboa-sync-recovery',
@@ -44,16 +46,52 @@ function readDraftCandidate(payload: unknown) {
     drafts: payload.drafts,
     references: isRecord(payload.references) ? payload.references : {},
     publications: isRecord(payload.publications) ? payload.publications : {},
+    siteText: isRecord(payload.siteText) ? payload.siteText : {},
+    auditLog: Array.isArray(payload.auditLog) ? payload.auditLog : [],
   };
   if (isRecord(payload.data) && isRecord(payload.data.drafts)) {
     return {
       drafts: payload.data.drafts,
       references: isRecord(payload.data.references) ? payload.data.references : {},
       publications: isRecord(payload.data.publications) ? payload.data.publications : {},
+      siteText: isRecord(payload.data.siteText) ? payload.data.siteText : {},
+      auditLog: Array.isArray(payload.data.auditLog) ? payload.data.auditLog : [],
     };
   }
-  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) return { drafts: payload, references: {}, publications: {} };
+  if (!('type' in payload) && !('version' in payload) && !('data' in payload)) {
+    return { drafts: payload, references: {}, publications: {}, siteText: {}, auditLog: [] };
+  }
   throw new Error('파일에서 아카이브 초안을 찾을 수 없습니다.');
+}
+
+function validateSiteText(candidate: Record<string, unknown>) {
+  const entries = Object.entries(candidate);
+  assert(entries.length <= 500, '문구 필드가 너무 많습니다.');
+  const siteText: Partial<SiteText> = {};
+  entries.forEach(([key, value]) => {
+    assert(typeof value === 'string' && value.length <= 25_000, `문구 ${key} 값이 올바르지 않습니다.`);
+    siteText[key as keyof SiteText] = value;
+  });
+  return siteText;
+}
+
+const auditActions = new Set<ArchiveAuditAction>([
+  'create', 'duplicate', 'edit', 'delete', 'restore', 'import', 'publish', 'sync', 'conflict-resolved', 'backup-restored',
+]);
+
+function validateAuditLog(candidate: unknown[]) {
+  assert(candidate.length <= 500, '운영 기록이 500개를 넘어 적용할 수 없습니다.');
+  return candidate.map((entry, index) => {
+    assert(isRecord(entry), `운영 기록 ${index + 1}의 형식이 올바르지 않습니다.`);
+    assert(typeof entry.id === 'string' && entry.id.length <= 120, `운영 기록 ${index + 1}의 ID가 올바르지 않습니다.`);
+    assert(typeof entry.action === 'string' && auditActions.has(entry.action as ArchiveAuditAction), `운영 기록 ${index + 1}의 동작이 올바르지 않습니다.`);
+    assert(['programme', 'reference', 'site-text', 'archive'].includes(String(entry.targetType)), `운영 기록 ${index + 1}의 대상이 올바르지 않습니다.`);
+    assert(typeof entry.title === 'string' && entry.title.length <= 5_000, `운영 기록 ${index + 1}의 제목이 올바르지 않습니다.`);
+    assert(typeof entry.createdAt === 'string' && !Number.isNaN(new Date(entry.createdAt).getTime()), `운영 기록 ${index + 1}의 시각이 올바르지 않습니다.`);
+    assert(entry.targetId === undefined || (typeof entry.targetId === 'string' && entry.targetId.length <= 120), `운영 기록 ${index + 1}의 대상 ID가 올바르지 않습니다.`);
+    assert(entry.detail === undefined || (typeof entry.detail === 'string' && entry.detail.length <= 25_000), `운영 기록 ${index + 1}의 설명이 올바르지 않습니다.`);
+    return entry as unknown as ArchiveAuditEntry;
+  });
 }
 
 const referenceKinds = new Set<ArchiveReferenceKind>(['book', 'artwork', 'quotation', 'image', 'place', 'theme']);
@@ -141,7 +179,9 @@ export function parseArchiveDraftImport(payload: unknown) {
   const entries = Object.entries(candidate.drafts);
   const references = validateReferences(candidate.references);
   const { publications, publicationCount } = validatePublications(candidate.publications);
-  assert(entries.length > 0 || Object.keys(references).length > 0 || publicationCount > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
+  const siteText = validateSiteText(candidate.siteText);
+  const auditLog = validateAuditLog(candidate.auditLog);
+  assert(entries.length > 0 || Object.keys(references).length > 0 || publicationCount > 0 || Object.keys(siteText).length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
   assert(entries.length <= 1_000, '초안 기록이 1,000개를 넘어 적용할 수 없습니다.');
 
   const drafts: ArchiveDraftMap = {};
@@ -154,5 +194,5 @@ export function parseArchiveDraftImport(payload: unknown) {
     fieldCount += Object.keys(draft).length;
   });
 
-  return { drafts, references, publications, recordCount: entries.length, referenceCount: Object.keys(references).length, publicationCount, fieldCount };
+  return { drafts, references, publications, siteText, auditLog, recordCount: entries.length, referenceCount: Object.keys(references).length, publicationCount, fieldCount };
 }

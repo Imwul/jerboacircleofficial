@@ -49,6 +49,7 @@ export interface ArchiveEvent {
   date: string;
   status: EventStatus;
   posterImage: string;
+  posterAlt?: string;
   shortDescription: string;
   longDescription: string;
   passage: string[];
@@ -61,6 +62,8 @@ export interface ArchiveEvent {
   ctaHref: string;
   publishedAt: string;
   updatedAt: string;
+  publishAt?: string;
+  unpublishAt?: string;
 }
 
 export const archiveSeasons: ArchiveSeason[] = [
@@ -248,7 +251,13 @@ export const events: ArchiveEvent[] = [
 ];
 
 export function isPublicArchiveEvent(event: ArchiveEvent) {
-  return event.visibility === 'public' && event.workflowStatus === 'published';
+  const now = Date.now();
+  const publishAt = event.publishAt ? new Date(event.publishAt).getTime() : null;
+  const unpublishAt = event.unpublishAt ? new Date(event.unpublishAt).getTime() : null;
+  return event.visibility === 'public'
+    && event.workflowStatus === 'published'
+    && (publishAt === null || (Number.isFinite(publishAt) && publishAt <= now))
+    && (unpublishAt === null || (Number.isFinite(unpublishAt) && unpublishAt > now));
 }
 
 export function getPublicArchiveEvents(records: ArchiveEvent[] = events) {

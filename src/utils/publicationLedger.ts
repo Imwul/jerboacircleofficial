@@ -156,6 +156,9 @@ export function comparePublicationManifest(
     { key: 'latinQuote', label: '인용문' },
     { key: 'marginalia', label: '여백 문장' },
     { key: 'date', label: '표시 일자' },
+    { key: 'posterAlt', label: '포스터 대체 설명' },
+    { key: 'publishAt', label: '공개 시작 시각' },
+    { key: 'unpublishAt', label: '공개 종료 시각' },
     { key: 'status', label: '프로그램 상태' },
     { key: 'shortDescription', label: '짧은 설명' },
     { key: 'longDescription', label: '긴 설명' },
@@ -242,6 +245,12 @@ export function inspectPublicationReadiness(
   requiredText.forEach(([key, label]) => {
     if (!String(event[key]).trim()) issues.push({ id: `required-${String(key)}`, severity: 'error', message: `${label}이 비어 있습니다.` });
   });
+  if (event.posterImage.startsWith('data:')) {
+    issues.push({ id: 'embedded-poster', severity: 'error', message: '포스터를 공동 이미지 저장소로 옮긴 뒤 발행하세요.' });
+  }
+  if (!event.posterAlt?.trim()) {
+    issues.push({ id: 'poster-alt', severity: 'warning', message: '포스터 대체 텍스트를 입력하면 화면 읽기 도구에서도 기록을 이해할 수 있습니다.' });
+  }
   if (event.visibility !== 'public') issues.push({ id: 'visibility', severity: 'error', message: '공개 상태가 public이어야 발행할 수 있습니다.' });
   if (event.workflowStatus !== 'published') issues.push({ id: 'workflow', severity: 'error', message: '발행 단계가 published여야 합니다.' });
   if (event.collectionIds.length === 0) issues.push({ id: 'collections', severity: 'error', message: '공개 컬렉션을 하나 이상 연결해야 합니다.' });
@@ -249,6 +258,18 @@ export function inspectPublicationReadiness(
   if (event.materials.length === 0) issues.push({ id: 'materials', severity: 'error', message: '자료 묶음을 하나 이상 기록해야 합니다.' });
   if (event.themes.length === 0) issues.push({ id: 'themes', severity: 'error', message: '주제를 하나 이상 기록해야 합니다.' });
   if (event.referenceIds.length === 0) issues.push({ id: 'references', severity: 'warning', message: '연결된 원전 없이 발행됩니다. 필요할 때 나중에 덧붙일 수 있습니다.' });
+  if (event.publishAt) {
+    const publishAt = new Date(event.publishAt).getTime();
+    if (Number.isNaN(publishAt)) issues.push({ id: 'publish-at-invalid', severity: 'error', message: '예약 공개 시작 시각을 확인하세요.' });
+    if (publishAt > Date.now()) issues.push({ id: 'publish-at-future', severity: 'warning', message: `${new Date(publishAt).toLocaleString('ko-KR')}에 자동 공개됩니다.` });
+  }
+  if (event.unpublishAt) {
+    const unpublishAt = new Date(event.unpublishAt).getTime();
+    if (Number.isNaN(unpublishAt)) issues.push({ id: 'unpublish-at-invalid', severity: 'error', message: '예약 공개 종료 시각을 확인하세요.' });
+    if (event.publishAt && unpublishAt <= new Date(event.publishAt).getTime()) {
+      issues.push({ id: 'schedule-order', severity: 'error', message: '공개 종료 시각은 공개 시작 시각보다 뒤여야 합니다.' });
+    }
+  }
 
   const candidateRecords = records.map((record) => record.id === event.id ? event : record);
   const referenceIds = new Set(event.referenceIds);

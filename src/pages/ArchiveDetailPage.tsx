@@ -5,6 +5,7 @@ import {
   defaultArchiveContentKinds,
   events,
   getCollectionsForEvent,
+  isPublicArchiveEvent,
   getSeasonById,
   type ArchiveContentKind,
   type ArchiveEvent,
@@ -34,6 +35,7 @@ import {
   type ArchiveReference,
 } from '../data/archiveKnowledge';
 import { resizeImage } from '../utils/imageUtils';
+import { uploadArchiveImage } from '../utils/cabinetMedia';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
@@ -53,6 +55,8 @@ import {
   writeArchiveReferenceDrafts,
   type ArchiveReferenceDraftMap,
 } from '../utils/archiveReferenceDrafts';
+import { readArchivePublications, type ArchivePublicationMap } from '../utils/publicationLedger';
+import { readArchiveAuditLog, recordArchiveAudit, type ArchiveAuditEntry } from '../utils/archiveAudit';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -62,6 +66,8 @@ interface ArchiveSyncPayload {
   drafts?: ArchiveDraftMap;
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;
+  publications?: ArchivePublicationMap;
+  auditLog?: ArchiveAuditEntry[];
 }
 
 function detailRootHref() {
@@ -108,13 +114,15 @@ function DetailKeeperPanel({
 
   function createDetailArchivePayload(nextDraft: ArchiveEventDraft) {
     return {
-      schemaVersion: 2 as const,
+      schemaVersion: 3 as const,
       drafts: {
         ...readArchiveDrafts(),
         [event.id]: nextDraft,
       },
       siteText: getSiteText(),
       references: readArchiveReferenceDrafts(),
+      publications: readArchivePublications(),
+      auditLog: readArchiveAuditLog(),
     };
   }
 
@@ -155,8 +163,12 @@ function DetailKeeperPanel({
     try {
       setStatus('새 도판을 웹용으로 줄이는 중');
       const resizedPoster = await resizeImage(file, 1600, 2200);
-      updateField('posterImage', resizedPoster);
-      setStatus('새 도판이 초안에 붙었습니다');
+      const authSession = roleSessionToken('archive-editor');
+      if (!authSession) throw new Error('archive_media_session_required');
+      const posterUrl = await uploadArchiveImage(resizedPoster, file.name, authSession);
+      updateField('posterImage', posterUrl);
+      if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
+      setStatus('새 도판이 공동 이미지 저장소에 붙었습니다');
     } catch (error) {
       console.error('Poster upload failed:', error);
       setStatus('도판을 읽을 수 없음');
@@ -173,6 +185,7 @@ function DetailKeeperPanel({
       return;
     }
     writeArchiveDraft(event.id, toDetailDraft(form, event), { label: form.workflowStatus });
+    recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: event.id, title: form.title, detail: '상세 미리보기 편집층' });
     setStatus('로컬 초안 보관 중');
     onSaved();
   }
@@ -186,6 +199,7 @@ function DetailKeeperPanel({
       }
       const nextDraft = toDetailDraft(form, event);
       writeArchiveDraft(event.id, nextDraft, { label: form.workflowStatus });
+      recordArchiveAudit({ action: 'sync', targetType: 'programme', targetId: event.id, title: form.title, detail: '상세 미리보기 편집층' });
       const authSession = roleSessionToken('archive-editor');
       if (!authSession) {
         setStatus('아카이브 편집자 역할 확인이 필요합니다');
@@ -318,9 +332,13 @@ function DetailKeeperPanel({
             <span>포스터 URL</span>
             <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
           </label>
+          <label>
+            <span>포스터 대체 텍스트</span>
+            <input value={form.posterAlt} onChange={(event) => updateField('posterAlt', event.target.value)} />
+          </label>
           <div className="keeper-poster-upload">
             <figure>
-              <img src={form.posterImage} alt="" />
+              <img src={form.posterImage} alt={form.posterAlt} />
             </figure>
             <label>
               <span>새 도판 붙이기</span>
@@ -329,6 +347,16 @@ function DetailKeeperPanel({
             </label>
           </div>
           <div className="detail-keeper-taxonomy">
+            <div className="detail-keeper-grid">
+              <label>
+                <span>예약 공개 시작</span>
+                <input type="datetime-local" value={form.publishAt} onChange={(event) => updateField('publishAt', event.target.value)} />
+              </label>
+              <label>
+                <span>예약 공개 종료</span>
+                <input type="datetime-local" value={form.unpublishAt} onChange={(event) => updateField('unpublishAt', event.target.value)} />
+              </label>
+            </div>
             <label>
               <span>여정</span>
               <textarea rows={4} value={form.passageText} onChange={(event) => updateField('passageText', event.target.value)} />
@@ -410,6 +438,7 @@ function EventDetail({
   onSaved,
   serverSavedAt,
   onServerSavedAt,
+  isPreview,
 }: {
   event: ArchiveEvent;
   archiveEvents: ArchiveEvent[];
@@ -418,11 +447,12 @@ function EventDetail({
   onSaved: () => void;
   serverSavedAt: string | null;
   onServerSavedAt: (savedAt: string | null) => void;
+  isPreview: boolean;
 }) {
   const season = getSeasonById(event.seasonId);
   const collections = getCollectionsForEvent(event);
   const relationRecords = archiveEvents.filter((record) => (
-    record.visibility !== 'private' && record.workflowStatus !== 'archived'
+    isPreview ? record.workflowStatus !== 'archived' : isPublicArchiveEvent(record)
   ));
   const references: ArchiveReference[] = getArchiveReferencesForEvent(event, referenceRecords);
   const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords, referenceRecords);
@@ -441,9 +471,14 @@ function EventDetail({
         </nav>
       </header>
       {roleSessionToken('archive-editor') && <ConnectivityNotice context="기록 편집기" />}
+      {isPreview && (
+        <p className="detail-preview-notice" role="status" lang="ko">
+          Keeper 초안 미리보기입니다. 이 주소는 일반 방문자에게 공개되지 않습니다.
+        </p>
+      )}
       <main className="detail-record section-reveal">
         <aside className="detail-poster">
-          <img src={event.posterImage} alt={`${event.title} poster`} decoding="async" width={1200} height={1600} />
+          <img src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
         </aside>
         <article className="detail-copy">
           <p className="section-kicker">
@@ -551,13 +586,14 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const knownRecord = useMemo(() => archiveEvents.find((archiveEvent) => archiveEvent.id === id), [archiveEvents, id]);
+  const isPreview = new URLSearchParams(window.location.search).get('preview') === '1'
+    && (import.meta.env.DEV || Boolean(roleSessionToken('archive-editor')));
   const event = useMemo(
     () => archiveEvents.find((archiveEvent) => (
       archiveEvent.id === id
-      && archiveEvent.visibility !== 'private'
-      && archiveEvent.workflowStatus !== 'archived'
+      && (isPreview || isPublicArchiveEvent(archiveEvent))
     )),
-    [archiveEvents, id],
+    [archiveEvents, id, isPreview],
   );
 
   usePageMetadata({
@@ -565,7 +601,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     description: event ? event.shortDescription : 'Jerboa Circle archive record was not found.',
     canonicalPath: event ? `/archive/${event.id}/` : undefined,
     image: event?.posterImage,
-    noIndex: !event || event.visibility !== 'public' || event.workflowStatus !== 'published',
+    noIndex: isPreview || !event || !isPublicArchiveEvent(event),
     type: event ? 'article' : 'website',
   });
 
@@ -574,24 +610,25 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
 
     async function loadPublicArchive() {
       try {
-        const result = await loadServerSync<ArchiveSyncPayload>('archive');
+        const result = await loadServerSync<ArchiveSyncPayload>('archive', '', {
+          authSession: isPreview ? roleSessionToken('archive-editor') : null,
+        });
         if (ignore) return;
         if (!result.exists || !result.saved?.data) {
           setArchiveSyncState('ready');
           return;
         }
 
-        if (result.saved.data.drafts) {
+        if (!isPreview && result.saved.data.drafts) {
           writeArchiveDrafts(result.saved.data.drafts);
         }
 
-        if (result.saved.data.siteText) {
+        if (!isPreview && result.saved.data.siteText) {
           writeSiteTextDraft(result.saved.data.siteText);
           setSiteText(getSiteText());
         }
 
-
-        if (result.saved.data.references) {
+        if (!isPreview && result.saved.data.references) {
           writeArchiveReferenceDrafts(result.saved.data.references);
         }
 
@@ -611,7 +648,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [isPreview]);
 
   useEffect(() => {
     if (!event) return;
@@ -679,6 +716,7 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
       onSaved={() => setVersion((current) => current + 1)}
       onServerSavedAt={setServerSavedAt}
       serverSavedAt={serverSavedAt}
+      isPreview={isPreview}
       siteText={siteText}
     />
   );

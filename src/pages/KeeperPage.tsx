@@ -35,6 +35,7 @@ import {
   writeSiteTextDraft,
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
+import { uploadArchiveImage } from '../utils/cabinetMedia';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, clearRoleSession, readRoleSession, roleSessionToken } from '../utils/roleAuth';
@@ -79,6 +80,18 @@ import {
   writeArchivePublications,
   type ArchivePublicationMap,
 } from '../utils/publicationLedger';
+import {
+  readArchiveAuditLog,
+  recordArchiveAudit,
+  writeArchiveAuditLog,
+  type ArchiveAuditEntry,
+} from '../utils/archiveAudit';
+import {
+  checkArchiveLinks,
+  loadArchiveOperationalStatus,
+  restoreArchiveBackup,
+  type ArchiveOperationalStatus,
+} from '../utils/archiveOps';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -89,6 +102,7 @@ interface ArchiveSyncPayload {
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;
   publications?: ArchivePublicationMap;
+  auditLog?: ArchiveAuditEntry[];
 }
 
 type ReferenceFormState = Omit<ArchiveReference, 'id'> & { id: string };
@@ -127,14 +141,21 @@ function validateReferenceForm(form: ReferenceFormState, references: ArchiveRefe
 }
 
 type KeeperPendingAction =
-  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; publications: ArchivePublicationMap; recordCount: number; referenceCount: number; publicationCount: number; fieldCount: number }
+  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; publications: ArchivePublicationMap; siteText: Partial<SiteText>; auditLog: ArchiveAuditEntry[]; recordCount: number; referenceCount: number; publicationCount: number; fieldCount: number; diffSummary: string }
   | { kind: 'clear' }
   | { kind: 'restore'; revisionId: string; title: string }
   | { kind: 'restore-publication'; publicationId: string; title: string; contentHash: string }
   | { kind: 'publish'; title: string; warningCount: number }
-  | { kind: 'delete-record'; id: string; title: string }
-  | { kind: 'delete-reference'; id: string; title: string }
+  | { kind: 'delete-record'; id: string; title: string; impactSummary: string }
+  | { kind: 'delete-reference'; id: string; title: string; impactSummary: string }
+  | { kind: 'restore-backup'; pathname: string; title: string }
   | null;
+
+interface ArchiveConflictState {
+  remote: ArchiveSyncPayload;
+  remoteSavedAt: string;
+  local: ArchiveSyncPayload;
+}
 
 const siteTextFields: Array<{
   key: keyof SiteText;
@@ -213,6 +234,52 @@ function nextEditionLabel(records: ArchiveEvent[]) {
   return `Edition ${String(highestEdition + 1).padStart(3, '0')}`;
 }
 
+function changedMapCount(left: Record<string, unknown> = {}, right: Record<string, unknown> = {}) {
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return [...keys].filter((key) => JSON.stringify(left[key]) !== JSON.stringify(right[key])).length;
+}
+
+function archivePayloadChangeCount(left: ArchiveSyncPayload | null, right: ArchiveSyncPayload) {
+  if (!left) return 0;
+  return changedMapCount(left.drafts, right.drafts)
+    + changedMapCount(left.references, right.references)
+    + changedMapCount(left.siteText as Record<string, unknown>, right.siteText as Record<string, unknown>)
+    + changedMapCount(left.publications, right.publications)
+    + (JSON.stringify(left.auditLog ?? []) === JSON.stringify(right.auditLog ?? []) ? 0 : 1);
+}
+
+function importDiffSummary(current: ArchiveSyncPayload, incoming: ArchiveSyncPayload) {
+  const describe = (label: string, left: Record<string, unknown> = {}, right: Record<string, unknown> = {}) => {
+    const leftKeys = new Set(Object.keys(left));
+    const rightKeys = new Set(Object.keys(right));
+    const added = [...rightKeys].filter((key) => !leftKeys.has(key)).length;
+    const removed = [...leftKeys].filter((key) => !rightKeys.has(key)).length;
+    const changed = [...rightKeys].filter((key) => leftKeys.has(key) && JSON.stringify(left[key]) !== JSON.stringify(right[key])).length;
+    return `${label} 추가 ${added} · 수정 ${changed} · 제외 ${removed}`;
+  };
+  return [
+    describe('프로그램', current.drafts, incoming.drafts),
+    describe('자료', current.references, incoming.references),
+    describe('공개 문구', current.siteText as Record<string, unknown>, incoming.siteText as Record<string, unknown>),
+    describe('발행본', current.publications, incoming.publications),
+  ].join(' / ');
+}
+
+function mergePublicationMaps(remote: ArchivePublicationMap = {}, local: ArchivePublicationMap = {}) {
+  const merged: ArchivePublicationMap = { ...remote };
+  Object.entries(local).forEach(([recordId, publications]) => {
+    const existing = merged[recordId] ?? [];
+    merged[recordId] = [...publications, ...existing.filter((item) => !publications.some((localItem) => localItem.id === item.id))];
+  });
+  return merged;
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1_024) return `${bytes} B`;
+  if (bytes < 1_048_576) return `${(bytes / 1_024).toFixed(1)} KB`;
+  return `${(bytes / 1_048_576).toFixed(2)} MB`;
+}
+
 function timeLabel(date = new Date()) {
   return date.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -266,6 +333,21 @@ export default function KeeperPage() {
   const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
   const [pendingAction, setPendingAction] = useState<KeeperPendingAction>(null);
   const [listQuery, setListQuery] = useState('');
+  const [workflowFilter, setWorkflowFilter] = useState<ArchiveWorkflowStatus | 'all'>('all');
+  const [visibilityFilter, setVisibilityFilter] = useState<ArchiveVisibility | 'all'>('all');
+  const [kindFilter, setKindFilter] = useState<string>('all');
+  const [sharedSnapshot, setSharedSnapshot] = useState<ArchiveSyncPayload | null>(null);
+  const [lastLocalSavedAt, setLastLocalSavedAt] = useState<string | null>(null);
+  const [conflictState, setConflictState] = useState<ArchiveConflictState | null>(null);
+  const [conflictChoices, setConflictChoices] = useState<{
+    drafts: 'local' | 'remote';
+    references: 'local' | 'remote';
+    siteText: 'local' | 'remote';
+  }>({ drafts: 'local', references: 'local', siteText: 'local' });
+  const [showOperations, setShowOperations] = useState(false);
+  const [operationsStatus, setOperationsStatus] = useState<ArchiveOperationalStatus | null>(null);
+  const [operationsBusy, setOperationsBusy] = useState(false);
+  const [linkCheckResults, setLinkCheckResults] = useState<Array<{ url: string; ok: boolean; status?: number; error?: string }>>([]);
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isReferenceDirty = JSON.stringify(referenceForm) !== JSON.stringify(toReferenceForm(selectedReference));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
@@ -292,6 +374,32 @@ export default function KeeperPage() {
     if (mode === 'references') return !issue.referenceId || issue.referenceId === selectedReference.id;
     return !issue.recordId || issue.recordId === selectedEvent.id;
   });
+  const currentPayload = useMemo<ArchiveSyncPayload>(() => ({
+    schemaVersion: 3,
+    drafts: {
+      ...readArchiveDrafts(),
+      ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
+    },
+    siteText: siteTextForm,
+    references: {
+      ...readArchiveReferenceDrafts(),
+      ...(isReferenceDirty ? { [referenceForm.id]: referenceForm } : {}),
+    },
+    publications: readArchivePublications(),
+    auditLog: readArchiveAuditLog(),
+  }), [form, isDirty, isReferenceDirty, referenceForm, siteTextForm, version]);
+  const unsyncedChangeCount = useMemo(
+    () => archivePayloadChangeCount(sharedSnapshot, currentPayload),
+    [currentPayload, sharedSnapshot],
+  );
+  const duplicateReference = useMemo(() => {
+    const sourceUrl = referenceForm.sourceUrl?.trim().replace(/\/$/, '');
+    if (!sourceUrl) return null;
+    return referenceRecords.find((reference) => (
+      reference.id !== referenceForm.id
+      && reference.sourceUrl?.trim().replace(/\/$/, '') === sourceUrl
+    )) ?? null;
+  }, [referenceForm.id, referenceForm.sourceUrl, referenceRecords]);
   const deletedRecordDrafts = useMemo(() => Object.entries(readArchiveDrafts())
     .filter(([, draft]) => Boolean(draft.deletedAt))
     .map(([id, draft]) => ({
@@ -301,14 +409,19 @@ export default function KeeperPage() {
   const deletedReferenceDrafts = useMemo(() => Object.values(readArchiveReferenceDrafts())
     .filter((reference) => Boolean(reference.deletedAt))
     .map((reference) => ({ id: reference.id, title: reference.title })), [version]);
-  const programmeKinds = useMemo(() => [...defaultArchiveContentKinds], []);
+  const programmeKinds = useMemo(() => Array.from(new Set([
+    ...defaultArchiveContentKinds,
+    ...archiveEvents.map((event) => event.kind),
+  ])), [archiveEvents]);
   const visibleArchiveEvents = useMemo(() => {
     const query = listQuery.trim().toLocaleLowerCase('ko-KR');
-    if (!query) return archiveEvents;
     return archiveEvents.filter((event) => (
-      `${event.edition} ${event.title} ${event.kind}`.toLocaleLowerCase('ko-KR').includes(query)
+      (!query || `${event.edition} ${event.title} ${event.kind}`.toLocaleLowerCase('ko-KR').includes(query))
+      && (workflowFilter === 'all' || event.workflowStatus === workflowFilter)
+      && (visibilityFilter === 'all' || event.visibility === visibilityFilter)
+      && (kindFilter === 'all' || event.kind === kindFilter)
     ));
-  }, [archiveEvents, listQuery]);
+  }, [archiveEvents, kindFilter, listQuery, visibilityFilter, workflowFilter]);
   const visibleReferenceRecords = useMemo(() => {
     const query = listQuery.trim().toLocaleLowerCase('ko-KR');
     if (!query) return referenceRecords;
@@ -342,6 +455,7 @@ export default function KeeperPage() {
     const timer = window.setTimeout(() => {
       writeArchiveDraft(selectedEvent.id, toDraft(form), { label: 'automatic local draft', recordRevision: false });
       setVersion((current) => current + 1);
+      setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`프로그램 수정 자동 보관됨 / ${timeLabel()}`);
     }, 650);
     return () => window.clearTimeout(timer);
@@ -353,6 +467,7 @@ export default function KeeperPage() {
       const savedReference = writeArchiveReferenceDraft(referenceForm);
       setReferenceForm(savedReference);
       setVersion((current) => current + 1);
+      setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`자료 수정 자동 보관됨 / ${timeLabel()}`);
     }, 650);
     return () => window.clearTimeout(timer);
@@ -362,6 +477,7 @@ export default function KeeperPage() {
     if (!isAccessGranted || !isTextDirty) return;
     const timer = window.setTimeout(() => {
       writeSiteTextDraft(siteTextForm);
+      setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`문구 수정 자동 보관됨 / ${timeLabel()}`);
     }, 650);
     return () => window.clearTimeout(timer);
@@ -439,6 +555,9 @@ export default function KeeperPage() {
     if (mode === 'text' && isTextDirty) writeSiteTextDraft(siteTextForm);
     setMode(nextMode);
     setListQuery('');
+    setWorkflowFilter('all');
+    setVisibilityFilter('all');
+    setKindFilter('all');
     setVersion((current) => current + 1);
   }
 
@@ -456,6 +575,8 @@ export default function KeeperPage() {
     const savedReference = writeArchiveReferenceDraft(referenceForm);
     setReferenceForm(savedReference);
     setSelectedReferenceId(savedReference.id);
+    recordArchiveAudit({ action: 'edit', targetType: 'reference', targetId: savedReference.id, title: savedReference.title });
+    setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus(`자료 초안 봉인됨 / ${timeLabel()}`);
   }
@@ -471,6 +592,8 @@ export default function KeeperPage() {
     const savedReference = writeArchiveReferenceDraft(nextReference);
     setSelectedReferenceId(nextId);
     setReferenceForm(toReferenceForm(savedReference));
+    recordArchiveAudit({ action: 'create', targetType: 'reference', targetId: nextId, title: savedReference.title });
+    setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus('새 자료 초안 생성됨');
   }
@@ -501,6 +624,8 @@ export default function KeeperPage() {
       return;
     }
     writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
+    recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: selectedEvent.id, title: form.title });
+    setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus(`로컬 초안 봉인됨 / ${timeLabel()}`);
   }
@@ -513,6 +638,8 @@ export default function KeeperPage() {
       return;
     }
     writeSiteTextDraft(siteTextForm);
+    recordArchiveAudit({ action: 'edit', targetType: 'site-text', title: '공개 문구 장부' });
+    setLastLocalSavedAt(new Date().toISOString());
     setSyncStatus(`문구실 초안 봉인됨 / ${timeLabel()}`);
   }
 
@@ -567,12 +694,49 @@ export default function KeeperPage() {
     };
 
     writeArchiveDraft(nextId, nextDraft, { label: 'new draft' });
+    recordArchiveAudit({ action: 'create', targetType: 'programme', targetId: nextId, title: nextDraft.title ?? nextId });
     const nextEvents = applyArchiveDrafts(events);
     const nextEvent = nextEvents.find((event) => event.id === nextId) ?? nextEvents[0];
     setSelectedId(nextEvent.id);
     setForm(toFormState(nextEvent));
+    setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus('새 기록 초안 생성됨 / 공동 장부에 봉인하면 공개됩니다');
+  }
+
+  function duplicateSelectedRecord() {
+    const nextId = makeRecordId(`${form.title}-copy`);
+    const nextDraft: ArchiveEventDraft = {
+      ...toDraft(form),
+      edition: nextEditionLabel(archiveEvents),
+      title: `${form.title} 복제본`,
+      visibility: 'private',
+      workflowStatus: 'draft',
+      status: 'upcoming',
+      publishAt: undefined,
+      unpublishAt: undefined,
+      publishedAt: undefined,
+      ctaHref: `./archive/${nextId}/`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isCustom: true,
+    };
+    writeArchiveDraft(nextId, nextDraft, { label: `duplicated from ${selectedEvent.id}` });
+    recordArchiveAudit({
+      action: 'duplicate',
+      targetType: 'programme',
+      targetId: nextId,
+      title: nextDraft.title ?? nextId,
+      detail: `원본 ${selectedEvent.title}`,
+    });
+    const duplicated = applyArchiveDrafts(events).find((event) => event.id === nextId);
+    if (duplicated) {
+      setSelectedId(duplicated.id);
+      setForm(toFormState(duplicated));
+    }
+    setLastLocalSavedAt(new Date().toISOString());
+    setVersion((current) => current + 1);
+    setSyncStatus('프로그램 복제본 생성됨 / 비공개 초안으로 시작합니다');
   }
 
   async function resolveArchiveAuth() {
@@ -598,11 +762,23 @@ export default function KeeperPage() {
   }
 
   function requestDeleteRecord() {
-    setPendingAction({ kind: 'delete-record', id: selectedEvent.id, title: selectedEvent.title });
+    const inboundLinks = archiveEvents.filter((record) => record.id !== selectedEvent.id && record.relatedEventIds.includes(selectedEvent.id));
+    const publicationCount = selectedPublications.length;
+    const impactSummary = [
+      inboundLinks.length > 0 ? `다른 프로그램 ${inboundLinks.length}개의 연결이 정리됩니다` : '다른 프로그램의 연결은 없습니다',
+      publicationCount > 0 ? `발행 이력 ${publicationCount}개는 감사 기록으로 남습니다` : '발행 이력은 없습니다',
+    ].join(' · ');
+    setPendingAction({ kind: 'delete-record', id: selectedEvent.id, title: selectedEvent.title, impactSummary });
   }
 
   function requestDeleteReference() {
-    setPendingAction({ kind: 'delete-reference', id: selectedReference.id, title: selectedReference.title });
+    const programmes = archiveEvents.filter((record) => record.referenceIds.includes(selectedReference.id));
+    const children = referenceRecords.filter((reference) => reference.parentId === selectedReference.id);
+    const impactSummary = [
+      programmes.length > 0 ? `프로그램 ${programmes.length}개의 자료 연결이 정리됩니다` : '프로그램 연결은 없습니다',
+      children.length > 0 ? `하위 자료 ${children.length}개의 상위 원전 연결이 풀립니다` : '하위 자료 연결은 없습니다',
+    ].join(' · ');
+    setPendingAction({ kind: 'delete-reference', id: selectedReference.id, title: selectedReference.title, impactSummary });
   }
 
   function performDeleteRecord(id: string) {
@@ -620,6 +796,7 @@ export default function KeeperPage() {
       };
     });
     writeArchiveDrafts(nextDrafts);
+    recordArchiveAudit({ action: 'delete', targetType: 'programme', targetId: id, title: selectedEvent.title });
     const remaining = applyArchiveDrafts(events);
     const nextRecord = remaining[0];
     if (nextRecord) {
@@ -651,6 +828,7 @@ export default function KeeperPage() {
         writeArchiveReferenceDraft({ ...reference, parentId: undefined });
       }
     });
+    recordArchiveAudit({ action: 'delete', targetType: 'reference', targetId: id, title: currentReference.title });
 
     const remaining = applyArchiveReferenceDrafts(archiveReferences);
     const nextReference = remaining[0];
@@ -669,6 +847,7 @@ export default function KeeperPage() {
       setSelectedId(restored.id);
       setForm(toFormState(restored));
     }
+    recordArchiveAudit({ action: 'restore', targetType: 'programme', targetId: id, title: restored?.title ?? id });
     setVersion((current) => current + 1);
     setSyncStatus('삭제한 프로그램을 복원했습니다 / 관계 연결은 필요하면 다시 선택하세요');
   }
@@ -680,11 +859,12 @@ export default function KeeperPage() {
       setSelectedReferenceId(restored.id);
       setReferenceForm(toReferenceForm(restored));
     }
+    recordArchiveAudit({ action: 'restore', targetType: 'reference', targetId: id, title: restored?.title ?? id });
     setVersion((current) => current + 1);
     setSyncStatus('삭제한 자료를 복원했습니다 / 프로그램 연결은 필요하면 다시 선택하세요');
   }
 
-  function createArchiveSyncPayload(overrides: { drafts?: ArchiveDraftMap; publications?: ArchivePublicationMap } = {}) {
+  function createArchiveSyncPayload(overrides: Partial<ArchiveSyncPayload> = {}): ArchiveSyncPayload {
     const drafts = overrides.drafts ?? {
       ...readArchiveDrafts(),
       ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
@@ -692,13 +872,94 @@ export default function KeeperPage() {
     return {
       schemaVersion: 3 as const,
       drafts,
-      siteText: siteTextForm,
-      references: {
+      siteText: overrides.siteText ?? siteTextForm,
+      references: overrides.references ?? {
         ...readArchiveReferenceDrafts(),
         ...(isReferenceDirty ? { [referenceForm.id]: referenceForm } : {}),
       },
       publications: overrides.publications ?? readArchivePublications(),
+      auditLog: overrides.auditLog ?? readArchiveAuditLog(),
     };
+  }
+
+  function applyArchivePayload(payload: ArchiveSyncPayload, savedAt?: string | null) {
+    if (payload.drafts) writeArchiveDrafts(payload.drafts);
+    if (payload.siteText) {
+      const nextSiteText = mergeSiteText(payload.siteText);
+      writeSiteTextDraft(nextSiteText);
+      setSiteTextForm(nextSiteText);
+    }
+    if (payload.references) writeArchiveReferenceDrafts(payload.references);
+    if (payload.publications) writeArchivePublications(payload.publications);
+    if (payload.auditLog) writeArchiveAuditLog(payload.auditLog);
+
+    const nextEvents = applyArchiveDrafts(events);
+    const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
+    if (nextSelected) {
+      setSelectedId(nextSelected.id);
+      setForm(toFormState(nextSelected));
+    }
+    const nextReferences = applyArchiveReferenceDrafts(archiveReferences);
+    const nextReference = nextReferences.find((reference) => reference.id === selectedReferenceId) ?? nextReferences[0];
+    if (nextReference) {
+      setSelectedReferenceId(nextReference.id);
+      setReferenceForm(toReferenceForm(nextReference));
+    }
+    setArchiveSavedAt(savedAt ?? null);
+    setLastLocalSavedAt(new Date().toISOString());
+    setVersion((current) => current + 1);
+  }
+
+  async function prepareArchiveConflict(local: ArchiveSyncPayload, remoteSavedAt?: string | null) {
+    try {
+      const auth = await resolveArchiveAuth();
+      const result = await loadServerSync<ArchiveSyncPayload>('archive', auth.syncKey, { authSession: auth.authSession });
+      if (result.exists && result.saved?.data) {
+        setConflictState({ local, remote: result.saved.data, remoteSavedAt: result.saved.savedAt });
+        setArchiveSavedAt(result.saved.savedAt);
+        setSyncStatus('공동 장부와 로컬 초안의 차이를 아래에서 선택하세요');
+      } else {
+        setArchiveSavedAt(remoteSavedAt ?? null);
+      }
+    } catch (error) {
+      console.error('Archive conflict comparison failed:', error);
+      setSyncStatus('충돌 비교를 열 수 없음 / 로컬 복구 파일을 먼저 받아두세요');
+    }
+  }
+
+  async function resolveArchiveConflict() {
+    if (!conflictState) return;
+    const local = conflictState.local;
+    const remote = conflictState.remote;
+    const mergedAudit = [...(local.auditLog ?? []), ...(remote.auditLog ?? [])]
+      .filter((entry, index, entries) => entries.findIndex((candidate) => candidate.id === entry.id) === index)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+    const merged = createArchiveSyncPayload({
+      drafts: conflictChoices.drafts === 'local' ? local.drafts : remote.drafts,
+      references: conflictChoices.references === 'local' ? local.references : remote.references,
+      siteText: conflictChoices.siteText === 'local' ? local.siteText : remote.siteText,
+      publications: mergePublicationMaps(remote.publications, local.publications),
+      auditLog: mergedAudit,
+    });
+    recordArchiveAudit({ action: 'conflict-resolved', targetType: 'archive', title: '공동 장부 충돌 해결' });
+    merged.auditLog = readArchiveAuditLog();
+
+    try {
+      const auth = await resolveArchiveAuth();
+      setSyncStatus('선택한 내용으로 공동 장부를 정리하는 중');
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', merged, auth.syncKey, {
+        baseSavedAt: conflictState.remoteSavedAt,
+        authSession: auth.authSession,
+      });
+      applyArchivePayload(merged, result.savedAt);
+      setSharedSnapshot(merged);
+      setConflictState(null);
+      setHasArchiveConflict(false);
+      setSyncStatus(`충돌 해결 후 공동 장부에 봉인됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
+    } catch (error) {
+      console.error('Archive conflict resolution failed:', error);
+      setSyncStatus('충돌 해결 저장 실패 / 공동 장부를 다시 열어 확인하세요');
+    }
   }
 
   function captureArchiveRecovery(reason: string, remoteSavedAt?: string | null, payload = createArchiveSyncPayload()) {
@@ -746,20 +1007,26 @@ export default function KeeperPage() {
         return;
       }
 
-      const result = await saveServerSync<ArchiveSyncPayload>('archive', createArchiveSyncPayload(), auth.syncKey, {
+      recordArchiveAudit({ action: 'sync', targetType: 'archive', title: '공동 장부 봉인', detail: syncStatus });
+      const payload = createArchiveSyncPayload();
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', payload, auth.syncKey, {
         baseSavedAt: archiveSavedAt,
         authSession: auth.authSession,
       });
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
+      setSharedSnapshot(payload);
+      setLastLocalSavedAt(new Date().toISOString());
       setHasArchiveConflict(false);
+      setConflictState(null);
       setVersion((current) => current + 1);
       setSyncStatus(`공동 장부에 봉인됨 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
     } catch (error) {
       if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
-        captureArchiveRecovery('archive_sync_conflict', error.savedAt);
+        const local = createArchiveSyncPayload();
+        captureArchiveRecovery('archive_sync_conflict', error.savedAt, local);
         setArchiveSavedAt(error.savedAt || archiveSavedAt);
         setHasArchiveConflict(true);
-        setSyncStatus('공동 장부가 먼저 바뀌었습니다 / 열람 후 다시 봉인');
+        void prepareArchiveConflict(local, error.savedAt);
         return;
       }
       console.error('Archive server save failed:', error);
@@ -776,29 +1043,9 @@ export default function KeeperPage() {
       });
       setHasArchiveConflict(false);
       if (result.exists && result.saved?.data) {
-        if (result.saved.data.drafts) {
-          writeArchiveDrafts(result.saved.data.drafts);
-        }
-        if (result.saved.data.siteText) {
-          const nextSiteText = mergeSiteText(result.saved.data.siteText);
-          writeSiteTextDraft(nextSiteText);
-          setSiteTextForm(nextSiteText);
-        }
-        if (result.saved.data.references) {
-          writeArchiveReferenceDrafts(result.saved.data.references);
-        }
-        if (result.saved.data.publications) {
-          writeArchivePublications(result.saved.data.publications);
-        }
-        const nextEvents = applyArchiveDrafts(events);
-        const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
-        setForm(toFormState(nextSelected));
-        const nextReferences = applyArchiveReferenceDrafts(archiveReferences);
-        const nextReference = nextReferences.find((reference) => reference.id === selectedReferenceId) ?? nextReferences[0];
-        setSelectedReferenceId(nextReference.id);
-        setReferenceForm(toReferenceForm(nextReference));
-        setArchiveSavedAt(result.saved.savedAt);
-        setVersion((current) => current + 1);
+        applyArchivePayload(result.saved.data, result.saved.savedAt);
+        setSharedSnapshot(result.saved.data);
+        setConflictState(null);
         setSyncStatus(`공동 장부 적용됨 / ${timeLabel(new Date(result.saved.savedAt))}`);
       } else {
         setArchiveSavedAt(null);
@@ -810,14 +1057,89 @@ export default function KeeperPage() {
     }
   }
 
+  async function refreshOperations() {
+    const authSession = roleSessionToken('archive-editor');
+    if (!authSession) {
+      setSyncStatus('운영 상태는 배포된 Keeper Desk에서 확인할 수 있습니다');
+      return;
+    }
+    try {
+      setOperationsBusy(true);
+      const status = await loadArchiveOperationalStatus(authSession);
+      setOperationsStatus(status);
+      setSyncStatus(`운영 상태 확인됨 / ${timeLabel(new Date(status.checkedAt))}`);
+    } catch (error) {
+      console.error('Archive operational status failed:', error);
+      setSyncStatus('운영 상태를 불러오지 못했습니다');
+    } finally {
+      setOperationsBusy(false);
+    }
+  }
+
+  async function toggleOperations() {
+    const nextVisible = !showOperations;
+    setShowOperations(nextVisible);
+    if (nextVisible) await refreshOperations();
+  }
+
+  async function runLinkCheck(urls: string[]) {
+    const authSession = roleSessionToken('archive-editor');
+    const validUrls = Array.from(new Set(urls.map((url) => url.trim()).filter(Boolean)));
+    if (!authSession || validUrls.length === 0) {
+      setSyncStatus(validUrls.length === 0 ? '확인할 원문 URL이 없습니다' : '링크 검사는 배포된 Keeper Desk에서 사용할 수 있습니다');
+      return;
+    }
+    try {
+      setOperationsBusy(true);
+      setSyncStatus(`원문 링크 ${validUrls.length}개 확인 중`);
+      const results = await checkArchiveLinks(authSession, validUrls);
+      setLinkCheckResults(results);
+      const failed = results.filter((result) => !result.ok).length;
+      setSyncStatus(failed > 0 ? `원문 링크 ${failed}개 확인 필요` : `원문 링크 ${results.length}개 정상`);
+    } catch (error) {
+      console.error('Archive link check failed:', error);
+      setSyncStatus('원문 링크를 확인하지 못했습니다');
+    } finally {
+      setOperationsBusy(false);
+    }
+  }
+
+  function requestRestoreBackup(pathname: string, savedAt: string) {
+    setPendingAction({ kind: 'restore-backup', pathname, title: savedAt });
+  }
+
+  async function performRestoreBackup(pathname: string) {
+    const authSession = roleSessionToken('archive-editor');
+    if (!authSession) {
+      setSyncStatus('백업 복원은 배포된 Keeper Desk에서 사용할 수 있습니다');
+      return;
+    }
+    try {
+      setOperationsBusy(true);
+      setSyncStatus('선택한 공동 장부 백업을 복원하는 중');
+      await restoreArchiveBackup(authSession, pathname);
+      recordArchiveAudit({ action: 'backup-restored', targetType: 'archive', title: '공동 장부 백업 복원', detail: pathname });
+      await loadArchiveFromServer();
+      await refreshOperations();
+      setSyncStatus('공동 장부 백업을 복원했습니다 / 현재 내용을 확인하세요');
+    } catch (error) {
+      console.error('Archive backup restore failed:', error);
+      setSyncStatus('공동 장부 백업을 복원하지 못했습니다');
+    } finally {
+      setOperationsBusy(false);
+    }
+  }
+
   function downloadArchiveDrafts() {
     const payload = {
       type: 'jerboa-archive-drafts',
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
       drafts: readArchiveDrafts(),
+      siteText: getSiteText(),
       references: readArchiveReferenceDrafts(),
       publications: readArchivePublications(),
+      auditLog: readArchiveAuditLog(),
     };
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
@@ -833,7 +1155,13 @@ export default function KeeperPage() {
     try {
       if (file.size > 6_000_000) throw new Error('파일이 6MB를 넘어 안전하게 확인할 수 없습니다.');
       const parsed = parseArchiveDraftImport(JSON.parse(await file.text()));
-      setPendingAction({ kind: 'import', ...parsed });
+      const incoming: ArchiveSyncPayload = {
+        drafts: parsed.drafts,
+        siteText: parsed.siteText,
+        references: parsed.references,
+        publications: parsed.publications,
+      };
+      setPendingAction({ kind: 'import', ...parsed, diffSummary: importDiffSummary(currentPayload, incoming) });
       setSyncStatus(`초안 파일 검증됨 / 기록 ${parsed.recordCount}개 · 자료 ${parsed.referenceCount}개 · 발행본 ${parsed.publicationCount}개`);
     } catch (error) {
       console.error('Archive draft import failed:', error);
@@ -853,6 +1181,7 @@ export default function KeeperPage() {
     setForm(toFormState(baseEvent));
     setSelectedReferenceId(archiveReferences[0].id);
     setReferenceForm(toReferenceForm(archiveReferences[0]));
+    setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus('모든 로컬 초안 삭제됨');
   }
@@ -869,6 +1198,7 @@ export default function KeeperPage() {
 
     const nextEvent = applyArchiveDrafts(events).find((event) => event.id === selectedEvent.id) ?? selectedEvent;
     setForm(toFormState(nextEvent));
+    recordArchiveAudit({ action: 'restore', targetType: 'programme', targetId: selectedEvent.id, title: nextEvent.title, detail: '초안 이력 복원' });
     setVersion((current) => current + 1);
     setSyncStatus('선택한 초안 이력으로 되돌림 / 확인 후 공동 장부에 봉인하세요');
   }
@@ -897,6 +1227,7 @@ export default function KeeperPage() {
       relatedEventIds: restoredDraft.relatedEventIds ?? selectedEvent.relatedEventIds,
     };
     setForm(toFormState(restoredEvent));
+    recordArchiveAudit({ action: 'restore', targetType: 'programme', targetId: selectedEvent.id, title: publication.title, detail: `발행본 ${publication.contentHash}` });
     setVersion((current) => current + 1);
     setSyncStatus(`발행본 ${publication.contentHash}에서 복구 초안을 만들었습니다 / 비공개 미리보기 상태로 검토 후 다시 발행하세요`);
   }
@@ -947,6 +1278,7 @@ export default function KeeperPage() {
       updatedAt: new Date().toISOString().slice(0, 10),
     };
     const nextDrafts = { ...readArchiveDrafts(), [selectedEvent.id]: publishedDraft };
+    recordArchiveAudit({ action: 'publish', targetType: 'programme', targetId: selectedEvent.id, title: publicationCandidate.title, detail: manifest.contentHash });
     const payload = createArchiveSyncPayload({ drafts: nextDrafts, publications: nextPublications });
 
     try {
@@ -958,7 +1290,10 @@ export default function KeeperPage() {
       writeArchiveDraft(selectedEvent.id, publishedDraft, { label: `published / ${manifest.contentHash}` });
       writeArchivePublications(nextPublications);
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
+      setSharedSnapshot(payload);
+      setLastLocalSavedAt(new Date().toISOString());
       setHasArchiveConflict(false);
+      setConflictState(null);
       setForm(toFormState(publicationCandidate));
       setVersion((current) => current + 1);
       setSyncStatus(`판본 발행 완료 / ${manifest.contentHash} / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
@@ -967,7 +1302,7 @@ export default function KeeperPage() {
         captureArchiveRecovery('publication_conflict', error.savedAt, payload);
         setArchiveSavedAt(error.savedAt || archiveSavedAt);
         setHasArchiveConflict(true);
-        setSyncStatus('발행 보류 / 공동 장부 이력을 먼저 열람하세요');
+        void prepareArchiveConflict(payload, error.savedAt);
         return;
       }
       console.error('Archive publication failed:', error);
@@ -979,8 +1314,18 @@ export default function KeeperPage() {
     if (!pendingAction) return;
     if (pendingAction.kind === 'import') {
       writeArchiveDrafts(pendingAction.drafts);
+      const importedSiteText = mergeSiteText(pendingAction.siteText);
+      writeSiteTextDraft(importedSiteText);
+      setSiteTextForm(importedSiteText);
       writeArchiveReferenceDrafts(pendingAction.references);
       writeArchivePublications(pendingAction.publications);
+      writeArchiveAuditLog(pendingAction.auditLog);
+      recordArchiveAudit({
+        action: 'import',
+        targetType: 'archive',
+        title: '검증된 초안 파일 적용',
+        detail: pendingAction.diffSummary,
+      });
       const nextEvents = applyArchiveDrafts(events);
       const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
       setForm(toFormState(nextSelected));
@@ -996,6 +1341,8 @@ export default function KeeperPage() {
       performDeleteReference(pendingAction.id);
     } else if (pendingAction.kind === 'restore-publication') {
       performRestorePublication(pendingAction.publicationId);
+    } else if (pendingAction.kind === 'restore-backup') {
+      await performRestoreBackup(pendingAction.pathname);
     } else {
       performRestoreRevision(pendingAction.revisionId);
     }
@@ -1009,14 +1356,54 @@ export default function KeeperPage() {
     try {
       setSyncStatus('포스터를 웹용으로 줄이는 중');
       const resizedPoster = await resizeImage(file, 1600, 2200);
-      updateField('posterImage', resizedPoster);
-      setSyncStatus('포스터 이미지 준비됨');
+      const authSession = roleSessionToken('archive-editor');
+      if (!authSession) {
+        if (!import.meta.env.DEV) throw new Error('archive_media_session_required');
+        updateField('posterImage', resizedPoster);
+        setSyncStatus('로컬 포스터 미리보기 준비됨 / 배포 환경에서 올리면 공동 이미지 저장소에 보존됩니다');
+      } else {
+        setSyncStatus('포스터를 공동 이미지 저장소에 붙이는 중');
+        const posterUrl = await uploadArchiveImage(resizedPoster, file.name, authSession);
+        updateField('posterImage', posterUrl);
+        if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
+        setSyncStatus('포스터 이미지가 공동 저장소에 보존됨');
+      }
     } catch (error) {
       console.error('Poster upload failed:', error);
-      setSyncStatus('포스터를 읽을 수 없음');
+      setSyncStatus('포스터를 보존하지 못했습니다 / 연결을 확인하고 다시 시도하세요');
     } finally {
       event.currentTarget.value = '';
     }
+  }
+
+  async function migrateEmbeddedPoster() {
+    if (!form.posterImage.startsWith('data:')) return;
+    const authSession = roleSessionToken('archive-editor');
+    if (!authSession) {
+      setSyncStatus('공동 이미지 저장소 이전은 배포된 Keeper Desk에서 사용할 수 있습니다');
+      return;
+    }
+    try {
+      setSyncStatus('기존 포스터를 공동 이미지 저장소로 옮기는 중');
+      const embeddedResponse = await fetch(form.posterImage);
+      const embeddedBlob = await embeddedResponse.blob();
+      const embeddedFile = new File([embeddedBlob], `${selectedEvent.id}-poster`, { type: embeddedBlob.type || 'image/png' });
+      const rasterPoster = await resizeImage(embeddedFile, 1600, 2200);
+      const posterUrl = await uploadArchiveImage(rasterPoster, `${selectedEvent.id}-poster`, authSession);
+      updateField('posterImage', posterUrl);
+      if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
+      setSyncStatus('기존 포스터 이전 완료 / 초안을 봉인하세요');
+    } catch (error) {
+      console.error('Embedded poster migration failed:', error);
+      setSyncStatus('기존 포스터를 옮기지 못했습니다');
+    }
+  }
+
+  function openSelectedPreview() {
+    writeArchiveDraft(selectedEvent.id, toDraft(form), { label: 'preview snapshot', recordRevision: false });
+    setLastLocalSavedAt(new Date().toISOString());
+    setVersion((current) => current + 1);
+    window.open(`/archive/${selectedEvent.id}/?preview=1`, '_blank', 'noopener,noreferrer');
   }
 
   if (!isAccessGranted) {
@@ -1076,6 +1463,13 @@ export default function KeeperPage() {
           <div className="keeper-command-state">
             <strong lang="ko">Keeper 입장 확인됨</strong>
             <small role="status" aria-live="polite" lang="ko">{syncStatus}</small>
+            <div className="keeper-storage-states" aria-label="저장 상태">
+              <span data-state="local" lang="ko">로컬 {lastLocalSavedAt ? timeLabel(new Date(lastLocalSavedAt)) : '대기'}</span>
+              <span data-state={unsyncedChangeCount > 0 ? 'pending' : 'synced'} lang="ko">
+                {sharedSnapshot ? unsyncedChangeCount > 0 ? `공동 장부와 ${unsyncedChangeCount}곳 다름` : '공동 장부와 일치' : '공동 장부 미열람'}
+              </span>
+              <span data-state="published" lang="ko">최근 봉인 {archiveSavedAt ? timeLabel(new Date(archiveSavedAt)) : '없음'}</span>
+            </div>
           </div>
           <div className="keeper-command-primary">
             <button type="button" onClick={saveArchiveToServer}><span lang="ko">공동 장부에 봉인</span></button>
@@ -1100,6 +1494,9 @@ export default function KeeperPage() {
                 />
               </label>
               <button type="button" onClick={clearEveryDraft}><span lang="ko">로컬 초안 모두 삭제</span></button>
+              <button type="button" disabled={operationsBusy} onClick={() => { void toggleOperations(); }}>
+                <span lang="ko">{showOperations ? '운영 상태 닫기' : '운영 상태와 백업'}</span>
+              </button>
               <button type="button" onClick={leaveKeeperDesk}><span lang="ko">Keeper 입장 종료</span></button>
             </div>
           </details>
@@ -1112,6 +1509,111 @@ export default function KeeperPage() {
             </p>
           )}
         </section>
+        {conflictState && (
+          <section className="keeper-conflict-panel" aria-labelledby="keeper-conflict-title">
+            <div>
+              <p className="section-kicker" lang="en">Conflict ledger</p>
+              <h2 id="keeper-conflict-title" lang="ko">어느 내용을 공동 장부에 남길지 선택하세요</h2>
+              <p lang="ko">발행 이력은 양쪽을 합쳐 보존합니다. 아래 세 묶음만 선택하면 다시 봉인할 수 있습니다.</p>
+            </div>
+            <label>
+              <span lang="ko">프로그램</span>
+              <select value={conflictChoices.drafts} onChange={(event) => setConflictChoices((current) => ({ ...current, drafts: event.target.value as 'local' | 'remote' }))}>
+                <option value="local">이 기기의 초안</option>
+                <option value="remote">공동 장부의 내용</option>
+              </select>
+              <small lang="ko">차이 {changedMapCount(conflictState.local.drafts, conflictState.remote.drafts)}개</small>
+            </label>
+            <label>
+              <span lang="ko">자료 장부</span>
+              <select value={conflictChoices.references} onChange={(event) => setConflictChoices((current) => ({ ...current, references: event.target.value as 'local' | 'remote' }))}>
+                <option value="local">이 기기의 자료</option>
+                <option value="remote">공동 장부의 자료</option>
+              </select>
+              <small lang="ko">차이 {changedMapCount(conflictState.local.references, conflictState.remote.references)}개</small>
+            </label>
+            <label>
+              <span lang="ko">공개 문구</span>
+              <select value={conflictChoices.siteText} onChange={(event) => setConflictChoices((current) => ({ ...current, siteText: event.target.value as 'local' | 'remote' }))}>
+                <option value="local">이 기기의 문구</option>
+                <option value="remote">공동 장부의 문구</option>
+              </select>
+              <small lang="ko">차이 {changedMapCount(conflictState.local.siteText as Record<string, unknown>, conflictState.remote.siteText as Record<string, unknown>)}개</small>
+            </label>
+            <button type="button" onClick={() => { void resolveArchiveConflict(); }}><span lang="ko">선택한 내용으로 충돌 해결</span></button>
+          </section>
+        )}
+        {showOperations && (
+          <section className="keeper-operations" aria-labelledby="keeper-operations-title">
+            <header>
+              <div>
+                <p className="section-kicker" lang="en">Operations register</p>
+                <h2 id="keeper-operations-title" lang="ko">운영 상태와 되돌리기</h2>
+              </div>
+              <button type="button" disabled={operationsBusy} onClick={() => { void refreshOperations(); }}><span lang="ko">새로 확인</span></button>
+            </header>
+            {operationsStatus ? (
+              <>
+                <div className="keeper-operation-metrics">
+                  <div><span lang="ko">공동 장부 크기</span><strong>{formatBytes(operationsStatus.archive.size)}</strong></div>
+                  <div><span lang="ko">프로그램</span><strong>{operationsStatus.archive.recordCount}</strong></div>
+                  <div><span lang="ko">삭제 보관함</span><strong>{operationsStatus.archive.deletedRecordCount}</strong></div>
+                  <div><span lang="ko">자료</span><strong>{operationsStatus.archive.referenceCount}</strong></div>
+                  <div><span lang="ko">발행본</span><strong>{operationsStatus.archive.publicationCount}</strong></div>
+                  <div><span lang="ko">이전 필요한 포스터</span><strong>{operationsStatus.archive.embeddedPosterCount}</strong></div>
+                  <div><span lang="ko">최근 동기화 문제</span><strong>{operationsStatus.recentFailures.length}</strong></div>
+                </div>
+                <div className="keeper-operation-links">
+                  <button
+                    type="button"
+                    disabled={operationsBusy || !referenceRecords.some((reference) => reference.sourceUrl)}
+                    onClick={() => { void runLinkCheck(referenceRecords.flatMap((reference) => reference.sourceUrl ? [reference.sourceUrl] : [])); }}
+                  >
+                    <span lang="ko">원문 링크 전체 확인</span>
+                  </button>
+                  {linkCheckResults.length > 0 && (
+                    <p lang="ko">
+                      확인 {linkCheckResults.length}개 · 정상 {linkCheckResults.filter((result) => result.ok).length}개 · 확인 필요 {linkCheckResults.filter((result) => !result.ok).length}개
+                    </p>
+                  )}
+                </div>
+                {linkCheckResults.some((result) => !result.ok) && (
+                  <ul className="keeper-broken-links">
+                    {linkCheckResults.filter((result) => !result.ok).map((result) => (
+                      <li key={result.url}><span>{result.url}</span><small>{result.error ?? result.status ?? '응답 없음'}</small></li>
+                    ))}
+                  </ul>
+                )}
+                <div className="keeper-operation-columns">
+                  <section>
+                    <h3 lang="ko">자동 백업</h3>
+                    {operationsStatus.backups.length > 0 ? (
+                      <ol>
+                        {operationsStatus.backups.slice(0, 8).map((backup) => (
+                          <li key={backup.pathname}>
+                            <span>{backup.savedAt}</span>
+                            <small>{formatBytes(backup.size ?? 0)}</small>
+                            <button type="button" onClick={() => requestRestoreBackup(backup.pathname, backup.savedAt)}><span lang="ko">이 장부로 복원</span></button>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : <p lang="ko">아직 자동 백업이 없습니다. 다음 공동 장부 봉인부터 하루 한 번 보존됩니다.</p>}
+                  </section>
+                  <section>
+                    <h3 lang="ko">최근 운영 기록</h3>
+                    {operationsStatus.recentAudit.length > 0 ? (
+                      <ol>
+                        {operationsStatus.recentAudit.slice(0, 8).map((entry) => (
+                          <li key={entry.id}><span>{entry.title}</span><small>{new Date(entry.createdAt).toLocaleString('ko-KR')} · {entry.action}</small></li>
+                        ))}
+                      </ol>
+                    ) : <p lang="ko">공동 장부에 남은 운영 기록이 없습니다.</p>}
+                  </section>
+                </div>
+              </>
+            ) : <p lang="ko">운영 상태를 여는 중입니다.</p>}
+          </section>
+        )}
         <aside className="keeper-register" aria-label="Programme register">
           <p className="section-kicker">Keeper desk / marginal edition room</p>
           <h1>Register of passages</h1>
@@ -1168,6 +1670,13 @@ export default function KeeperPage() {
                 placeholder={mode === 'events' ? '제목·판본·종류' : '제목·만든 이·종류'}
               />
             </label>
+          )}
+          {mode === 'events' && (
+            <div className="keeper-list-filters" aria-label="프로그램 필터">
+              <label><span lang="ko">단계</span><select value={workflowFilter} onChange={(event) => setWorkflowFilter(event.target.value as ArchiveWorkflowStatus | 'all')}><option value="all">전체</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select></label>
+              <label><span lang="ko">공개</span><select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as ArchiveVisibility | 'all')}><option value="all">전체</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select></label>
+              <label><span lang="ko">종류</span><select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)}><option value="all">전체</option>{programmeKinds.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select></label>
+            </div>
           )}
           <div className="keeper-sync-panel" aria-label="Archive integrity status">
             <strong lang="ko">아카이브 연결 검사</strong>
@@ -1369,6 +1878,25 @@ export default function KeeperPage() {
                 <span lang="ko">원문 출처 URL</span>
                 <input type="url" value={referenceForm.sourceUrl ?? ''} onChange={(event) => updateReferenceField('sourceUrl', event.target.value || undefined)} />
               </label>
+              {duplicateReference && (
+                <p className="keeper-field-warning" role="alert" lang="ko">
+                  같은 원문 주소를 쓰는 자료가 있습니다: <button type="button" onClick={() => selectReference(duplicateReference)}>{duplicateReference.title}</button>
+                </p>
+              )}
+              <div className="keeper-inline-tools">
+                <button
+                  type="button"
+                  disabled={!referenceForm.sourceUrl || operationsBusy}
+                  onClick={() => { if (referenceForm.sourceUrl) void runLinkCheck([referenceForm.sourceUrl]); }}
+                >
+                  <span lang="ko">이 원문 링크 확인</span>
+                </button>
+                {linkCheckResults.filter((result) => result.url === referenceForm.sourceUrl).map((result) => (
+                  <small data-state={result.ok ? 'ok' : 'error'} key={result.url} lang="ko">
+                    {result.ok ? `연결됨${result.status ? ` · ${result.status}` : ''}` : `확인 필요 · ${result.error ?? result.status ?? '응답 없음'}`}
+                  </small>
+                ))}
+              </div>
 
               {referenceForm.mediaAssetId && (
                 <label className="keeper-field">
@@ -1416,7 +1944,7 @@ export default function KeeperPage() {
         ) : (
           <section className="keeper-editor" aria-label="Selected archive record editor">
           <div className="keeper-preview">
-            <img src={form.posterImage} alt={`${form.title} poster preview`} />
+            <img src={form.posterImage} alt={form.posterAlt || `${form.title} poster preview`} />
           </div>
 
           <form className="keeper-form" onSubmit={saveDraft}>
@@ -1507,6 +2035,19 @@ export default function KeeperPage() {
               </select>
             </label>
 
+            <div className="keeper-field-grid">
+              <label className="keeper-field">
+                <span lang="ko">예약 공개 시작</span>
+                <input type="datetime-local" value={form.publishAt} onChange={(event) => updateField('publishAt', event.target.value)} />
+                <small lang="ko">비우면 발행 즉시 공개됩니다.</small>
+              </label>
+              <label className="keeper-field">
+                <span lang="ko">예약 공개 종료</span>
+                <input type="datetime-local" value={form.unpublishAt} onChange={(event) => updateField('unpublishAt', event.target.value)} />
+                <small lang="ko">비우면 계속 공개됩니다.</small>
+              </label>
+            </div>
+
             <label className="keeper-field">
               <span lang="ko">시즌</span>
               <select value={form.seasonId} onChange={(event) => updateField('seasonId', event.target.value)}>
@@ -1533,15 +2074,23 @@ export default function KeeperPage() {
               <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
             </label>
 
+            <label className="keeper-field">
+              <span lang="ko">포스터 대체 텍스트</span>
+              <input value={form.posterAlt} onChange={(event) => updateField('posterAlt', event.target.value)} placeholder="화면 읽기 도구에 전달할 포스터 설명" />
+            </label>
+
             <div className="keeper-poster-upload">
               <figure>
-                <img src={form.posterImage} alt="" />
+                <img src={form.posterImage} alt={form.posterAlt} />
               </figure>
               <label className="keeper-field">
                 <span lang="ko">포스터 이미지 업로드</span>
                 <small lang="ko">파일을 올리면 웹용 크기로 줄인 뒤 이 프로그램 기록에 붙습니다</small>
                 <input accept="image/*" onChange={readPosterFile} type="file" />
               </label>
+              {form.posterImage.startsWith('data:') && (
+                <button type="button" onClick={() => { void migrateEmbeddedPoster(); }}><span lang="ko">기존 포스터를 공동 저장소로 옮기기</span></button>
+              )}
             </div>
 
             <label className="keeper-field">
@@ -1628,8 +2177,9 @@ export default function KeeperPage() {
             <div className="keeper-actions">
               <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">초안 봉인</span></button>
               <button className="archive-cta inverse" onClick={resetDraft} type="button"><span className="archive-cta-label" lang="ko">원본 복원</span></button>
+              <button className="archive-cta inverse" onClick={duplicateSelectedRecord} type="button"><span className="archive-cta-label" lang="ko">복제본 만들기</span></button>
               <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
-              <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
+              <button className="archive-cta" onClick={openSelectedPreview} type="button"><span className="archive-cta-label" lang="ko">현재 초안 미리보기</span></button>
               <button className="archive-cta keeper-danger-action" onClick={requestDeleteRecord} type="button"><span className="archive-cta-label" lang="ko">프로그램 삭제</span></button>
             </div>
 
@@ -1755,21 +2305,25 @@ export default function KeeperPage() {
               ? '이 판본을 공개 발행할까요?'
               : pendingAction?.kind === 'delete-record'
                 ? '이 프로그램을 삭제할까요?'
-                : pendingAction?.kind === 'delete-reference'
+              : pendingAction?.kind === 'delete-reference'
                   ? '이 자료를 삭제할까요?'
+              : pendingAction?.kind === 'restore-backup'
+                ? '이 공동 장부 백업으로 복원할까요?'
               : pendingAction?.kind === 'restore-publication'
                 ? '이 발행본에서 복구 초안을 만들까요?'
               : '이전 초안으로 되돌릴까요?'}
         description={pendingAction?.kind === 'import'
-          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
+          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. ${pendingAction.diffSummary}. 현재 로컬 초안은 이 파일의 내용으로 교체됩니다.`
           : pendingAction?.kind === 'clear'
             ? '공개 원본은 유지되지만, 이 기기에 저장된 모든 수정 초안이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
             : pendingAction?.kind === 'publish'
               ? `“${pendingAction.title}”을 공동 장부에 공개하고 발행 지문을 보존합니다.${pendingAction.warningCount > 0 ? ` 경고 ${pendingAction.warningCount}건은 확인 후에도 남습니다.` : ''}`
               : pendingAction?.kind === 'delete-record'
-                ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. 다른 프로그램의 직접 연결도 함께 정리되며, 삭제 보관함에서 복원할 수 있습니다.`
+                ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
                 : pendingAction?.kind === 'delete-reference'
-                  ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. 프로그램과 하위 자료의 연결도 함께 정리되며, 삭제 보관함에서 복원할 수 있습니다.`
+                  ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
+              : pendingAction?.kind === 'restore-backup'
+                ? `${pendingAction.title} 백업으로 공동 장부 전체를 되돌립니다. 현재 공동 장부는 복원 직전 백업으로 따로 보존됩니다.`
               : pendingAction?.kind === 'restore-publication'
                 ? `“${pendingAction.title}”의 발행본 ${pendingAction.contentHash}에서 새 초안을 만듭니다. 발행 이력은 바뀌지 않으며, 초안은 안전하게 미리보기·비목록 상태로 시작합니다.`
               : `“${pendingAction?.kind === 'restore' ? pendingAction.title : ''}” 저장본으로 되돌립니다. 현재 초안은 새 이력으로 남습니다.`}
@@ -1783,6 +2337,8 @@ export default function KeeperPage() {
                 ? '프로그램 삭제'
                 : pendingAction?.kind === 'delete-reference'
                   ? '자료 삭제'
+                  : pendingAction?.kind === 'restore-backup'
+                    ? '공동 장부 복원'
                   : pendingAction?.kind === 'restore-publication'
                     ? '복구 초안 만들기'
                     : '이 버전 복원'}

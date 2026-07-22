@@ -25,8 +25,8 @@ function hasSyncKey(request: any) {
   return serverBuffer.length === requestBuffer.length && crypto.timingSafeEqual(serverBuffer, requestBuffer);
 }
 
-function hasMemberSession(request: any) {
-  return Boolean(verifyRoleSession(String(request.headers['x-jerboa-session'] || ''), ['member-admin']));
+function hasMediaSession(request: any) {
+  return Boolean(verifyRoleSession(String(request.headers['x-jerboa-session'] || ''), ['member-admin', 'archive-editor']));
 }
 
 async function readJsonBody(request: any) {
@@ -58,7 +58,7 @@ export default async function handler(request: any, response: any) {
     response.setHeader('allow', 'POST');
     return sendJson(response, 405, { ok: false, error: 'method_not_allowed' });
   }
-  if (!hasSyncKey(request) && !hasMemberSession(request)) {
+  if (!hasSyncKey(request) && !hasMediaSession(request)) {
     return sendJson(response, 401, { ok: false, error: 'media_auth_required' });
   }
 
@@ -76,7 +76,8 @@ export default async function handler(request: any, response: any) {
 
     const contentType = match[1];
     const extension = allowedTypes.get(contentType) || 'jpg';
-    const pathname = `cabinet/${new Date().toISOString().slice(0, 10)}/${safeName(body?.fileName)}.${extension}`;
+    const folder = body?.scope === 'archive' ? 'archive' : 'cabinet';
+    const pathname = `${folder}/${new Date().toISOString().slice(0, 10)}/${safeName(body?.fileName)}.${extension}`;
     const uploaded = await put(pathname, image, {
       access: 'public',
       addRandomSuffix: true,
@@ -93,7 +94,7 @@ export default async function handler(request: any, response: any) {
     const code = error instanceof Error ? error.message : 'media_upload_failed';
     if (code === 'payload_too_large') return sendJson(response, 413, { ok: false, error: code });
     if (code === 'Unexpected end of JSON input' || error instanceof SyntaxError) return sendJson(response, 400, { ok: false, error: 'invalid_json' });
-    console.error('Cabinet media upload failed:', error);
+    console.error('Media upload failed:', error);
     return sendJson(response, 500, { ok: false, error: 'media_upload_failed' });
   }
 }

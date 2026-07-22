@@ -76,6 +76,20 @@ async function readBlobJson(pathname: string) {
   }
 }
 
+async function preserveDailyBackup(scope: SyncScope, existing: any) {
+  if (!existing?.savedAt || !existing?.data) return;
+  const day = String(existing.savedAt).slice(0, 10);
+  const pathname = `jerboa-backups/${scope}/${day}.json`;
+  const alreadyPreserved = await readBlobJson(pathname);
+  if (alreadyPreserved) return;
+  await put(pathname, JSON.stringify(existing), {
+    access: 'private',
+    addRandomSuffix: false,
+    allowOverwrite: false,
+    contentType: 'application/json',
+  });
+}
+
 function assertSyncKey(request: any) {
   const serverKey = process.env.JERBOA_SYNC_KEY;
   if (!serverKey) {
@@ -119,11 +133,13 @@ function validateSyncData(scope: SyncScope, data: unknown): asserts data is Reco
   const hasSiteText = data.siteText === undefined || isPlainObject(data.siteText);
   const hasReferences = data.references === undefined || isPlainObject(data.references);
   const hasPublications = data.publications === undefined || isPlainObject(data.publications);
+  const hasAuditLog = data.auditLog === undefined || Array.isArray(data.auditLog);
   if (
     !hasDrafts
     || !hasSiteText
     || !hasReferences
     || !hasPublications
+    || !hasAuditLog
     || (data.drafts === undefined && data.siteText === undefined && data.references === undefined)
   ) {
     throw new SyncError(400, 'invalid_archive_payload');
@@ -152,6 +168,15 @@ function validateSyncData(scope: SyncScope, data: unknown): asserts data is Reco
       });
     });
   }
+}
+
+function scheduledDraftIsPublic(value: Record<string, unknown>) {
+  if (value.visibility !== 'public' || value.workflowStatus !== 'published') return false;
+  const now = Date.now();
+  const publishAt = typeof value.publishAt === 'string' ? new Date(value.publishAt).getTime() : null;
+  const unpublishAt = typeof value.unpublishAt === 'string' ? new Date(value.unpublishAt).getTime() : null;
+  return (publishAt === null || (Number.isFinite(publishAt) && publishAt <= now))
+    && (unpublishAt === null || (Number.isFinite(unpublishAt) && unpublishAt > now));
 }
 
 function assertPublicationHistoryPreserved(existing: any, nextData: Record<string, unknown>) {
@@ -188,8 +213,7 @@ function publicArchiveSnapshot(saved: any) {
   const publicDrafts = Object.fromEntries(
     Object.entries(drafts).filter(([, value]) => (
       isPlainObject(value)
-      && value.visibility === 'public'
-      && value.workflowStatus === 'published'
+      && scheduledDraftIsPublic(value)
     )),
   );
 
@@ -260,6 +284,8 @@ export default async function handler(request: any, response: any) {
       }
 
       if (scope === 'archive') assertPublicationHistoryPreserved(existing, data);
+
+      await preserveDailyBackup(scope, existing);
 
       const saved = {
         scope,
