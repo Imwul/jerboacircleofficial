@@ -57,7 +57,7 @@ async function readPrivateJson(pathname: string) {
 
 function publicationCount(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return 0;
-  return Object.values(value as Record<string, unknown>).reduce((total, group) => (
+  return Object.values(value as Record<string, unknown>).reduce<number>((total, group) => (
     total + (Array.isArray(group) ? group.length : 0)
   ), 0);
 }

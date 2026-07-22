@@ -44,6 +44,7 @@ async function main() {
     root: rootDir,
     appType: 'custom',
     logLevel: 'error',
+    optimizeDeps: { noDiscovery: true },
     server: { middlewareMode: true },
   });
 
