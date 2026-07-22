@@ -396,6 +396,10 @@ html body #root .public-home .programme-primary-themes {
   padding: 0 !important;
 }
 
+html body #root .public-home .programme-primary-themes {
+  justify-content: center !important;
+}
+
 html body #root .public-home.keeper-home .keeper-primary-theme-options button,
 html body #root .public-home .programme-primary-themes li {
   min-height: 2.3rem !important;
