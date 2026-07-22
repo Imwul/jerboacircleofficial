@@ -186,7 +186,7 @@ function DetailKeeperPanel({
     }
     writeArchiveDraft(event.id, toDetailDraft(form, event), { label: form.workflowStatus });
     recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: event.id, title: form.title, detail: '상세 미리보기 편집층' });
-    setStatus('로컬 초안 보관 중');
+    setStatus('이 기기에 임시 저장됨');
     onSaved();
   }
 
@@ -210,7 +210,7 @@ function DetailKeeperPanel({
         authSession,
       });
       onServerSavedAt(result.savedAt || serverSavedAt);
-      setStatus('공동 장부에 봉인됨');
+      setStatus('모든 변경 공개 반영 완료');
       onSaved();
     } catch (error) {
       if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
@@ -220,7 +220,7 @@ function DetailKeeperPanel({
         return;
       }
       console.error('Detail archive save failed:', error);
-      setStatus('공동 장부 봉인 실패 / 열쇠 확인');
+      setStatus('공개 반영 실패 / 연결 상태 확인');
     }
   }
 
@@ -385,8 +385,8 @@ function DetailKeeperPanel({
             />
           </div>
           <div className="detail-keeper-actions">
-            <button type="submit"><span className="keeper-button-label">로컬 초안 봉인</span></button>
-            <button type="button" onClick={publishToServer}><span className="keeper-button-label">공동 장부에 봉인</span></button>
+            <button type="submit"><span className="keeper-button-label">이 프로그램 임시 저장</span></button>
+            <button type="button" onClick={publishToServer}><span className="keeper-button-label">모든 변경 공개 반영</span></button>
             {hasArchiveRecovery && (
               <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}>
                 <span className="keeper-button-label">복구 파일 받기</span>

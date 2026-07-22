@@ -3171,13 +3171,21 @@ html body #root .public-home :is(input, textarea, select):focus {
 }
 
 html body #root .public-home .keeper-actions .archive-cta {
-  background-color: var(--rubric-paper) !important;
+  background: var(--rubric-paper) !important;
   color: var(--rubric-ink) !important;
 }
 
 html body #root .public-home .keeper-actions .archive-cta[type="submit"],
 html body #root .public-home .join-block > .archive-cta {
-  background-color: var(--rubric-red) !important;
+  background: var(--rubric-red) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-bar .keeper-command-actions .keeper-command-primary > button.keeper-command-publish {
+  background: var(--memory) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-actions .archive-cta.keeper-secondary-action {
+  background: var(--rubric-paper) !important;
 }
 
 html body #root .public-home.archive-home .poster-archive .archive-tools .archive-discovery .archive-filter-set > button[aria-pressed="true"],
