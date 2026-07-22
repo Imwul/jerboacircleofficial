@@ -3,6 +3,7 @@ import { events, getPublicArchiveEvents } from '../data/events';
 import {
   archiveReferenceKindLabel,
   archiveReferences,
+  defaultArchiveReferenceKinds,
   getArchiveReference,
   type ArchiveReferenceKind,
 } from '../data/archiveKnowledge';
@@ -19,16 +20,12 @@ import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
 
-const kinds: Array<ArchiveReferenceKind | 'all'> = ['all', 'book', 'artwork', 'quotation', 'image', 'place', 'theme'];
-
 function readCatalogueQueryState() {
   const params = new URLSearchParams(window.location.search);
   const requestedKind = params.get('kind');
   return {
     query: params.get('q') ?? '',
-    kind: kinds.includes(requestedKind as ArchiveReferenceKind | 'all')
-      ? requestedKind as ArchiveReferenceKind | 'all'
-      : 'all',
+    kind: requestedKind?.trim() ? requestedKind.trim() as ArchiveReferenceKind : 'all' as const,
   };
 }
 
@@ -91,8 +88,15 @@ export default function CataloguePage({ id }: { id?: string }) {
   const [copyStatus, setCopyStatus] = useState('');
   const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
   const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
+  const kinds = useMemo<Array<ArchiveReferenceKind | 'all'>>(() => ['all', ...Array.from(new Set([
+    ...defaultArchiveReferenceKinds,
+    ...references.map((reference) => reference.kind),
+  ]))], [references]);
   const selected = getArchiveReference(id, references);
   const selectedMedia = selected?.mediaAssetId ? getArchiveMediaAsset(selected.mediaAssetId) : undefined;
+  const selectedImage = selected?.imageUrl
+    ? { src: selected.imageUrl, alt: selected.altText || `${selected.title} 대표 이미지` }
+    : selectedMedia ? { src: selectedMedia.src, alt: selectedMedia.altText } : undefined;
   const usedBy = selected ? publicEvents.filter((event) => event.referenceIds.includes(selected.id)) : [];
   const parent = selected?.parentId ? getArchiveReference(selected.parentId, references) : undefined;
   const children = selected ? references.filter((reference) => reference.parentId === selected.id) : [];
@@ -186,13 +190,15 @@ export default function CataloguePage({ id }: { id?: string }) {
             {selected.attribution && (!selectedMedia || !selected.attribution.includes(selectedMedia.repositoryObjectId)) && (
               <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>
             )}
-            {selectedMedia && (
+            {selectedImage && (
               <figure className="catalogue-media-asset">
-                <img src={selectedMedia.src} alt={selectedMedia.altText} decoding="async" />
-                <figcaption>
-                  <strong className="archive-body-en" lang="en">{selectedMedia.repository}</strong>
-                  <span className="archive-body-en" lang="en">{selectedMedia.repositoryObjectId}</span>
-                </figcaption>
+                <img src={selectedImage.src} alt={selectedImage.alt} decoding="async" />
+                {selectedMedia && !selected?.imageUrl && (
+                  <figcaption>
+                    <strong className="archive-body-en" lang="en">{selectedMedia.repository}</strong>
+                    <span className="archive-body-en" lang="en">{selectedMedia.repositoryObjectId}</span>
+                  </figcaption>
+                )}
               </figure>
             )}
             <p className="detail-long" lang="ko">{selected.description}</p>

@@ -26,7 +26,7 @@ export interface ArchivePublicationManifest {
   };
   event: Omit<ArchiveEvent, 'posterImage'>;
   references: Array<Pick<ArchiveReference,
-    'id' | 'kind' | 'title' | 'attribution' | 'creator' | 'date' | 'sourceUrl' | 'rights' | 'citationNote' | 'altText' | 'mediaAssetId' | 'parentId'
+    'id' | 'kind' | 'title' | 'attribution' | 'creator' | 'date' | 'sourceUrl' | 'rights' | 'citationNote' | 'altText' | 'mediaAssetId' | 'imageUrl' | 'parentId'
   >>;
 }
 
@@ -110,6 +110,7 @@ export function createPublicationManifest(
       citationNote: reference.citationNote,
       altText: reference.altText,
       mediaAssetId: reference.mediaAssetId,
+      imageUrl: reference.imageUrl,
       parentId: reference.parentId,
     }));
   const contentHash = stableHash(JSON.stringify({ event: eventSnapshot, poster, references: referenceSnapshots }));
@@ -164,7 +165,8 @@ export function comparePublicationManifest(
     { key: 'longDescription', label: '긴 설명' },
     { key: 'passage', label: '여정 단계' },
     { key: 'materials', label: '자료 묶음' },
-    { key: 'themes', label: '주제' },
+    { key: 'primaryThemes', label: '메인 주제' },
+    { key: 'themes', label: '전체 주제' },
     { key: 'relatedEventIds', label: '이어지는 프로그램' },
     { key: 'location', label: '형식' },
     { key: 'ctaLabel', label: '버튼 문구' },
@@ -256,7 +258,7 @@ export function inspectPublicationReadiness(
   if (event.collectionIds.length === 0) issues.push({ id: 'collections', severity: 'error', message: '공개 컬렉션을 하나 이상 연결해야 합니다.' });
   if (event.passage.length === 0) issues.push({ id: 'passage', severity: 'error', message: '여정 단계를 하나 이상 기록해야 합니다.' });
   if (event.materials.length === 0) issues.push({ id: 'materials', severity: 'error', message: '자료 묶음을 하나 이상 기록해야 합니다.' });
-  if (event.themes.length === 0) issues.push({ id: 'themes', severity: 'error', message: '주제를 하나 이상 기록해야 합니다.' });
+  if (event.primaryThemes.length === 0) issues.push({ id: 'primary-themes', severity: 'error', message: '메인 주제를 하나 이상 기록해야 합니다.' });
   if (event.referenceIds.length === 0) issues.push({ id: 'references', severity: 'warning', message: '연결된 원전 없이 발행됩니다. 필요할 때 나중에 덧붙일 수 있습니다.' });
   if (event.publishAt) {
     const publishAt = new Date(event.publishAt).getTime();

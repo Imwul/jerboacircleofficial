@@ -1,5 +1,5 @@
 import type { ArchiveEvent } from '../data/events';
-import { defaultArchiveCollectionId, defaultArchiveSeasonId } from '../data/events';
+import { defaultArchiveCollectionId, defaultArchivePrimaryThemes, defaultArchiveSeasonId } from '../data/events';
 
 export const archiveDraftStorageKey = 'jerboa-circle-archive-drafts';
 const revisionStorageKey = 'jerboa-circle-archive-revisions';
@@ -26,6 +26,7 @@ export type ArchiveEventDraft = Partial<
     | 'longDescription'
     | 'passage'
     | 'materials'
+    | 'primaryThemes'
     | 'themes'
     | 'referenceIds'
     | 'relatedEventIds'
@@ -207,6 +208,9 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     longDescription: draft.longDescription || '',
     passage: listFromDraft(draft.passage, []),
     materials: listFromDraft(draft.materials, []),
+    primaryThemes: listFromDraft(draft.primaryThemes, (draft.themes ?? []).filter((theme) => (
+      defaultArchivePrimaryThemes.some((primaryTheme) => primaryTheme.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US'))
+    ))),
     themes: listFromDraft(draft.themes, []),
     referenceIds: draft.referenceIds ?? [],
     relatedEventIds: draft.relatedEventIds ?? [],
@@ -232,6 +236,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
       ...event,
       ...draft,
       themes: draft.themes?.length ? draft.themes : event.themes,
+      primaryThemes: draft.primaryThemes ?? event.primaryThemes,
       referenceIds: draft.referenceIds !== undefined ? draft.referenceIds : event.referenceIds,
       relatedEventIds: draft.relatedEventIds !== undefined ? draft.relatedEventIds : event.relatedEventIds,
       collectionIds: draft.collectionIds?.length ? draft.collectionIds : event.collectionIds,

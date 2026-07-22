@@ -1,5 +1,5 @@
 import type { ArchiveDraftMap, ArchiveEventDraft } from './archiveDrafts';
-import type { ArchiveReference, ArchiveReferenceKind } from '../data/archiveKnowledge';
+import type { ArchiveReference } from '../data/archiveKnowledge';
 import type { ArchiveReferenceDraftMap } from './archiveReferenceDrafts';
 import type { ArchivePublicationManifest, ArchivePublicationMap } from './publicationLedger';
 import type { SiteText } from '../data/siteText';
@@ -10,7 +10,7 @@ const stringFields = new Set<keyof ArchiveEventDraft>([
   'shortDescription', 'longDescription', 'location', 'ctaLabel', 'ctaHref', 'publishedAt', 'updatedAt', 'createdAt', 'deletedAt', 'publishAt', 'unpublishAt',
 ]);
 const listFields = new Set<keyof ArchiveEventDraft>([
-  'collectionIds', 'passage', 'materials', 'themes', 'referenceIds', 'relatedEventIds',
+  'collectionIds', 'passage', 'materials', 'primaryThemes', 'themes', 'referenceIds', 'relatedEventIds',
 ]);
 const enumFields: Partial<Record<keyof ArchiveEventDraft, Set<string>>> = {
   visibility: new Set(['public', 'unlisted', 'private']),
@@ -94,12 +94,11 @@ function validateAuditLog(candidate: unknown[]) {
   });
 }
 
-const referenceKinds = new Set<ArchiveReferenceKind>(['book', 'artwork', 'quotation', 'image', 'place', 'theme']);
 const referenceOptionalFields: Array<keyof ArchiveReference> = [
   'attribution', 'creator', 'date', 'edition', 'locator', 'sourceUrl', 'rights', 'language', 'citationNote', 'altText', 'mediaAssetId', 'parentId', 'updatedAt', 'deletedAt',
 ];
 const referenceFields = new Set<keyof ArchiveReference>([
-  'id', 'kind', 'title', 'description', ...referenceOptionalFields,
+  'id', 'kind', 'title', 'description', 'imageUrl', ...referenceOptionalFields,
 ]);
 
 function validateReferences(candidate: Record<string, unknown>) {
@@ -114,13 +113,18 @@ function validateReferences(candidate: Record<string, unknown>) {
       assert(referenceFields.has(field as keyof ArchiveReference), `${id}: 지원하지 않는 자료 필드 “${field}”가 있습니다.`);
     });
     assert(value.id === id, `${id}: 자료 객체의 ID가 장부 키와 다릅니다.`);
-    assert(typeof value.kind === 'string' && referenceKinds.has(value.kind as ArchiveReferenceKind), `${id}: 자료 종류가 올바르지 않습니다.`);
+    assert(typeof value.kind === 'string' && value.kind.trim().length > 0 && value.kind.length <= 120, `${id}: 자료 종류가 올바르지 않습니다.`);
     assert(typeof value.title === 'string' && value.title.length > 0 && value.title.length <= 5_000, `${id}: 자료 제목이 올바르지 않습니다.`);
     assert(typeof value.description === 'string' && value.description.length > 0 && value.description.length <= 25_000, `${id}: 자료 설명이 올바르지 않습니다.`);
     referenceOptionalFields.forEach((field) => {
       const fieldValue = value[field];
       assert(fieldValue === undefined || (typeof fieldValue === 'string' && fieldValue.length <= 25_000), `${id}: ${field} 값이 올바르지 않습니다.`);
     });
+    assert(value.imageUrl === undefined || (
+      typeof value.imageUrl === 'string'
+      && value.imageUrl.length <= 2_500_000
+      && /^(https?:\/\/|data:image\/(?:png|jpeg|webp);base64,)/i.test(value.imageUrl)
+    ), `${id}: 대표 이미지 값이 올바르지 않습니다.`);
     references[id] = value as unknown as ArchiveReference;
   });
   return references;

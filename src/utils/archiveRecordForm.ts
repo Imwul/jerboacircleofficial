@@ -29,6 +29,7 @@ export interface ArchiveRecordFormState {
   longDescription: string;
   passageText: string;
   materialsText: string;
+  primaryThemesText: string;
   themesText: string;
   referenceIdsText: string;
   relatedEventIdsText: string;
@@ -57,6 +58,7 @@ function toScheduledIso(value: string) {
 }
 
 export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState {
+  const primaryThemeSet = new Set(event.primaryThemes.map((theme) => theme.toLocaleLowerCase('en-US')));
   return {
     kind: event.kind,
     visibility: event.visibility,
@@ -76,7 +78,8 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
     longDescription: event.longDescription,
     passageText: event.passage.join(' / '),
     materialsText: event.materials.join(' / '),
-    themesText: event.themes.join(' / '),
+    primaryThemesText: event.primaryThemes.join(' / '),
+    themesText: event.themes.filter((theme) => !primaryThemeSet.has(theme.toLocaleLowerCase('en-US'))).join(' / '),
     referenceIdsText: event.referenceIds.join(' / '),
     relatedEventIdsText: event.relatedEventIds.join(' / '),
     location: event.location,
@@ -87,6 +90,10 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
 }
 
 export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: ArchiveEvent): ArchiveEventDraft {
+  const primaryThemes = splitArchiveFormList(form.primaryThemesText);
+  const secondaryThemes = splitArchiveFormList(form.themesText).filter((theme) => (
+    !primaryThemes.some((primaryTheme) => primaryTheme.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US'))
+  ));
   return {
     kind: form.kind,
     visibility: form.visibility,
@@ -106,7 +113,8 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
     longDescription: form.longDescription,
     passage: splitArchiveFormList(form.passageText),
     materials: splitArchiveFormList(form.materialsText),
-    themes: splitArchiveFormList(form.themesText),
+    primaryThemes,
+    themes: [...primaryThemes, ...secondaryThemes],
     referenceIds: splitArchiveFormList(form.referenceIdsText),
     relatedEventIds: splitArchiveFormList(form.relatedEventIdsText),
     location: form.location,
@@ -131,6 +139,7 @@ export function archiveEventFromForm(
     collectionIds: draft.collectionIds ?? [],
     passage: draft.passage ?? [],
     materials: draft.materials ?? [],
+    primaryThemes: draft.primaryThemes ?? [],
     themes: draft.themes ?? [],
     referenceIds: draft.referenceIds ?? [],
     relatedEventIds: draft.relatedEventIds ?? [],
@@ -167,7 +176,7 @@ export function validateArchiveRecordForm(
   if (missingCollection) return `없는 컬렉션 ID입니다: ${missingCollection}`;
   if (splitArchiveFormList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
   if (splitArchiveFormList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
-  if (splitArchiveFormList(form.themesText).length === 0) return '주제를 하나 이상 입력하세요';
+  if (splitArchiveFormList(form.primaryThemesText).length === 0) return '메인 주제를 하나 이상 선택하세요';
   if (form.publishAt && Number.isNaN(new Date(form.publishAt).getTime())) return '공개 시작 시각을 확인하세요';
   if (form.unpublishAt && Number.isNaN(new Date(form.unpublishAt).getTime())) return '공개 종료 시각을 확인하세요';
   if (form.publishAt && form.unpublishAt && new Date(form.publishAt) >= new Date(form.unpublishAt)) {

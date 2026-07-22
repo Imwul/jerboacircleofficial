@@ -4,7 +4,8 @@ import {
   mediaAssetCitation,
 } from './mediaAssets';
 
-export type ArchiveReferenceKind = 'book' | 'artwork' | 'quotation' | 'image' | 'place' | 'theme';
+export const defaultArchiveReferenceKinds = ['book', 'artwork', 'quotation', 'image', 'place', 'theme'] as const;
+export type ArchiveReferenceKind = typeof defaultArchiveReferenceKinds[number] | (string & {});
 export type ArchiveRelationKind = 'chronology' | 'shared-source' | 'thematic';
 
 export interface ArchiveReference {
@@ -22,6 +23,7 @@ export interface ArchiveReference {
   citationNote?: string;
   altText?: string;
   mediaAssetId?: string;
+  imageUrl?: string;
   description: string;
   parentId?: string;
   updatedAt?: string;
@@ -466,7 +468,8 @@ export function archiveReferenceKindLabel(kind: ArchiveReferenceKind) {
   if (kind === 'quotation') return '인용';
   if (kind === 'image') return '도판';
   if (kind === 'place') return '장소';
-  return '주제';
+  if (kind === 'theme') return '주제';
+  return kind;
 }
 
 export function archiveConnectionDirectionLabel(direction: ArchiveProgrammeConnection['direction']) {

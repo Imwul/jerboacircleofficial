@@ -191,6 +191,291 @@ html body #root .public-home.keeper-home .keeper-upload-status[data-state="error
   background: #f0c7bd !important;
 }
 
+html body #root .public-home.keeper-home .keeper-reference-media {
+  display: grid !important;
+  grid-template-columns: minmax(12rem, 19rem) minmax(0, 1fr) !important;
+  gap: var(--jerboa-layout-gutter, 1.25rem) !important;
+  align-items: start !important;
+  padding: 1rem 0 !important;
+  border-top: 1px solid var(--ink) !important;
+  border-bottom: 1px solid var(--ink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-preview {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-preview img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-preview span {
+  padding: 1rem !important;
+  text-align: center !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-controls {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  align-content: flex-start !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-controls h3,
+html body #root .public-home.keeper-home .keeper-reference-media-controls p {
+  flex-basis: 100% !important;
+  margin: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-media-controls p {
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-file,
+html body #root .public-home.keeper-home .keeper-reference-media-controls > button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 3rem !important;
+  padding: 0.65rem 0.8rem !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-gold) !important;
+  color: var(--ink) !important;
+  cursor: pointer !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-file input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-file:focus-within {
+  outline: 3px solid var(--ink) !important;
+  outline-offset: 2px !important;
+  box-shadow: inset 0 0 0 2px var(--signal-gold) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-reference-file:has(input:disabled) {
+  cursor: wait !important;
+  opacity: 0.62 !important;
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home.keeper-home .keeper-reference-media {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-reference-media-preview {
+    max-width: 20rem !important;
+  }
+}
+
+html body #root .public-home.keeper-home :is(#keeper-programme-kind, #keeper-reference-kind, #keeper-inline-reference-kind),
+html body #root .public-home.keeper-home .keeper-batch-panel input[list="archive-batch-content-kinds"] {
+  color-scheme: light !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-field > label,
+html body #root .public-home.keeper-home .keeper-inline-reference-kind > label {
+  display: block !important;
+  margin-bottom: 0.35rem !important;
+  font-family: var(--font-ko) !important;
+  font-weight: 750 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-kind-suggestions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem !important;
+  margin-top: 0.45rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-kind-suggestions button {
+  min-height: 2rem !important;
+  padding: 0.25rem 0.55rem !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-kind-suggestions button[aria-pressed="true"] {
+  background: var(--signal-gold) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies {
+  display: grid !important;
+  gap: 0.6rem !important;
+  padding: 0.75rem !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-blue) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies header,
+html body #root .public-home.keeper-home .keeper-working-copies ul {
+  display: grid !important;
+  gap: 0.35rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies li {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 2.5rem !important;
+  margin: 0 !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  list-style: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies li > button {
+  min-width: 0 !important;
+  padding: 0.55rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  text-align: left !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies li > button:first-child {
+  display: grid !important;
+  gap: 0.15rem !important;
+  border-right: 1px solid var(--ink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-working-copies li > button:last-child {
+  display: grid !important;
+  place-items: center !important;
+  font-size: 1.2rem !important;
+  text-align: center !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-editor {
+  display: grid !important;
+  gap: 0.8rem !important;
+  padding: 1rem 0 !important;
+  border-top: 1px solid var(--ink) !important;
+  border-bottom: 1px solid var(--ink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-editor :is(h4, p) {
+  margin: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-options,
+html body #root .public-home .programme-primary-themes {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.4rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-options button,
+html body #root .public-home .programme-primary-themes li {
+  min-height: 2.3rem !important;
+  padding: 0.38rem 0.55rem !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--ink) !important;
+  color: var(--signal-cream) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.86rem !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  list-style: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-options button[aria-pressed="false"] {
+  background: transparent !important;
+  color: var(--ink) !important;
+  opacity: 0.58 !important;
+}
+
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="grail"] { background: #dba93c !important; color: var(--ink) !important; }
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="forest"] { background: #98a760 !important; color: var(--ink) !important; }
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="relic"] { background: #9fc4d3 !important; color: var(--ink) !important; }
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="rose"] { background: #cf6f8c !important; color: var(--ink) !important; }
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="fire"] { background: #ea7657 !important; color: var(--ink) !important; }
+html body #root .public-home :is(.keeper-primary-theme-options button, .programme-primary-themes li)[data-theme="star"] { background: #f4eddc !important; color: var(--ink) !important; }
+
+html body #root .public-home.keeper-home .keeper-primary-theme-options button[aria-pressed="false"] {
+  background: transparent !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-create {
+  display: grid !important;
+  grid-template-columns: auto minmax(10rem, 1fr) auto !important;
+  gap: 0.5rem !important;
+  align-items: center !important;
+}
+
+html body #root .public-home.keeper-home .keeper-primary-theme-create input,
+html body #root .public-home.keeper-home .keeper-primary-theme-create button {
+  min-height: 2.75rem !important;
+}
+
+html body #root .public-home .programme-theme-taxonomy {
+  display: grid !important;
+  gap: 0.55rem !important;
+  width: 100% !important;
+  margin: 0 0 0.9rem !important;
+}
+
+html body #root .public-home .programme-secondary-themes {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem 0.7rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .public-home .programme-secondary-themes li {
+  padding-bottom: 0.12rem !important;
+  border-bottom: 1px solid currentColor !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-size: 0.8rem !important;
+  font-style: normal !important;
+  list-style: none !important;
+  opacity: 0.72 !important;
+}
+
+html body #root .public-home .poster-caption .programme-theme-taxonomy {
+  grid-column: 1 / -1 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home.keeper-home .keeper-primary-theme-create {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Keeper Desk V2.1: operator find, repeat actions, sectional editing and live review. */
 html body #root .keeper-command-overlay {
   position: fixed;

@@ -178,13 +178,22 @@ function TextIndex({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function ThemeList({ themes }: { themes: string[] }) {
+function ProgrammeThemes({ primaryThemes, themes }: { primaryThemes: string[]; themes: string[] }) {
+  const primarySet = new Set(primaryThemes.map((theme) => theme.toLocaleLowerCase('en-US')));
+  const secondaryThemes = themes.filter((theme) => !primarySet.has(theme.toLocaleLowerCase('en-US')));
   return (
-    <ul className="theme-tags" aria-label="Themes">
-      {themes.map((theme) => (
-        <li key={theme} lang={textLang(theme)}>{theme}</li>
-      ))}
-    </ul>
+    <div className="programme-theme-taxonomy" aria-label="프로그램 주제">
+      <ul className="programme-primary-themes" aria-label="메인 주제">
+        {primaryThemes.map((theme) => (
+          <li data-theme={theme.toLocaleLowerCase('en-US')} key={theme} lang={textLang(theme)}>{theme}</li>
+        ))}
+      </ul>
+      {secondaryThemes.length > 0 && (
+        <ul className="programme-secondary-themes" aria-label="부가 주제">
+          {secondaryThemes.map((theme) => <li key={theme} lang={textLang(theme)}>{theme}</li>)}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -196,6 +205,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
+        <ProgrammeThemes primaryThemes={featuredEvent.primaryThemes} themes={featuredEvent.themes} />
         <h1 lang={textLang(featuredEvent.title)}>{featuredEvent.title}</h1>
         <p className="event-subtitle" lang={textLang(featuredEvent.subtitle)}>{featuredEvent.subtitle}</p>
         <p className="latin-line" lang={textLang(featuredEvent.latinQuote)}>{featuredEvent.latinQuote}</p>
@@ -278,11 +288,11 @@ function PosterTile({
       </div>
       <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`}>
         <div className="poster-caption">
+          <ProgrammeThemes primaryThemes={event.primaryThemes} themes={event.themes} />
           <span>{event.edition}</span>
           <h2 lang={textLang(event.title)}>{event.title}</h2>
           <small className="poster-subtitle" lang="ko">{event.shortDescription}</small>
           <p lang="ko">{event.shortDescription}</p>
-          <ThemeList themes={event.themes.slice(0, 3)} />
         </div>
         <span className="poster-open-tab" aria-hidden="true">Open <i>🜍</i></span>
       </a>

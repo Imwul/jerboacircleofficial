@@ -5,6 +5,7 @@ import museumPoster from '../assets/posters/museum-after-hours.svg';
 
 export type EventStatus = 'upcoming' | 'past' | 'current';
 export const defaultArchiveContentKinds = ['Lecture', 'Reading', 'Colloquy', 'Practice', 'Contemplation'] as const;
+export const defaultArchivePrimaryThemes = ['Grail', 'Forest', 'Relic', 'Rose', 'Fire', 'Star'] as const;
 export type ArchiveContentKind = string;
 export type ArchiveVisibility = 'public' | 'unlisted' | 'private';
 export type ArchiveWorkflowStatus = 'draft' | 'preview' | 'published' | 'archived';
@@ -54,6 +55,7 @@ export interface ArchiveEvent {
   longDescription: string;
   passage: string[];
   materials: string[];
+  primaryThemes: string[];
   themes: string[];
   referenceIds: string[];
   relatedEventIds: string[];
@@ -138,6 +140,7 @@ export const events: ArchiveEvent[] = [
       '『아가서』의 부름에서 출발해 『신곡』의 어두운 숲, 『욥기』의 아침 별, 성배 문학의 침묵을 거친다. 여섯 표식은 답이 아니라 서로를 비추는 통과 지점이다.',
     passage: ['부름', '숲', '질문', '불씨', '귀환'],
     materials: ['Canticum 2:13', 'Dante: selva oscura', 'Job 38:7', 'Grail question'],
+    primaryThemes: ['Grail', 'Forest', 'Relic', 'Rose', 'Fire', 'Star'],
     themes: ['Grail', 'Forest', 'Relic', 'Rose', 'Fire', 'Star'],
     referenceIds: [
       'canticum-canticorum',
@@ -179,7 +182,8 @@ export const events: ArchiveEvent[] = [
       '방 자체를 여백으로 다룬 기록이다. 『가웨인 경과 녹색 기사』의 단단한 글자처럼, 목소리와 메모가 하나의 장면 안에서 오래 버티는 방식을 읽었다.',
     passage: ['낭독', '침묵', '여백', '잔향'],
     materials: ['Sir Gawain', 'voice', 'margin', 'winter room'],
-    themes: ['Reading', 'Voice', 'Margin'],
+    primaryThemes: ['Forest'],
+    themes: ['Forest', 'Reading', 'Voice', 'Margin'],
     referenceIds: ['sir-gawain', 'stori-stif', 'winter-room', 'bestiary-margin-plate'],
     relatedEventIds: [],
     location: '테이블 모임',
@@ -209,7 +213,8 @@ export const events: ArchiveEvent[] = [
       '서간의 파편과 불가능한 주소를 다룬다. 아직 형체를 갖지 못한 것에 닿기 위한 의식으로서 편지를 읽고 썼으며, 보이지 않는 얼굴을 부르는 문장들을 모았다.',
     passage: ['발신', '거리', '불가능한 주소', '응답'],
     materials: ['Song 2:14', 'letter', 'absence', 'future place'],
-    themes: ['Letter', 'Distance', 'Fragment'],
+    primaryThemes: ['Rose'],
+    themes: ['Rose', 'Letter', 'Distance', 'Fragment'],
     referenceIds: ['canticum-canticorum', 'song-2-14', 'unmade-place', 'love-window-plate'],
     relatedEventIds: [],
     location: '서신 원탁',
@@ -239,7 +244,8 @@ export const events: ArchiveEvent[] = [
       '부재와 전시와 잔상을 느리게 바라보는 연습이다. 박물관 라벨의 엄격함을 지나, 기록이 사물을 다시 보존하는 방식을 살폈다.',
     passage: ['폐관', '응시', '잔상', '보존'],
     materials: ['Dante: stelle', 'museum label', 'object', 'afterimage'],
-    themes: ['Museum', 'Image', 'Afterimage'],
+    primaryThemes: ['Relic'],
+    themes: ['Relic', 'Museum', 'Image', 'Afterimage'],
     referenceIds: ['divine-comedy', 'riveder-le-stelle', 'museum-after-hours-place', 'dante-stars-plate'],
     relatedEventIds: [],
     location: '감상 세션',

@@ -59,9 +59,6 @@ export function inspectArchiveIntegrity(
     if (!recordIds.has(relation.fromEventId) || !recordIds.has(relation.toEventId)) {
       issues.push({ id: `programme-relation-${relation.id}`, severity: 'error', message: `프로그램 관계 ${relation.id}가 없는 기록을 가리킵니다.` });
     }
-    relation.referenceIds?.forEach((id) => {
-      if (!referenceIds.has(id)) issues.push({ id: `relation-reference-${relation.id}-${id}`, severity: 'error', message: `프로그램 관계 ${relation.id}의 참조 노드 ${id}가 없습니다.` });
-    });
   });
 
   references.forEach((reference, index) => {
@@ -87,16 +84,16 @@ export function inspectArchiveIntegrity(
       }
     }
     if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.sourceUrl) {
-      issues.push({ id: `reference-source-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 원문 출처 URL이 없습니다.` });
+      issues.push({ id: `reference-source-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 원문 출처 URL 없이 발행됩니다.` });
     }
     if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.rights) {
       issues.push({ id: `reference-rights-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 권리와 재사용 조건이 없습니다.` });
     }
-    if ((reference.kind === 'image' || reference.kind === 'artwork') && !reference.altText) {
+    if ((reference.kind === 'image' || reference.kind === 'artwork' || reference.imageUrl) && !reference.altText) {
       issues.push({ id: `reference-alt-${reference.id}`, severity: 'error', referenceId: reference.id, message: `${reference.title}: 이미지 대체 텍스트가 없습니다.` });
     }
-    if (reference.kind === 'image' && !reference.mediaAssetId) {
-      issues.push({ id: `reference-media-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 검증된 로컬 도판 파일이 연결되지 않았습니다.` });
+    if (reference.kind === 'image' && !reference.mediaAssetId && !reference.imageUrl) {
+      issues.push({ id: `reference-media-${reference.id}`, severity: 'warning', referenceId: reference.id, message: `${reference.title}: 대표 이미지가 연결되지 않았습니다.` });
     }
     if (reference.mediaAssetId) {
       const asset = getArchiveMediaAsset(reference.mediaAssetId);

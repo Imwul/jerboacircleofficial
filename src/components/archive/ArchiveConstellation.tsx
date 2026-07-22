@@ -173,11 +173,19 @@ export default function ArchiveConstellation({ records, references: referenceRec
           </div>
           <dl>
             <div>
-              <dt>테마</dt>
+              <dt>메인 주제</dt>
               <dd className="constellation-tag-list">
-                {selected.themes.map((theme) => <span className="constellation-tag" key={theme}>{theme}</span>)}
+                {selected.primaryThemes.map((theme) => <span className="constellation-tag" key={theme}>{theme}</span>)}
               </dd>
             </div>
+            {selected.themes.some((theme) => !selected.primaryThemes.some((primary) => primary.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US'))) && (
+              <div>
+                <dt>부가 주제</dt>
+                <dd className="constellation-tag-list">
+                  {selected.themes.filter((theme) => !selected.primaryThemes.some((primary) => primary.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US'))).map((theme) => <span className="constellation-tag" key={theme}>{theme}</span>)}
+                </dd>
+              </div>
+            )}
             <div>
               <dt>연결 자료</dt>
               <dd className="constellation-tag-list">

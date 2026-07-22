@@ -366,7 +366,11 @@ function DetailKeeperPanel({
               <textarea rows={4} value={form.materialsText} onChange={(event) => updateField('materialsText', event.target.value)} />
             </label>
             <label>
-              <span>주제</span>
+              <span>메인 주제</span>
+              <textarea rows={3} value={form.primaryThemesText} onChange={(event) => updateField('primaryThemesText', event.target.value)} />
+            </label>
+            <label>
+              <span>부가 주제</span>
               <textarea rows={4} value={form.themesText} onChange={(event) => updateField('themesText', event.target.value)} />
             </label>
             <RelationshipPicker
@@ -456,6 +460,8 @@ function EventDetail({
   ));
   const references: ArchiveReference[] = getArchiveReferencesForEvent(event, referenceRecords);
   const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords, referenceRecords);
+  const primaryThemeSet = new Set(event.primaryThemes.map((theme) => theme.toLocaleLowerCase('en-US')));
+  const secondaryThemes = event.themes.filter((theme) => !primaryThemeSet.has(theme.toLocaleLowerCase('en-US')));
 
   return (
     <div className="public-home detail-home">
@@ -484,6 +490,16 @@ function EventDetail({
           <p className="section-kicker">
             <span className="kicker-en" lang="en">{event.edition}</span>
           </p>
+          <div className="programme-theme-taxonomy" aria-label="프로그램 주제">
+            <ul className="programme-primary-themes" aria-label="메인 주제">
+              {event.primaryThemes.map((theme) => <li data-theme={theme.toLocaleLowerCase('en-US')} key={theme}>{theme}</li>)}
+            </ul>
+            {secondaryThemes.length > 0 && (
+              <ul className="programme-secondary-themes" aria-label="부가 주제">
+                {secondaryThemes.map((theme) => <li key={theme}>{theme}</li>)}
+              </ul>
+            )}
+          </div>
           <h1 className={event.title.length > 18 ? 'is-long-title' : undefined}>{event.title}</h1>
           <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
           <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
