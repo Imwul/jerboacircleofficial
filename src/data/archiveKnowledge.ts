@@ -356,7 +356,7 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
     if (connections.has(relatedId)) return;
     const related = recordsById.get(relatedId);
     if (!related) return;
-    const references = sharedReferenceIds(event, related)
+    const matchingReferences = sharedReferenceIds(event, related)
       .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
     const themes = sharedThemeLabels(event, related);
@@ -365,17 +365,17 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
       event: related,
       kind: 'editorial',
       direction: compareDirection(event, related),
-      note: references.length
-        ? `공통 자료 ${references.map((reference) => reference.title).join(' / ')}에서 다시 만나는 판본.`
+      note: matchingReferences.length
+        ? `공통 자료 ${matchingReferences.map((reference) => reference.title).join(' / ')}에서 다시 만나는 판본.`
         : '아카이브의 편집 계보에서 직접 이어지는 판본.',
-      references,
+      references: matchingReferences,
       sharedThemes: themes,
     });
   });
 
   records.forEach((related) => {
     if (connections.has(related.id) || !related.relatedEventIds.includes(event.id)) return;
-    const references = sharedReferenceIds(event, related)
+    const matchingReferences = sharedReferenceIds(event, related)
       .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
     const themes = sharedThemeLabels(event, related);
@@ -384,10 +384,10 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
       event: related,
       kind: 'editorial',
       direction: compareDirection(event, related),
-      note: references.length
-        ? `공통 자료 ${references.map((reference) => reference.title).join(' / ')}에서 다시 만나는 판본.`
+      note: matchingReferences.length
+        ? `공통 자료 ${matchingReferences.map((reference) => reference.title).join(' / ')}에서 다시 만나는 판본.`
         : '다른 판본에서 이 기록으로 직접 이어진 편집 연결.',
-      references,
+      references: matchingReferences,
       sharedThemes: themes,
     });
   });
@@ -419,18 +419,18 @@ export function getArchiveConnections(event: ArchiveEvent, records: ArchiveEvent
     const referenceIds = sharedReferenceIds(event, related);
     const themes = sharedThemeLabels(event, related);
     if (referenceIds.length === 0 && themes.length === 0) return;
-    const references = referenceIds
+    const matchingReferences = referenceIds
       .map((id) => getArchiveReference(id, references))
       .filter((reference): reference is ArchiveReference => Boolean(reference));
 
     connections.set(related.id, {
       event: related,
-      kind: references.length ? 'shared-reference' : 'shared-theme',
+      kind: matchingReferences.length ? 'shared-reference' : 'shared-theme',
       direction: compareDirection(event, related),
-      note: references.length
-        ? `공통 자료 ${references.map((reference) => reference.title).join(' / ')}를 함께 읽는 판본.`
+      note: matchingReferences.length
+        ? `공통 자료 ${matchingReferences.map((reference) => reference.title).join(' / ')}를 함께 읽는 판본.`
         : `공통 주제 ${themes.join(' / ')}를 다른 시기에서 다시 다루는 판본.`,
-      references,
+      references: matchingReferences,
       sharedThemes: themes,
     });
   });
