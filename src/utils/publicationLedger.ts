@@ -248,7 +248,7 @@ export function inspectPublicationReadiness(
   if (event.passage.length === 0) issues.push({ id: 'passage', severity: 'error', message: '여정 단계를 하나 이상 기록해야 합니다.' });
   if (event.materials.length === 0) issues.push({ id: 'materials', severity: 'error', message: '자료 묶음을 하나 이상 기록해야 합니다.' });
   if (event.themes.length === 0) issues.push({ id: 'themes', severity: 'error', message: '주제를 하나 이상 기록해야 합니다.' });
-  if (event.referenceIds.length === 0) issues.push({ id: 'references', severity: 'error', message: '책·작품·인용·도판 중 하나 이상을 연결해야 합니다.' });
+  if (event.referenceIds.length === 0) issues.push({ id: 'references', severity: 'warning', message: '연결된 원전 없이 발행됩니다. 필요할 때 나중에 덧붙일 수 있습니다.' });
 
   const candidateRecords = records.map((record) => record.id === event.id ? event : record);
   const referenceIds = new Set(event.referenceIds);

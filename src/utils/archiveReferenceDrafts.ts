@@ -26,9 +26,41 @@ export function writeArchiveReferenceDrafts(drafts: ArchiveReferenceDraftMap) {
 }
 
 export function writeArchiveReferenceDraft(reference: ArchiveReference) {
+  const stampedReference = {
+    ...reference,
+    updatedAt: new Date().toISOString(),
+    deletedAt: undefined,
+  };
   writeArchiveReferenceDrafts({
     ...readArchiveReferenceDrafts(),
-    [reference.id]: reference,
+    [reference.id]: stampedReference,
+  });
+  return stampedReference;
+}
+
+export function deleteArchiveReferenceDraft(reference: ArchiveReference) {
+  const now = new Date().toISOString();
+  writeArchiveReferenceDrafts({
+    ...readArchiveReferenceDrafts(),
+    [reference.id]: {
+      ...reference,
+      updatedAt: now,
+      deletedAt: now,
+    },
+  });
+}
+
+export function restoreDeletedArchiveReferenceDraft(id: string) {
+  const drafts = readArchiveReferenceDrafts();
+  const draft = drafts[id];
+  if (!draft?.deletedAt) return;
+  const { deletedAt: _deletedAt, ...restoredReference } = draft;
+  writeArchiveReferenceDrafts({
+    ...drafts,
+    [id]: {
+      ...restoredReference,
+      updatedAt: new Date().toISOString(),
+    },
   });
 }
 
@@ -46,9 +78,15 @@ export function clearAllArchiveReferenceDrafts() {
 export function applyArchiveReferenceDrafts(base: ArchiveReference[] = archiveReferences) {
   const drafts = readArchiveReferenceDrafts();
   const baseIds = new Set(base.map((reference) => reference.id));
-  const edited = base.map((reference) => drafts[reference.id] ?? reference);
+  const edited = base
+    .filter((reference) => !drafts[reference.id]?.deletedAt)
+    .map((reference) => drafts[reference.id] ?? reference);
   const added = Object.values(drafts)
-    .filter((reference) => !baseIds.has(reference.id))
-    .sort((a, b) => a.title.localeCompare(b.title));
-  return [...edited, ...added];
+    .filter((reference) => !baseIds.has(reference.id) && !reference.deletedAt);
+  return [...edited, ...added].sort((a, b) => {
+    if (a.updatedAt && b.updatedAt) return b.updatedAt.localeCompare(a.updatedAt);
+    if (a.updatedAt) return -1;
+    if (b.updatedAt) return 1;
+    return 0;
+  });
 }

@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 export type AccessRole = 'member-admin' | 'archive-editor';
 export type SyncScope = 'members' | 'archive';
 
-const sessionDurationMs = 12 * 60 * 60 * 1000;
+const sessionDurationMs = 7 * 24 * 60 * 60 * 1000;
 
 function base64Url(value: string | Buffer) {
   return Buffer.from(value)
@@ -40,7 +40,8 @@ function keysForRole(role: AccessRole) {
     ? process.env.JERBOA_MEMBER_ADMIN_KEY
     : process.env.JERBOA_ARCHIVE_EDITOR_KEY;
 
-  return [roleKey, ownerKey].filter((key): key is string => Boolean(key));
+  const legacyArchiveKey = role === 'archive-editor' ? process.env.JERBOA_SYNC_KEY : undefined;
+  return [roleKey, ownerKey, legacyArchiveKey].filter((key): key is string => Boolean(key));
 }
 
 function sign(payload: string) {

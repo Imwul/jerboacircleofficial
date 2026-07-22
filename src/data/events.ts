@@ -4,7 +4,8 @@ import lettersPoster from '../assets/posters/letters-unmade-places.svg';
 import museumPoster from '../assets/posters/museum-after-hours.svg';
 
 export type EventStatus = 'upcoming' | 'past' | 'current';
-export type ArchiveContentKind = 'workshop' | 'essay' | 'exhibition' | 'project' | 'archive-record';
+export const defaultArchiveContentKinds = ['Lecture', 'Reading', 'Colloquy', 'Practice', 'Contemplation'] as const;
+export type ArchiveContentKind = string;
 export type ArchiveVisibility = 'public' | 'unlisted' | 'private';
 export type ArchiveWorkflowStatus = 'draft' | 'preview' | 'published' | 'archived';
 export type ArchiveSeasonStatus = 'planned' | 'active' | 'complete';

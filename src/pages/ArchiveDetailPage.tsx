@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from '
 import {
   archiveCollections,
   archiveSeasons,
+  defaultArchiveContentKinds,
   events,
   getCollectionsForEvent,
   getSeasonById,
@@ -215,18 +216,20 @@ function DetailKeeperPanel({
         <span lang="en">Keeper seal</span>
         <small lang="ko">숨은 초안층 열기</small>
       </summary>
-      <div className="detail-keeper-lock">
-        <span lang="en">Keeper layer</span>
-        <input
-          type="password"
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-          placeholder="아카이브 편집자 역할 열쇠"
-        />
-        <button type="button" onClick={unlockEditor} disabled={isUnlocking}>
-          <span className="keeper-button-label">{isUnlocking ? '역할 확인 중' : 'Seal 열기'}</span>
-        </button>
-      </div>
+      {!unlocked && (
+        <div className="detail-keeper-lock">
+          <span lang="en">Keeper layer</span>
+          <input
+            type="password"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            placeholder="아카이브 편집자 역할 열쇠"
+          />
+          <button type="button" onClick={unlockEditor} disabled={isUnlocking}>
+            <span className="keeper-button-label">{isUnlocking ? '역할 확인 중' : 'Seal 열기'}</span>
+          </button>
+        </div>
+      )}
       <p className="detail-keeper-status" data-sync-state={statusTone} lang="ko">{status}</p>
 
       {unlocked && (
@@ -268,13 +271,15 @@ function DetailKeeperPanel({
           <div className="detail-keeper-grid">
             <label>
               <span>종류</span>
-              <select value={form.kind} onChange={(event) => updateField('kind', event.target.value as ArchiveContentKind)}>
-                <option value="workshop">workshop</option>
-                <option value="essay">essay</option>
-                <option value="exhibition">exhibition</option>
-                <option value="project">project</option>
-                <option value="archive-record">archive-record</option>
-              </select>
+              <input
+                list={`detail-archive-content-kinds-${event.id}`}
+                value={form.kind}
+                onChange={(event) => updateField('kind', event.target.value as ArchiveContentKind)}
+                placeholder="기존 종류 선택 또는 새 종류 입력"
+              />
+              <datalist id={`detail-archive-content-kinds-${event.id}`}>
+                {defaultArchiveContentKinds.map((kind) => <option value={kind} key={kind} />)}
+              </datalist>
             </label>
             <label>
               <span>공개 상태</span>

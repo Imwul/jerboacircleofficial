@@ -24,6 +24,8 @@ export interface ArchiveReference {
   mediaAssetId?: string;
   description: string;
   parentId?: string;
+  updatedAt?: string;
+  deletedAt?: string;
 }
 
 function verifiedImageReference(

@@ -37,6 +37,7 @@ export type ArchiveEventDraft = Partial<
 > & {
   createdAt?: string;
   isCustom?: boolean;
+  deletedAt?: string;
 };
 
 export type ArchiveDraftMap = Record<string, ArchiveEventDraft>;
@@ -141,6 +142,29 @@ export function clearArchiveDraft(id: string) {
   window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
 }
 
+export function deleteArchiveDraft(id: string) {
+  if (!canUseStorage()) return;
+  const drafts = readArchiveDrafts();
+  const now = new Date().toISOString();
+  writeArchiveDrafts({
+    ...drafts,
+    [id]: {
+      ...drafts[id],
+      deletedAt: now,
+      updatedAt: now,
+    },
+  });
+}
+
+export function restoreDeletedArchiveDraft(id: string) {
+  if (!canUseStorage()) return;
+  const drafts = readArchiveDrafts();
+  const draft = drafts[id];
+  if (!draft?.deletedAt) return;
+  const { deletedAt: _deletedAt, ...restoredDraft } = draft;
+  writeArchiveDrafts({ ...drafts, [id]: restoredDraft });
+}
+
 export function clearAllArchiveDrafts() {
   if (!canUseStorage()) return;
   window.localStorage.removeItem(draftStorageKey);
@@ -194,7 +218,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
   const baseIds = new Set(baseEvents.map((event) => event.id));
   const fallback = baseEvents[0];
 
-  const editedBaseEvents = baseEvents.map((event) => {
+  const editedBaseEvents = baseEvents.filter((event) => !drafts[event.id]?.deletedAt).map((event) => {
     const draft = drafts[event.id];
     if (!draft) return event;
 
@@ -210,7 +234,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
   });
 
   const customEvents = Object.entries(drafts)
-    .filter(([id]) => !baseIds.has(id))
+    .filter(([id, draft]) => !baseIds.has(id) && !draft.deletedAt)
     .map(([id, draft]) => eventFromDraft(id, draft, fallback))
     .sort((a, b) => (a.edition < b.edition ? 1 : -1));
 
