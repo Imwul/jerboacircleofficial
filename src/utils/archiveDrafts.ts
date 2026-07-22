@@ -186,6 +186,14 @@ function listFromDraft(value: string[] | undefined, fallback: string[]) {
   return value?.length ? value : fallback;
 }
 
+function recognizedPrimaryThemes(themes: string[] | undefined) {
+  return (themes ?? []).filter((theme) => (
+    defaultArchivePrimaryThemes.some((primaryTheme) => (
+      primaryTheme.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US')
+    ))
+  ));
+}
+
 function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveEvent): ArchiveEvent {
   return {
     ...fallback,
@@ -208,9 +216,7 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     longDescription: draft.longDescription || '',
     passage: listFromDraft(draft.passage, []),
     materials: listFromDraft(draft.materials, []),
-    primaryThemes: listFromDraft(draft.primaryThemes, (draft.themes ?? []).filter((theme) => (
-      defaultArchivePrimaryThemes.some((primaryTheme) => primaryTheme.toLocaleLowerCase('en-US') === theme.toLocaleLowerCase('en-US'))
-    ))),
+    primaryThemes: listFromDraft(draft.primaryThemes, recognizedPrimaryThemes(draft.themes)),
     themes: listFromDraft(draft.themes, []),
     referenceIds: draft.referenceIds ?? [],
     relatedEventIds: draft.relatedEventIds ?? [],
@@ -236,7 +242,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
       ...event,
       ...draft,
       themes: draft.themes?.length ? draft.themes : event.themes,
-      primaryThemes: draft.primaryThemes ?? event.primaryThemes,
+      primaryThemes: draft.primaryThemes ?? listFromDraft(recognizedPrimaryThemes(draft.themes), event.primaryThemes),
       referenceIds: draft.referenceIds !== undefined ? draft.referenceIds : event.referenceIds,
       relatedEventIds: draft.relatedEventIds !== undefined ? draft.relatedEventIds : event.relatedEventIds,
       collectionIds: draft.collectionIds?.length ? draft.collectionIds : event.collectionIds,
