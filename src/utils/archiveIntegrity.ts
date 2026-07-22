@@ -4,7 +4,6 @@ import {
   type ArchiveEvent,
 } from '../data/events';
 import {
-  archiveProgrammeRelations,
   archiveReferences,
   type ArchiveReference,
 } from '../data/archiveKnowledge';
@@ -52,12 +51,6 @@ export function inspectArchiveIntegrity(
     }
     if (record.workflowStatus === 'published' && record.referenceIds.length === 0) {
       issues.push({ id: `published-unreferenced-${record.id}`, severity: 'warning', recordId: record.id, message: '발행 기록에 연결된 책·작품·인용·도판이 없습니다.' });
-    }
-  });
-
-  archiveProgrammeRelations.forEach((relation) => {
-    if (!recordIds.has(relation.fromEventId) || !recordIds.has(relation.toEventId)) {
-      issues.push({ id: `programme-relation-${relation.id}`, severity: 'error', message: `프로그램 관계 ${relation.id}가 없는 기록을 가리킵니다.` });
     }
   });
 

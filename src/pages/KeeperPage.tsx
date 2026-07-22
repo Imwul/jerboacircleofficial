@@ -38,7 +38,6 @@ import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, clearRoleSession, readRoleSession, roleSessionToken } from '../utils/roleAuth';
 import {
-  archiveProgrammeRelations,
   archiveReferenceKindLabel,
   archiveReferences,
   defaultArchiveReferenceKinds,
@@ -170,9 +169,6 @@ function validateReferenceForm(form: ReferenceFormState, references: ArchiveRefe
     references.some((reference) => reference.id === form.id)
     || Boolean(readArchiveReferenceDrafts()[form.id])
   )) return `이미 사용 중인 자료 ID입니다: ${form.id}`;
-  if (form.id !== originalId && archiveProgrammeRelations.some((relation) => relation.referenceIds?.includes(originalId))) {
-    return '이 자료 ID는 고정 관계 지도에서 사용 중이라 변경할 수 없습니다';
-  }
   if (!form.title.trim()) return '자료 제목을 입력하세요';
   if (!form.description.trim()) return '자료 설명을 입력하세요';
   if ((form.kind === 'image' || form.kind === 'artwork') && !form.rights?.trim()) return '도판과 작품은 권리와 재사용 조건이 필요합니다';
