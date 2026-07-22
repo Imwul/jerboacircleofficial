@@ -87,7 +87,7 @@ function EditorialKicker({ en, ko }: { en: string; ko: string }) {
 function SiteHeader({ siteText }: { siteText: SiteText }) {
   return (
     <header className="archive-header" aria-label="Jerboa Circle navigation">
-      <a className="archive-wordmark" href="./" aria-label="Jerboa Circle archive home">
+      <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
         <span>Jerboa</span>
         <span>Circle</span>
         <small lang="la">{siteText.wordmarkSmall}</small>
@@ -98,7 +98,7 @@ function SiteHeader({ siteText }: { siteText: SiteText }) {
         <a className="archive-nav-memory" href="#archive"><span className="nav-en" lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
         <a className="archive-nav-fragments" href="#manifesto"><span className="nav-en" lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
         <a className="archive-nav-letter" href="#join"><span className="nav-en" lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
-        <a className="archive-private-door" href="./members/"><span className="nav-en" lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
+        <a className="archive-private-door" href="/members/"><span className="nav-en" lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
       </nav>
     </header>
   );
@@ -141,7 +141,7 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
               <span className="route-en" lang="en">{siteText.navArchiveEn}</span>
               <small lang="ko">{siteText.orientationArchiveKo}</small>
             </a>
-            <a href="./members/">
+            <a href="/members/">
               <span className="route-en" lang="en">{siteText.navMembersEn}</span>
               <small lang="ko">{siteText.orientationPrivateKo}</small>
             </a>

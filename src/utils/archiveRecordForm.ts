@@ -121,7 +121,7 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
     ctaLabel: form.ctaLabel,
     publishAt: toScheduledIso(form.publishAt),
     unpublishAt: toScheduledIso(form.unpublishAt),
-    ...(event ? { ctaHref: event.ctaHref || `./archive/${event.id}/` } : {}),
+    ...(event ? { ctaHref: event.ctaHref || `/archive/${event.id}/` } : {}),
   };
 }
 
@@ -143,7 +143,7 @@ export function archiveEventFromForm(
     themes: draft.themes ?? [],
     referenceIds: draft.referenceIds ?? [],
     relatedEventIds: draft.relatedEventIds ?? [],
-    ctaHref: draft.ctaHref || fallback.ctaHref || `./archive/${id}/`,
+    ctaHref: draft.ctaHref || fallback.ctaHref || `/archive/${id}/`,
     publishedAt,
     updatedAt: new Date().toISOString().slice(0, 10),
   };

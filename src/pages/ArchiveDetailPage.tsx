@@ -71,7 +71,7 @@ interface ArchiveSyncPayload {
 }
 
 function detailRootHref() {
-  return window.location.pathname.includes('/archive/') ? '../../' : './';
+  return '/';
 }
 
 function detailTextLang(text: string) {

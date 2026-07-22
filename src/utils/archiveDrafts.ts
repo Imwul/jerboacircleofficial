@@ -222,7 +222,7 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     relatedEventIds: draft.relatedEventIds ?? [],
     location: draft.location || '',
     ctaLabel: draft.ctaLabel || '기록 열기',
-    ctaHref: draft.ctaHref || `./archive/${id}/`,
+    ctaHref: draft.ctaHref || `/archive/${id}/`,
     publishedAt: draft.publishedAt || fallback.publishedAt || new Date().toISOString().slice(0, 10),
     updatedAt: draft.updatedAt || fallback.updatedAt || new Date().toISOString().slice(0, 10),
     publishAt: draft.publishAt || fallback.publishAt,

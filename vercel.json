@@ -1,12 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/archive/:path*",
-      "destination": "/archive/index.html"
-    },
-    {
-      "source": "/catalogue/:path*",
-      "destination": "/catalogue/index.html"
+      "source": "/((?!api/.*).*)",
+      "destination": "/index.html"
     }
   ]
 }

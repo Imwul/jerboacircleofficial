@@ -58,41 +58,38 @@ async function main() {
   }
 
   const rootIndex = fs.readFileSync(indexPath, 'utf8');
-  const absoluteIndex = rootIndex.replaceAll('./assets/', '/assets/');
-  const nestedIndex = rootIndex.replaceAll('./assets/', '../assets/');
-  const deeplyNestedIndex = rootIndex.replaceAll('./assets/', '../../assets/');
   const publicRecords = records.filter((record) => record.visibility === 'public' && record.workflowStatus === 'published');
 
-  writeRoute('members', withMetadata(nestedIndex, {
+  writeRoute('members', withMetadata(rootIndex, {
     title: 'Private Room | Jerboa Circle',
     description: 'Jerboa Circle member programme and personal record room.',
     robots: 'noindex, nofollow',
   }));
-  writeRoute('keeper', withMetadata(nestedIndex, {
+  writeRoute('keeper', withMetadata(rootIndex, {
     title: 'Keeper Desk | Jerboa Circle',
     description: 'Jerboa Circle archive maintenance desk.',
     robots: 'noindex, nofollow',
   }));
-  writeRoute('godmode', withMetadata(nestedIndex, {
+  writeRoute('godmode', withMetadata(rootIndex, {
     title: 'Text Register | Jerboa Circle',
     description: 'Jerboa Circle publication text register.',
     robots: 'noindex, nofollow',
   }));
-  writeRoute('archive', absoluteIndex);
-  writeRoute('catalogue', withMetadata(nestedIndex, {
+  writeRoute('archive', rootIndex);
+  writeRoute('catalogue', withMetadata(rootIndex, {
     title: 'Reference Catalogue | Jerboa Circle',
     description: 'Books, artworks, quotations, images, places, and themes connected across Jerboa Circle programmes.',
   }));
 
   for (const record of publicRecords) {
-    writeRoute(path.join('archive', record.id), withMetadata(deeplyNestedIndex, {
+    writeRoute(path.join('archive', record.id), withMetadata(rootIndex, {
       title: `${record.title} | Jerboa Circle`,
       description: record.shortDescription,
     }));
   }
 
   for (const reference of references) {
-    writeRoute(path.join('catalogue', reference.id), withMetadata(deeplyNestedIndex, {
+    writeRoute(path.join('catalogue', reference.id), withMetadata(rootIndex, {
       title: `${reference.title} | Jerboa Circle Catalogue`,
       description: reference.description,
     }));
@@ -159,7 +156,7 @@ async function main() {
     recordIds: publicRecords.map((record) => record.id),
     referenceIds: references.map((reference) => reference.id),
   }, null, 2));
-  fs.writeFileSync(path.join(distDir, '404.html'), withMetadata(absoluteIndex, {
+  fs.writeFileSync(path.join(distDir, '404.html'), withMetadata(rootIndex, {
     title: '없는 길 | Jerboa Circle',
     description: '이 주소에는 아직 열린 Jerboa Circle 기록이 없습니다.',
     robots: 'noindex, nofollow',
