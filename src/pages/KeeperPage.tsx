@@ -2356,6 +2356,20 @@ export default function KeeperPage() {
               <div className="keeper-editor-heading">
                 <p className="section-kicker"><span lang="en">Reference node</span> / <span lang="ko">자료 편집 중</span></p>
                 <h2>{referenceForm.title}</h2>
+                <details className="keeper-record-menu" key="reference-management">
+                  <summary aria-label="자료 관리 메뉴">
+                    <span aria-hidden="true">⋯</span>
+                    <span lang="ko">관리</span>
+                  </summary>
+                  <div className="keeper-record-menu-panel">
+                    <a href={`/catalogue/${referenceForm.id}/`}>
+                      <span lang="ko">공개 자료 보기</span>
+                    </a>
+                    <button className="keeper-danger-action" onClick={requestDeleteReference} type="button">
+                      <span lang="ko">자료 삭제</span>
+                    </button>
+                  </div>
+                </details>
               </div>
 
               <div className="keeper-field-grid">
@@ -2485,8 +2499,6 @@ export default function KeeperPage() {
                 <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">자료 초안 봉인</span></button>
                 <button className="archive-cta inverse" onClick={resetReferenceDraft} type="button"><span className="archive-cta-label" lang="ko">자료 원본 복원</span></button>
                 <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
-                <a className="archive-cta" href={`/catalogue/${referenceForm.id}/`}><span className="archive-cta-label" lang="ko">공개 자료 보기</span></a>
-                <button className="archive-cta keeper-danger-action" onClick={requestDeleteReference} type="button"><span className="archive-cta-label" lang="ko">자료 삭제</span></button>
               </div>
             </form>
           </section>
@@ -2500,6 +2512,23 @@ export default function KeeperPage() {
             <div className="keeper-editor-heading">
               <p className="section-kicker"><span lang="en">{selectedEvent.edition}</span> / <span lang="ko">편집 중</span></p>
               <h2>{form.title}</h2>
+              <details className="keeper-record-menu" key="programme-management">
+                <summary aria-label="프로그램 관리 메뉴">
+                  <span aria-hidden="true">⋯</span>
+                  <span lang="ko">관리</span>
+                </summary>
+                <div className="keeper-record-menu-panel">
+                  <button onClick={duplicateSelectedRecord} type="button">
+                    <span lang="ko">복제본 만들기</span>
+                  </button>
+                  <button onClick={openSelectedPreview} type="button">
+                    <span lang="ko">현재 초안 미리보기</span>
+                  </button>
+                  <button className="keeper-danger-action" onClick={requestDeleteRecord} type="button">
+                    <span lang="ko">프로그램 삭제</span>
+                  </button>
+                </div>
+              </details>
             </div>
 
             <nav className="keeper-editor-outline" aria-label="프로그램 편집 목차">
@@ -2788,10 +2817,7 @@ export default function KeeperPage() {
             <div className="keeper-actions">
               <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">초안 봉인</span></button>
               <button className="archive-cta inverse" onClick={resetDraft} type="button"><span className="archive-cta-label" lang="ko">원본 복원</span></button>
-              <button className="archive-cta inverse" onClick={duplicateSelectedRecord} type="button"><span className="archive-cta-label" lang="ko">복제본 만들기</span></button>
               <button className="archive-cta" onClick={saveArchiveToServer} type="button"><span className="archive-cta-label" lang="ko">공동 장부에 봉인</span></button>
-              <button className="archive-cta" onClick={openSelectedPreview} type="button"><span className="archive-cta-label" lang="ko">현재 초안 미리보기</span></button>
-              <button className="archive-cta keeper-danger-action" onClick={requestDeleteRecord} type="button"><span className="archive-cta-label" lang="ko">프로그램 삭제</span></button>
             </div>
 
             <aside className="keeper-publication-panel" aria-label="Publication preflight">
