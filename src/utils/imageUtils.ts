@@ -1,3 +1,5 @@
+const dataUrlBytes = (value: string) => Math.ceil((value.split(',')[1]?.length ?? 0) * 0.75);
+
 export const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -23,18 +25,40 @@ export const resizeImage = (file: File, maxWidth: number, maxHeight: number): Pr
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to 70% quality JPEG
+          const maxUploadBytes = 2_350_000;
+          if (file.type === 'image/png') {
+            const png = canvas.toDataURL('image/png');
+            if (dataUrlBytes(png) <= maxUploadBytes) {
+              resolve(png);
+              return;
+            }
+          }
+
+          for (const quality of [0.84, 0.76, 0.68, 0.6]) {
+            const webp = canvas.toDataURL('image/webp', quality);
+            if (webp.startsWith('data:image/webp') && dataUrlBytes(webp) <= maxUploadBytes) {
+              resolve(webp);
+              return;
+            }
+          }
+
+          const jpeg = canvas.toDataURL('image/jpeg', 0.58);
+          if (dataUrlBytes(jpeg) <= maxUploadBytes) {
+            resolve(jpeg);
+            return;
+          }
+          reject(new Error('image_too_large'));
         } else {
-          reject(new Error('Failed to get canvas context'));
+          reject(new Error('image_canvas_unavailable'));
         }
       };
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => reject(new Error('image_decode_failed'));
       img.src = event.target?.result as string;
     };
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = () => reject(new Error('image_read_failed'));
     reader.readAsDataURL(file);
   });
 };

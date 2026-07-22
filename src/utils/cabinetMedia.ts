@@ -20,7 +20,13 @@ export async function uploadCabinetImage(
     },
     body: JSON.stringify({ dataUrl, fileName, scope }),
   });
-  const payload = await response.json() as CabinetMediaResponse;
+  const responseText = await response.text();
+  let payload: CabinetMediaResponse;
+  try {
+    payload = JSON.parse(responseText) as CabinetMediaResponse;
+  } catch {
+    throw new Error(response.status === 413 ? 'image_too_large' : `media_http_${response.status}`);
+  }
   if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'media_upload_failed');
   return payload.url;
 }

@@ -92,6 +92,14 @@ import {
   restoreArchiveBackup,
   type ArchiveOperationalStatus,
 } from '../utils/archiveOps';
+import {
+  readKeeperPreferences,
+  withRecentItem,
+  writeKeeperPreferences,
+  type KeeperItemKind,
+  type KeeperSavedView,
+} from '../utils/keeperPreferences';
+import { suggestReferenceMetadata } from '../utils/referenceMetadata';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -106,6 +114,37 @@ interface ArchiveSyncPayload {
 }
 
 type ReferenceFormState = Omit<ArchiveReference, 'id'> & { id: string };
+
+type KeeperListView = 'register' | 'timeline';
+type KeeperEditorSection = 'identity' | 'artwork' | 'content' | 'connections' | 'publication';
+
+interface InlineReferenceForm {
+  kind: ArchiveReferenceKind;
+  title: string;
+  sourceUrl: string;
+  description: string;
+  creator: string;
+  attribution: string;
+  date: string;
+}
+
+const emptyInlineReference: InlineReferenceForm = {
+  kind: 'book',
+  title: '',
+  sourceUrl: '',
+  description: '',
+  creator: '',
+  attribution: '',
+  date: '',
+};
+
+const editorSectionLabels: Array<{ id: KeeperEditorSection; label: string }> = [
+  { id: 'identity', label: '기본 정보' },
+  { id: 'artwork', label: '도판' },
+  { id: 'content', label: '내용' },
+  { id: 'connections', label: '연결' },
+  { id: 'publication', label: '발행' },
+];
 
 function toReferenceForm(reference: ArchiveReference): ReferenceFormState {
   return { ...reference };
@@ -309,6 +348,15 @@ function validateSiteTextForm(siteText: SiteText) {
   return emptyField ? `${emptyField[1]}을 입력하세요` : '';
 }
 
+function posterUploadMessage(error: unknown) {
+  const code = error instanceof Error ? error.message : '';
+  if (code.includes('media_auth_required')) return 'Keeper 입장 시간이 끝났습니다 / 다시 입장한 뒤 포스터를 보존하세요';
+  if (code.includes('image_too_large') || code.includes('payload_too_large') || code.includes('media_http_413')) return '포스터 용량을 줄이지 못했습니다 / 더 작은 PNG 파일로 다시 시도하세요';
+  if (code.includes('invalid_image') || code.includes('image_decode_failed')) return 'PNG, JPG 또는 WebP 이미지인지 확인하세요';
+  if (code.includes('blob')) return '공동 이미지 저장소가 잠시 닫혔습니다 / 잠시 뒤 다시 시도하세요';
+  return '포스터를 보존하지 못했습니다 / 연결을 확인하고 다시 시도하세요';
+}
+
 export default function KeeperPage() {
   const [isAccessGranted, setIsAccessGranted] = useState(() => Boolean(readRoleSession('archive-editor')));
   const [accessStatus, setAccessStatus] = useState('Keeper pass key를 입력하면 이 기기에서 7일 동안 다시 묻지 않습니다.');
@@ -348,6 +396,29 @@ export default function KeeperPage() {
   const [operationsStatus, setOperationsStatus] = useState<ArchiveOperationalStatus | null>(null);
   const [operationsBusy, setOperationsBusy] = useState(false);
   const [linkCheckResults, setLinkCheckResults] = useState<Array<{ url: string; ok: boolean; status?: number; error?: string }>>([]);
+  const [preferences, setPreferences] = useState(readKeeperPreferences);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [listView, setListView] = useState<KeeperListView>('register');
+  const [templateId, setTemplateId] = useState('blank');
+  const [savedViewName, setSavedViewName] = useState('');
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [batchWorkflow, setBatchWorkflow] = useState<ArchiveWorkflowStatus | ''>('');
+  const [batchVisibility, setBatchVisibility] = useState<ArchiveVisibility | ''>('');
+  const [batchKind, setBatchKind] = useState('');
+  const [livePreviewOpen, setLivePreviewOpen] = useState(false);
+  const [livePreviewViewport, setLivePreviewViewport] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewRevision, setPreviewRevision] = useState(0);
+  const [collapsedSections, setCollapsedSections] = useState<KeeperEditorSection[]>([]);
+  const [inlineReferenceOpen, setInlineReferenceOpen] = useState(false);
+  const [inlineReferenceForm, setInlineReferenceForm] = useState<InlineReferenceForm>(emptyInlineReference);
+  const [metadataBusy, setMetadataBusy] = useState(false);
+  const programmeUndo = useRef<KeeperFormState[]>([]);
+  const programmeRedo = useRef<KeeperFormState[]>([]);
+  const referenceUndo = useRef<ReferenceFormState[]>([]);
+  const referenceRedo = useRef<ReferenceFormState[]>([]);
+  const textUndo = useRef<SiteText[]>([]);
+  const textRedo = useRef<SiteText[]>([]);
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isReferenceDirty = JSON.stringify(referenceForm) !== JSON.stringify(toReferenceForm(selectedReference));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
@@ -420,17 +491,69 @@ export default function KeeperPage() {
       && (workflowFilter === 'all' || event.workflowStatus === workflowFilter)
       && (visibilityFilter === 'all' || event.visibility === visibilityFilter)
       && (kindFilter === 'all' || event.kind === kindFilter)
-    ));
-  }, [archiveEvents, kindFilter, listQuery, visibilityFilter, workflowFilter]);
+    )).sort((left, right) => {
+      const favouriteDelta = Number(preferences.favouriteProgrammes.includes(right.id)) - Number(preferences.favouriteProgrammes.includes(left.id));
+      if (favouriteDelta) return favouriteDelta;
+      return right.updatedAt.localeCompare(left.updatedAt);
+    });
+  }, [archiveEvents, kindFilter, listQuery, preferences.favouriteProgrammes, visibilityFilter, workflowFilter]);
   const visibleReferenceRecords = useMemo(() => {
     const query = listQuery.trim().toLocaleLowerCase('ko-KR');
-    if (!query) return referenceRecords;
     return referenceRecords.filter((reference) => (
+      !query ||
       `${reference.title} ${reference.creator ?? ''} ${archiveReferenceKindLabel(reference.kind)}`
         .toLocaleLowerCase('ko-KR')
         .includes(query)
-    ));
-  }, [listQuery, referenceRecords]);
+    )).sort((left, right) => {
+      const favouriteDelta = Number(preferences.favouriteReferences.includes(right.id)) - Number(preferences.favouriteReferences.includes(left.id));
+      if (favouriteDelta) return favouriteDelta;
+      return (right.updatedAt ?? '').localeCompare(left.updatedAt ?? '') || right.title.localeCompare(left.title, 'ko');
+    });
+  }, [listQuery, preferences.favouriteReferences, referenceRecords]);
+  const timelineEvents = useMemo(() => [...visibleArchiveEvents].sort((left, right) => {
+    const leftDate = left.publishAt ?? left.publishedAt ?? left.updatedAt;
+    const rightDate = right.publishAt ?? right.publishedAt ?? right.updatedAt;
+    return rightDate.localeCompare(leftDate);
+  }), [visibleArchiveEvents]);
+  const recentItems = useMemo(() => preferences.recentItems.flatMap((item) => {
+    if (item.kind === 'programme') {
+      const record = archiveEvents.find((event) => event.id === item.id);
+      return record ? [{ ...item, title: record.title, meta: record.edition }] : [];
+    }
+    const reference = referenceRecords.find((entry) => entry.id === item.id);
+    return reference ? [{ ...item, title: reference.title, meta: archiveReferenceKindLabel(reference.kind) }] : [];
+  }).slice(0, 6), [archiveEvents, preferences.recentItems, referenceRecords]);
+  const commandResults = useMemo(() => {
+    const query = commandQuery.trim().toLocaleLowerCase('ko-KR');
+    if (!query) return [
+      ...archiveEvents.slice(0, 5).map((event) => ({ id: event.id, kind: 'programme' as const, title: event.title, meta: event.edition })),
+      ...referenceRecords.slice(0, 5).map((reference) => ({ id: reference.id, kind: 'reference' as const, title: reference.title, meta: archiveReferenceKindLabel(reference.kind) })),
+    ];
+    return [
+      ...archiveEvents.filter((event) => `${event.title} ${event.edition} ${event.kind}`.toLocaleLowerCase('ko-KR').includes(query))
+        .map((event) => ({ id: event.id, kind: 'programme' as const, title: event.title, meta: event.edition })),
+      ...referenceRecords.filter((reference) => `${reference.title} ${reference.creator ?? ''} ${reference.kind}`.toLocaleLowerCase('ko-KR').includes(query))
+        .map((reference) => ({ id: reference.id, kind: 'reference' as const, title: reference.title, meta: archiveReferenceKindLabel(reference.kind) })),
+    ].slice(0, 12);
+  }, [archiveEvents, commandQuery, referenceRecords]);
+  const formWarnings = useMemo(() => [
+    ...(!form.posterAlt.trim() ? [{ section: 'artwork' as const, message: '포스터 대체 텍스트가 비어 있습니다.' }] : []),
+    ...(form.title.length > 60 ? [{ section: 'identity' as const, message: '제목이 60자를 넘어 작은 화면에서 잘릴 수 있습니다.' }] : []),
+    ...(form.subtitle.length > 120 ? [{ section: 'identity' as const, message: '부제가 120자를 넘습니다.' }] : []),
+    ...(form.shortDescription.length > 220 ? [{ section: 'content' as const, message: '짧은 설명이 220자를 넘습니다.' }] : []),
+    ...(form.longDescription.length > 1500 ? [{ section: 'content' as const, message: '긴 설명이 1,500자를 넘습니다.' }] : []),
+    ...(splitDraftList(form.referenceIdsText).length === 0 ? [{ section: 'connections' as const, message: '연결된 자료 없이도 발행할 수 있지만 읽기 목록은 비어 보입니다.' }] : []),
+  ], [form]);
+  const selectedRelations = useMemo(() => ({
+    references: splitDraftList(form.referenceIdsText).flatMap((id) => {
+      const reference = referenceRecords.find((entry) => entry.id === id);
+      return reference ? [reference] : [];
+    }),
+    programmes: splitDraftList(form.relatedEventIdsText).flatMap((id) => {
+      const record = archiveEvents.find((entry) => entry.id === id);
+      return record ? [record] : [];
+    }),
+  }), [archiveEvents, form.referenceIdsText, form.relatedEventIdsText, referenceRecords]);
   const initialArchiveLoad = useRef(false);
 
   usePageMetadata({
@@ -443,6 +566,49 @@ export default function KeeperPage() {
     canonicalPath: mode === 'text' ? '/godmode/' : '/keeper/',
     noIndex: true,
   });
+
+  useEffect(() => {
+    writeKeeperPreferences(preferences);
+  }, [preferences]);
+
+  useEffect(() => {
+    if (!isAccessGranted || !livePreviewOpen || mode !== 'events') return;
+    const timer = window.setTimeout(() => {
+      writeArchiveDraft(selectedEvent.id, toDraft(form), { label: 'live preview', recordRevision: false });
+      setPreviewRevision((current) => current + 1);
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [form, isAccessGranted, livePreviewOpen, mode, selectedEvent.id]);
+
+  useEffect(() => {
+    if (!isAccessGranted) return;
+    function handleKeyboard(event: KeyboardEvent) {
+      const commandKey = event.metaKey || event.ctrlKey;
+      if (commandKey && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommandOpen(true);
+        return;
+      }
+      if (event.key === 'Escape') {
+        setCommandOpen(false);
+        return;
+      }
+      if (!commandKey) return;
+      if (event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrentDraft();
+      } else if (event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) redoCurrent();
+        else undoCurrent();
+      } else if (event.shiftKey && event.key.toLowerCase() === 'p' && mode === 'events') {
+        event.preventDefault();
+        setLivePreviewOpen((current) => !current);
+      }
+    }
+    window.addEventListener('keydown', handleKeyboard);
+    return () => window.removeEventListener('keydown', handleKeyboard);
+  }, [form, isAccessGranted, mode, referenceForm, siteTextForm]);
 
   useEffect(() => {
     if (!isAccessGranted || initialArchiveLoad.current) return;
@@ -536,6 +702,9 @@ export default function KeeperPage() {
     }
     setSelectedId(event.id);
     setForm(toFormState(event));
+    programmeUndo.current = [];
+    programmeRedo.current = [];
+    setPreferences((current) => withRecentItem(current, 'programme', event.id));
   }
 
   function selectReference(reference: ArchiveReference) {
@@ -545,6 +714,33 @@ export default function KeeperPage() {
     }
     setSelectedReferenceId(reference.id);
     setReferenceForm(toReferenceForm(reference));
+    referenceUndo.current = [];
+    referenceRedo.current = [];
+    setPreferences((current) => withRecentItem(current, 'reference', reference.id));
+  }
+
+  function openKeeperItem(kind: KeeperItemKind, id: string) {
+    if (kind === 'programme') {
+      const record = archiveEvents.find((event) => event.id === id);
+      if (!record) return;
+      changeMode('events');
+      selectEvent(record);
+    } else {
+      const reference = referenceRecords.find((entry) => entry.id === id);
+      if (!reference) return;
+      changeMode('references');
+      selectReference(reference);
+    }
+    setCommandOpen(false);
+    setCommandQuery('');
+  }
+
+  function toggleFavourite(kind: KeeperItemKind, id: string) {
+    setPreferences((current) => {
+      const key = kind === 'programme' ? 'favouriteProgrammes' : 'favouriteReferences';
+      const values = current[key];
+      return { ...current, [key]: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] };
+    });
   }
 
   function changeMode(nextMode: 'events' | 'references' | 'text') {
@@ -562,7 +758,11 @@ export default function KeeperPage() {
   }
 
   function updateReferenceField<Key extends keyof ReferenceFormState>(key: Key, value: ReferenceFormState[Key]) {
-    setReferenceForm((current) => ({ ...current, [key]: value }));
+    setReferenceForm((current) => {
+      referenceUndo.current = [...referenceUndo.current.slice(-49), current];
+      referenceRedo.current = [];
+      return { ...current, [key]: value };
+    });
   }
 
   function saveReferenceDraft(event: FormEvent<HTMLFormElement>) {
@@ -598,6 +798,24 @@ export default function KeeperPage() {
     setSyncStatus('새 자료 초안 생성됨');
   }
 
+  function duplicateReferenceRecord(reference: ArchiveReference) {
+    const nextId = makeRecordId(`${reference.title}-copy`);
+    const savedReference = writeArchiveReferenceDraft({
+      ...reference,
+      id: nextId,
+      title: `${reference.title} 복제본`,
+      updatedAt: new Date().toISOString(),
+      deletedAt: undefined,
+    });
+    setSelectedReferenceId(nextId);
+    setReferenceForm(toReferenceForm(savedReference));
+    setPreferences((current) => withRecentItem(current, 'reference', nextId));
+    recordArchiveAudit({ action: 'duplicate', targetType: 'reference', targetId: nextId, title: savedReference.title, detail: `원본 ${reference.title}` });
+    setVersion((current) => current + 1);
+    setLastLocalSavedAt(new Date().toISOString());
+    setSyncStatus('자료 복제본을 만들었습니다');
+  }
+
   function resetReferenceDraft() {
     clearArchiveReferenceDraft(selectedReference.id);
     const baseReference = archiveReferences.find((reference) => reference.id === selectedReference.id);
@@ -609,11 +827,82 @@ export default function KeeperPage() {
   }
 
   function updateField<Key extends keyof KeeperFormState>(key: Key, value: KeeperFormState[Key]) {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      programmeUndo.current = [...programmeUndo.current.slice(-49), current];
+      programmeRedo.current = [];
+      return { ...current, [key]: value };
+    });
   }
 
   function updateSiteTextField(key: keyof SiteText, value: string) {
-    setSiteTextForm((current) => ({ ...current, [key]: value }));
+    setSiteTextForm((current) => {
+      textUndo.current = [...textUndo.current.slice(-49), current];
+      textRedo.current = [];
+      return { ...current, [key]: value };
+    });
+  }
+
+  function undoCurrent() {
+    if (mode === 'events') {
+      const previous = programmeUndo.current.pop();
+      if (!previous) return;
+      programmeRedo.current.push(form);
+      setForm(previous);
+    } else if (mode === 'references') {
+      const previous = referenceUndo.current.pop();
+      if (!previous) return;
+      referenceRedo.current.push(referenceForm);
+      setReferenceForm(previous);
+    } else {
+      const previous = textUndo.current.pop();
+      if (!previous) return;
+      textRedo.current.push(siteTextForm);
+      setSiteTextForm(previous);
+    }
+    setSyncStatus('한 단계 되돌렸습니다');
+  }
+
+  function redoCurrent() {
+    if (mode === 'events') {
+      const next = programmeRedo.current.pop();
+      if (!next) return;
+      programmeUndo.current.push(form);
+      setForm(next);
+    } else if (mode === 'references') {
+      const next = referenceRedo.current.pop();
+      if (!next) return;
+      referenceUndo.current.push(referenceForm);
+      setReferenceForm(next);
+    } else {
+      const next = textRedo.current.pop();
+      if (!next) return;
+      textUndo.current.push(siteTextForm);
+      setSiteTextForm(next);
+    }
+    setSyncStatus('되돌린 수정을 다시 적용했습니다');
+  }
+
+  function saveCurrentDraft() {
+    if (mode === 'events') {
+      const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
+      if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
+      writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
+      recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: selectedEvent.id, title: form.title });
+    } else if (mode === 'references') {
+      const validation = validateReferenceForm(referenceForm, referenceRecords);
+      if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
+      const savedReference = writeArchiveReferenceDraft(referenceForm);
+      setReferenceForm(savedReference);
+      recordArchiveAudit({ action: 'edit', targetType: 'reference', targetId: savedReference.id, title: savedReference.title });
+    } else {
+      const validation = validateSiteTextForm(siteTextForm);
+      if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
+      writeSiteTextDraft(siteTextForm);
+      recordArchiveAudit({ action: 'edit', targetType: 'site-text', title: '공개 문구 장부' });
+    }
+    setLastLocalSavedAt(new Date().toISOString());
+    setVersion((current) => current + 1);
+    setSyncStatus(`초안 봉인됨 / ${timeLabel()}`);
   }
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
@@ -665,7 +954,8 @@ export default function KeeperPage() {
 
   function createNewRecord() {
     const nextId = makeRecordId('Unwritten Folio');
-    const nextDraft: ArchiveEventDraft = {
+    const template = templateId === 'blank' ? null : archiveEvents.find((event) => event.id === templateId);
+    const blankDraft: ArchiveEventDraft = {
       kind: 'Lecture',
       visibility: 'private',
       workflowStatus: 'draft',
@@ -692,6 +982,21 @@ export default function KeeperPage() {
       createdAt: new Date().toISOString(),
       isCustom: true,
     };
+    const nextDraft: ArchiveEventDraft = template ? {
+      ...toDraft(toFormState(template)),
+      edition: nextEditionLabel(archiveEvents),
+      title: `${template.title} 새 장`,
+      visibility: 'private',
+      workflowStatus: 'draft',
+      status: 'upcoming',
+      publishAt: undefined,
+      unpublishAt: undefined,
+      publishedAt: undefined,
+      ctaHref: `./archive/${nextId}/`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isCustom: true,
+    } : blankDraft;
 
     writeArchiveDraft(nextId, nextDraft, { label: 'new draft' });
     recordArchiveAudit({ action: 'create', targetType: 'programme', targetId: nextId, title: nextDraft.title ?? nextId });
@@ -701,15 +1006,15 @@ export default function KeeperPage() {
     setForm(toFormState(nextEvent));
     setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
-    setSyncStatus('새 기록 초안 생성됨 / 공동 장부에 봉인하면 공개됩니다');
+    setSyncStatus(template ? `“${template.title}”을 본떠 새 초안을 만들었습니다` : '새 기록 초안 생성됨 / 공동 장부에 봉인하면 공개됩니다');
   }
 
-  function duplicateSelectedRecord() {
-    const nextId = makeRecordId(`${form.title}-copy`);
+  function duplicateRecord(record: ArchiveEvent) {
+    const nextId = makeRecordId(`${record.title}-copy`);
     const nextDraft: ArchiveEventDraft = {
-      ...toDraft(form),
+      ...toDraft(toFormState(record)),
       edition: nextEditionLabel(archiveEvents),
-      title: `${form.title} 복제본`,
+      title: `${record.title} 복제본`,
       visibility: 'private',
       workflowStatus: 'draft',
       status: 'upcoming',
@@ -721,22 +1026,149 @@ export default function KeeperPage() {
       updatedAt: new Date().toISOString(),
       isCustom: true,
     };
-    writeArchiveDraft(nextId, nextDraft, { label: `duplicated from ${selectedEvent.id}` });
-    recordArchiveAudit({
-      action: 'duplicate',
-      targetType: 'programme',
-      targetId: nextId,
-      title: nextDraft.title ?? nextId,
-      detail: `원본 ${selectedEvent.title}`,
-    });
+    writeArchiveDraft(nextId, nextDraft, { label: `duplicated from ${record.id}` });
+    recordArchiveAudit({ action: 'duplicate', targetType: 'programme', targetId: nextId, title: nextDraft.title ?? nextId, detail: `원본 ${record.title}` });
     const duplicated = applyArchiveDrafts(events).find((event) => event.id === nextId);
-    if (duplicated) {
-      setSelectedId(duplicated.id);
-      setForm(toFormState(duplicated));
-    }
+    if (duplicated) selectEvent(duplicated);
     setLastLocalSavedAt(new Date().toISOString());
     setVersion((current) => current + 1);
     setSyncStatus('프로그램 복제본 생성됨 / 비공개 초안으로 시작합니다');
+  }
+
+  function duplicateSelectedRecord() {
+    const record = archiveEventFromForm(selectedEvent.id, form, selectedEvent);
+    duplicateRecord(record);
+  }
+
+  function createSavedView() {
+    const name = savedViewName.trim();
+    if (!name) return setSyncStatus('저장할 보기의 이름을 입력하세요');
+    const view: KeeperSavedView = {
+      id: `${Date.now()}`,
+      name,
+      query: listQuery,
+      workflow: workflowFilter,
+      visibility: visibilityFilter,
+      kind: kindFilter,
+    };
+    setPreferences((current) => ({ ...current, savedViews: [view, ...current.savedViews].slice(0, 12) }));
+    setSavedViewName('');
+    setSyncStatus(`“${name}” 보기를 저장했습니다`);
+  }
+
+  function applySavedView(view: KeeperSavedView) {
+    setListQuery(view.query);
+    setWorkflowFilter(view.workflow);
+    setVisibilityFilter(view.visibility);
+    setKindFilter(view.kind);
+  }
+
+  function deleteSavedView(id: string) {
+    setPreferences((current) => ({ ...current, savedViews: current.savedViews.filter((view) => view.id !== id) }));
+  }
+
+  function toggleBatchRecord(id: string) {
+    setSelectedBatchIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
+
+  function applyBatchEdit() {
+    if (selectedBatchIds.length === 0) return;
+    if (!batchWorkflow && !batchVisibility && !batchKind.trim()) return setSyncStatus('일괄 변경할 항목을 하나 이상 선택하세요');
+    selectedBatchIds.forEach((id) => {
+      const record = archiveEvents.find((event) => event.id === id);
+      if (!record) return;
+      writeArchiveDraft(id, {
+        ...toDraft(toFormState(record)),
+        ...(batchWorkflow ? { workflowStatus: batchWorkflow } : {}),
+        ...(batchVisibility ? { visibility: batchVisibility } : {}),
+        ...(batchKind.trim() ? { kind: batchKind.trim() } : {}),
+        updatedAt: new Date().toISOString(),
+      }, { label: 'batch edit', recordRevision: false });
+      recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: id, title: record.title, detail: '일괄 편집' });
+    });
+    setSelectedBatchIds([]);
+    setBatchWorkflow('');
+    setBatchVisibility('');
+    setBatchKind('');
+    setVersion((current) => current + 1);
+    setLastLocalSavedAt(new Date().toISOString());
+    setSyncStatus(`${selectedBatchIds.length}개 프로그램을 함께 수정했습니다`);
+  }
+
+  function toggleRecordVisibility(record: ArchiveEvent) {
+    const nextVisibility: ArchiveVisibility = record.visibility === 'public' ? 'private' : 'public';
+    writeArchiveDraft(record.id, { ...toDraft(toFormState(record)), visibility: nextVisibility }, { label: 'quick visibility', recordRevision: false });
+    if (record.id === selectedEvent.id) setForm((current) => ({ ...current, visibility: nextVisibility }));
+    setVersion((current) => current + 1);
+    setSyncStatus(`${record.title} / ${nextVisibility === 'public' ? '공개' : '비공개'}로 변경했습니다`);
+  }
+
+  function toggleEditorSection(section: KeeperEditorSection) {
+    setCollapsedSections((current) => current.includes(section)
+      ? current.filter((value) => value !== section)
+      : [...current, section]);
+  }
+
+  async function applyMetadataSuggestion(target: 'reference' | 'inline') {
+    const sourceUrl = target === 'reference' ? referenceForm.sourceUrl : inlineReferenceForm.sourceUrl;
+    if (!sourceUrl) return setSyncStatus('먼저 원문 출처 URL을 입력하세요');
+    const authSession = roleSessionToken('archive-editor');
+    if (!authSession) return setSyncStatus('원문 정보 제안을 사용하려면 Keeper 입장을 다시 확인하세요');
+    setMetadataBusy(true);
+    try {
+      const metadata = await suggestReferenceMetadata(sourceUrl, authSession);
+      if (target === 'reference') {
+        setReferenceForm((current) => ({
+          ...current,
+          sourceUrl: metadata.sourceUrl,
+          title: current.title === '아직 이름 붙지 않은 자료' ? metadata.title ?? current.title : current.title,
+          description: current.description === '이 자료가 프로그램과 어떻게 연결되는지 기록하세요.' ? metadata.description ?? current.description : current.description,
+          creator: current.creator || metadata.creator,
+          attribution: current.attribution || metadata.attribution,
+          date: current.date || metadata.date,
+        }));
+      } else {
+        setInlineReferenceForm((current) => ({
+          ...current,
+          sourceUrl: metadata.sourceUrl,
+          title: current.title || metadata.title || '',
+          description: current.description || metadata.description || '',
+          creator: current.creator || metadata.creator || '',
+          attribution: current.attribution || metadata.attribution || '',
+          date: current.date || metadata.date || '',
+        }));
+      }
+      setSyncStatus('원문 페이지에서 제목과 서지 정보를 가져왔습니다');
+    } catch {
+      setSyncStatus('원문 정보를 자동으로 읽지 못했습니다 / 직접 입력할 수 있습니다');
+    } finally {
+      setMetadataBusy(false);
+    }
+  }
+
+  function createInlineReference() {
+    if (!inlineReferenceForm.title.trim()) return setSyncStatus('새 자료의 제목을 입력하세요');
+    const nextId = makeRecordId(inlineReferenceForm.title);
+    const reference: ArchiveReference = {
+      id: nextId,
+      kind: inlineReferenceForm.kind,
+      title: inlineReferenceForm.title.trim(),
+      description: inlineReferenceForm.description.trim() || `${form.title}에서 함께 읽는 자료입니다.`,
+      sourceUrl: inlineReferenceForm.sourceUrl.trim() || undefined,
+      creator: inlineReferenceForm.creator.trim() || undefined,
+      attribution: inlineReferenceForm.attribution.trim() || undefined,
+      date: inlineReferenceForm.date.trim() || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    const validation = validateReferenceForm(reference, referenceRecords);
+    if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
+    writeArchiveReferenceDraft(reference);
+    updateField('referenceIdsText', [...splitDraftList(form.referenceIdsText), nextId].join(' / '));
+    recordArchiveAudit({ action: 'create', targetType: 'reference', targetId: nextId, title: reference.title, detail: `프로그램 ${form.title}에서 생성` });
+    setInlineReferenceForm(emptyInlineReference);
+    setInlineReferenceOpen(false);
+    setVersion((current) => current + 1);
+    setSyncStatus('새 자료를 만들고 이 프로그램에 연결했습니다');
   }
 
   async function resolveArchiveAuth() {
@@ -1370,7 +1802,7 @@ export default function KeeperPage() {
       }
     } catch (error) {
       console.error('Poster upload failed:', error);
-      setSyncStatus('포스터를 보존하지 못했습니다 / 연결을 확인하고 다시 시도하세요');
+      setSyncStatus(posterUploadMessage(error));
     } finally {
       event.currentTarget.value = '';
     }
@@ -1395,7 +1827,13 @@ export default function KeeperPage() {
       setSyncStatus('기존 포스터 이전 완료 / 초안을 봉인하세요');
     } catch (error) {
       console.error('Embedded poster migration failed:', error);
-      setSyncStatus('기존 포스터를 옮기지 못했습니다');
+      const message = posterUploadMessage(error);
+      if (message.startsWith('Keeper 입장 시간이')) {
+        clearRoleSession('archive-editor');
+        setIsAccessGranted(false);
+        setAccessStatus(message);
+      }
+      setSyncStatus(message);
     }
   }
 
@@ -1458,6 +1896,34 @@ export default function KeeperPage() {
 
       <ConnectivityNotice context="Keeper Desk" />
 
+      {commandOpen && (
+        <div className="keeper-command-overlay" role="presentation" onMouseDown={() => setCommandOpen(false)}>
+          <section className="keeper-command-palette" role="dialog" aria-modal="true" aria-label="Keeper 전체 찾기" onMouseDown={(event) => event.stopPropagation()}>
+            <label>
+              <span lang="ko">프로그램과 자료 전체 찾기</span>
+              <input
+                autoFocus
+                type="search"
+                value={commandQuery}
+                onChange={(event) => setCommandQuery(event.target.value)}
+                placeholder="제목, 판본, 만든 이"
+              />
+              <kbd>Esc</kbd>
+            </label>
+            <div className="keeper-command-results">
+              {commandResults.map((item) => (
+                <button type="button" key={`${item.kind}-${item.id}`} onClick={() => openKeeperItem(item.kind, item.id)}>
+                  <span lang="ko">{item.kind === 'programme' ? '프로그램' : '자료'}</span>
+                  <strong>{item.title}</strong>
+                  <small>{item.meta}</small>
+                </button>
+              ))}
+              {commandResults.length === 0 && <p lang="ko">찾는 기록이 없습니다.</p>}
+            </div>
+          </section>
+        </div>
+      )}
+
       <main className="keeper-room">
         <section className="keeper-command-bar" aria-label="Keeper save and sync controls">
           <div className="keeper-command-state">
@@ -1472,6 +1938,9 @@ export default function KeeperPage() {
             </div>
           </div>
           <div className="keeper-command-primary">
+            <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">전체 찾기</span><kbd>⌘K</kbd></button>
+            <button type="button" onClick={undoCurrent} disabled={mode === 'events' ? programmeUndo.current.length === 0 : mode === 'references' ? referenceUndo.current.length === 0 : textUndo.current.length === 0}><span lang="ko">되돌리기</span></button>
+            <button type="button" onClick={redoCurrent} disabled={mode === 'events' ? programmeRedo.current.length === 0 : mode === 'references' ? referenceRedo.current.length === 0 : textRedo.current.length === 0}><span lang="ko">다시 적용</span></button>
             <button type="button" onClick={saveArchiveToServer}><span lang="ko">공동 장부에 봉인</span></button>
             <button type="button" onClick={loadArchiveFromServer}><span lang="ko">장부 열람</span></button>
           </div>
@@ -1650,10 +2119,31 @@ export default function KeeperPage() {
               <span lang="ko">문구실</span>
             </button>
           </div>
+          {recentItems.length > 0 && (
+            <section className="keeper-recent" aria-label="최근 작업">
+              <strong lang="ko">최근 작업</strong>
+              <div>
+                {recentItems.map((item) => (
+                  <button type="button" key={`${item.kind}-${item.id}`} onClick={() => openKeeperItem(item.kind, item.id)}>
+                    <span>{item.title}</span><small>{item.meta}</small>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
           {mode === 'events' && (
-            <button className="keeper-new-record" type="button" onClick={createNewRecord}>
-              <span lang="ko">아직 필사되지 않은 장 추가</span>
-            </button>
+            <div className="keeper-new-record-tools">
+              <label>
+                <span lang="ko">새 장의 바탕</span>
+                <select value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
+                  <option value="blank">빈 장 · 기본값 자동 입력</option>
+                  {archiveEvents.map((event) => <option value={event.id} key={event.id}>{event.edition} · {event.title}</option>)}
+                </select>
+              </label>
+              <button className="keeper-new-record" type="button" onClick={createNewRecord}>
+                <span lang="ko">아직 필사되지 않은 장 추가</span>
+              </button>
+            </div>
           )}
           {mode === 'references' && (
             <button className="keeper-new-record" type="button" onClick={createNewReference}>
@@ -1672,10 +2162,22 @@ export default function KeeperPage() {
             </label>
           )}
           {mode === 'events' && (
-            <div className="keeper-list-filters" aria-label="프로그램 필터">
-              <label><span lang="ko">단계</span><select value={workflowFilter} onChange={(event) => setWorkflowFilter(event.target.value as ArchiveWorkflowStatus | 'all')}><option value="all">전체</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select></label>
-              <label><span lang="ko">공개</span><select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as ArchiveVisibility | 'all')}><option value="all">전체</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select></label>
-              <label><span lang="ko">종류</span><select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)}><option value="all">전체</option>{programmeKinds.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select></label>
+            <div className="keeper-filter-block">
+              <div className="keeper-view-switch" aria-label="목록 보기 방식">
+                <button type="button" className={listView === 'register' ? 'is-active' : ''} onClick={() => setListView('register')}><span lang="ko">장부</span></button>
+                <button type="button" className={listView === 'timeline' ? 'is-active' : ''} onClick={() => setListView('timeline')}><span lang="ko">일정</span></button>
+              </div>
+              <div className="keeper-list-filters" aria-label="프로그램 필터">
+                <label><span lang="ko">단계</span><select value={workflowFilter} onChange={(event) => setWorkflowFilter(event.target.value as ArchiveWorkflowStatus | 'all')}><option value="all">전체</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select></label>
+                <label><span lang="ko">공개</span><select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as ArchiveVisibility | 'all')}><option value="all">전체</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select></label>
+                <label><span lang="ko">종류</span><select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)}><option value="all">전체</option>{programmeKinds.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select></label>
+              </div>
+              <div className="keeper-saved-views">
+                {preferences.savedViews.map((view) => (
+                  <span key={view.id}><button type="button" onClick={() => applySavedView(view)}>{view.name}</button><button type="button" aria-label={`${view.name} 보기 삭제`} onClick={() => deleteSavedView(view.id)}>×</button></span>
+                ))}
+                <label><span lang="ko">현재 필터 저장</span><input value={savedViewName} onChange={(event) => setSavedViewName(event.target.value)} placeholder="예: 발행 대기" /><button type="button" onClick={createSavedView}>저장</button></label>
+              </div>
             </div>
           )}
           <div className="keeper-sync-panel" aria-label="Archive integrity status">
@@ -1694,38 +2196,58 @@ export default function KeeperPage() {
             )}
           </div>
           {mode === 'events' ? (
-            <div className="keeper-list">
-              {visibleArchiveEvents.map((event) => (
-                <button
-                  className={event.id === selectedId ? 'is-selected' : ''}
-                  key={event.id}
-                  onClick={() => selectEvent(event)}
-                  type="button"
-                >
-                  <span>{event.edition}</span>
-                  <strong>{event.title}</strong>
-                  <small>{event.workflowStatus} / {event.visibility}</small>
-                </button>
-              ))}
-              {visibleArchiveEvents.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 프로그램이 없습니다.</p>}
-            </div>
+            <>
+              {selectedBatchIds.length > 0 && (
+                <section className="keeper-batch-panel" aria-label="선택한 프로그램 일괄 편집">
+                  <strong lang="ko">{selectedBatchIds.length}개 선택됨</strong>
+                  <select aria-label="발행 단계 일괄 변경" value={batchWorkflow} onChange={(event) => setBatchWorkflow(event.target.value as ArchiveWorkflowStatus | '')}><option value="">단계 유지</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select>
+                  <select aria-label="공개 상태 일괄 변경" value={batchVisibility} onChange={(event) => setBatchVisibility(event.target.value as ArchiveVisibility | '')}><option value="">공개 상태 유지</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select>
+                  <input aria-label="종류 일괄 변경" list="archive-content-kinds" value={batchKind} onChange={(event) => setBatchKind(event.target.value)} placeholder="종류 유지" />
+                  <button type="button" onClick={applyBatchEdit}><span lang="ko">선택 항목 적용</span></button>
+                  <button type="button" onClick={() => setSelectedBatchIds([])}><span lang="ko">선택 해제</span></button>
+                </section>
+              )}
+              {listView === 'timeline' ? (
+                <ol className="keeper-timeline">
+                  {timelineEvents.map((event) => (
+                    <li key={event.id} data-status={event.status}>
+                      <time>{new Date(event.publishAt ?? event.publishedAt ?? event.updatedAt).toLocaleDateString('ko-KR')}</time>
+                      <button type="button" onClick={() => selectEvent(event)}><strong>{event.title}</strong><small>{event.workflowStatus} / {event.visibility}</small></button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="keeper-list keeper-list-with-actions">
+                  {visibleArchiveEvents.map((event) => (
+                    <article className={event.id === selectedId ? 'is-selected' : ''} key={event.id}>
+                      <input type="checkbox" aria-label={`${event.title} 일괄 선택`} checked={selectedBatchIds.includes(event.id)} onChange={() => toggleBatchRecord(event.id)} />
+                      <button className="keeper-list-main" onClick={() => selectEvent(event)} type="button">
+                        <span>{event.edition}</span><strong>{event.title}</strong><small>{event.workflowStatus} / {event.visibility}</small>
+                      </button>
+                      <button className="keeper-list-star" type="button" aria-label={`${event.title} 즐겨찾기`} aria-pressed={preferences.favouriteProgrammes.includes(event.id)} onClick={() => toggleFavourite('programme', event.id)}>{preferences.favouriteProgrammes.includes(event.id) ? '★' : '☆'}</button>
+                      <div className="keeper-row-actions">
+                        <a href={`/archive/${event.id}/?preview=1`} target="_blank" rel="noreferrer">미리보기</a>
+                        <button type="button" onClick={() => duplicateRecord(event)}>복제</button>
+                        <button type="button" onClick={() => toggleRecordVisibility(event)}>{event.visibility === 'public' ? '비공개' : '공개'}</button>
+                      </div>
+                    </article>
+                  ))}
+                  {visibleArchiveEvents.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 프로그램이 없습니다.</p>}
+                </div>
+              )}
+            </>
           ) : mode === 'references' ? (
-            <div className="keeper-list">
+            <div className="keeper-list keeper-list-with-actions">
               {visibleReferenceRecords.map((reference) => (
-                <button
-                  className={reference.id === selectedReferenceId ? 'is-selected' : ''}
-                  key={reference.id}
-                  onClick={() => selectReference(reference)}
-                  type="button"
-                >
-                  <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
-                  <strong>{reference.title}</strong>
-                  <small>
-                    {reference.updatedAt
-                      ? `최근 수정 ${new Date(reference.updatedAt).toLocaleString('ko-KR')}`
-                      : reference.creator ?? reference.attribution ?? reference.id}
-                  </small>
-                </button>
+                <article className={reference.id === selectedReferenceId ? 'is-selected' : ''} key={reference.id}>
+                  <button className="keeper-list-main" onClick={() => selectReference(reference)} type="button">
+                    <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
+                    <strong>{reference.title}</strong>
+                    <small>{reference.updatedAt ? `최근 수정 ${new Date(reference.updatedAt).toLocaleString('ko-KR')}` : reference.creator ?? reference.attribution ?? reference.id}</small>
+                  </button>
+                  <button className="keeper-list-star" type="button" aria-label={`${reference.title} 즐겨찾기`} aria-pressed={preferences.favouriteReferences.includes(reference.id)} onClick={() => toggleFavourite('reference', reference.id)}>{preferences.favouriteReferences.includes(reference.id) ? '★' : '☆'}</button>
+                  <div className="keeper-row-actions"><a href={`/catalogue/${reference.id}/`} target="_blank" rel="noreferrer">공개 보기</a><button type="button" onClick={() => duplicateReferenceRecord(reference)}>복제</button></div>
+                </article>
               ))}
               {visibleReferenceRecords.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 자료가 없습니다.</p>}
             </div>
@@ -1886,6 +2408,13 @@ export default function KeeperPage() {
               <div className="keeper-inline-tools">
                 <button
                   type="button"
+                  disabled={!referenceForm.sourceUrl || metadataBusy}
+                  onClick={() => { void applyMetadataSuggestion('reference'); }}
+                >
+                  <span lang="ko">원문 정보 제안</span>
+                </button>
+                <button
+                  type="button"
                   disabled={!referenceForm.sourceUrl || operationsBusy}
                   onClick={() => { if (referenceForm.sourceUrl) void runLinkCheck([referenceForm.sourceUrl]); }}
                 >
@@ -1952,6 +2481,26 @@ export default function KeeperPage() {
               <p className="section-kicker"><span lang="en">{selectedEvent.edition}</span> / <span lang="ko">편집 중</span></p>
               <h2>{form.title}</h2>
             </div>
+
+            <nav className="keeper-editor-outline" aria-label="프로그램 편집 목차">
+              {editorSectionLabels.map((section) => {
+                const warningCount = formWarnings.filter((warning) => warning.section === section.id).length;
+                return (
+                  <button type="button" key={section.id} aria-expanded={!collapsedSections.includes(section.id)} onClick={() => toggleEditorSection(section.id)}>
+                    <span lang="ko">{section.label}</span>{warningCount > 0 && <small>{warningCount}</small>}
+                  </button>
+                );
+              })}
+              <button type="button" aria-pressed={livePreviewOpen} onClick={() => setLivePreviewOpen((current) => !current)}><span lang="ko">나란히 미리보기</span></button>
+            </nav>
+            {formWarnings.length > 0 && (
+              <ul className="keeper-live-warnings" aria-label="입력 길이와 접근성 확인">
+                {formWarnings.map((warning) => <li key={`${warning.section}-${warning.message}`}>{warning.message}</li>)}
+              </ul>
+            )}
+
+            <section className="keeper-editor-group" id="keeper-section-identity" hidden={collapsedSections.includes('identity')}>
+              <h3 lang="ko">기본 정보</h3>
 
             <label className="keeper-field">
               <span lang="ko">판본</span>
@@ -2069,6 +2618,10 @@ export default function KeeperPage() {
               onChange={(ids) => updateField('collectionIdsText', ids.join(' / '))}
             />
 
+            </section>
+            <section className="keeper-editor-group" id="keeper-section-artwork" hidden={collapsedSections.includes('artwork')}>
+              <h3 lang="ko">도판</h3>
+
             <label className="keeper-field">
               <span lang="ko">포스터 이미지 URL</span>
               <input value={form.posterImage} onChange={(event) => updateField('posterImage', event.target.value)} />
@@ -2085,13 +2638,17 @@ export default function KeeperPage() {
               </figure>
               <label className="keeper-field">
                 <span lang="ko">포스터 이미지 업로드</span>
-                <small lang="ko">파일을 올리면 웹용 크기로 줄인 뒤 이 프로그램 기록에 붙습니다</small>
+                <small lang="ko">이미지를 최적화해 이 프로그램의 포스터로 보존합니다.</small>
                 <input accept="image/*" onChange={readPosterFile} type="file" />
               </label>
               {form.posterImage.startsWith('data:') && (
                 <button type="button" onClick={() => { void migrateEmbeddedPoster(); }}><span lang="ko">기존 포스터를 공동 저장소로 옮기기</span></button>
               )}
             </div>
+
+            </section>
+            <section className="keeper-editor-group" id="keeper-section-content" hidden={collapsedSections.includes('content')}>
+              <h3 lang="ko">내용</h3>
 
             <label className="keeper-field">
               <span lang="ko">짧은 설명</span>
@@ -2138,6 +2695,10 @@ export default function KeeperPage() {
               />
             </label>
 
+            </section>
+            <section className="keeper-editor-group" id="keeper-section-connections" hidden={collapsedSections.includes('connections')}>
+              <h3 lang="ko">연결</h3>
+
             <RelationshipPicker
               label="참고자료와 문화 노드"
               description="책, 작품, 인용, 도판, 장소를 검색해 선택합니다. 선택한 자료로 공개 읽기 목록이 자동 생성됩니다."
@@ -2148,7 +2709,22 @@ export default function KeeperPage() {
               }))}
               selectedIds={splitDraftList(form.referenceIdsText)}
               onChange={(ids) => updateField('referenceIdsText', ids.join(' / '))}
+              actionLabel="이 자리에서 새 자료 만들기"
+              onAction={() => setInlineReferenceOpen((current) => !current)}
             />
+
+            {inlineReferenceOpen && (
+              <aside className="keeper-inline-reference" aria-label="새 자료를 만들고 연결하기">
+                <header><strong lang="ko">새 자료를 만들고 바로 연결</strong><button type="button" onClick={() => setInlineReferenceOpen(false)} aria-label="닫기">×</button></header>
+                <label><span lang="ko">종류</span><select value={inlineReferenceForm.kind} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, kind: event.target.value as ArchiveReferenceKind }))}><option value="book">book</option><option value="artwork">artwork</option><option value="quotation">quotation</option><option value="image">image</option><option value="place">place</option><option value="theme">theme</option></select></label>
+                <label><span lang="ko">제목</span><input value={inlineReferenceForm.title} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, title: event.target.value }))} /></label>
+                <label className="is-wide"><span lang="ko">원문 URL</span><input type="url" value={inlineReferenceForm.sourceUrl} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, sourceUrl: event.target.value }))} /></label>
+                <label className="is-wide"><span lang="ko">설명</span><textarea rows={2} value={inlineReferenceForm.description} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, description: event.target.value }))} /></label>
+                <label><span lang="ko">만든 이</span><input value={inlineReferenceForm.creator} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, creator: event.target.value }))} /></label>
+                <label><span lang="ko">소장처·출판처</span><input value={inlineReferenceForm.attribution} onChange={(event) => setInlineReferenceForm((current) => ({ ...current, attribution: event.target.value }))} /></label>
+                <div className="is-wide keeper-inline-tools"><button type="button" disabled={!inlineReferenceForm.sourceUrl || metadataBusy} onClick={() => { void applyMetadataSuggestion('inline'); }}>원문 정보 제안</button><button type="button" onClick={createInlineReference}>자료 만들고 연결</button></div>
+              </aside>
+            )}
 
             <RelationshipPicker
               label="이어지는 프로그램"
@@ -2161,6 +2737,16 @@ export default function KeeperPage() {
               selectedIds={splitDraftList(form.relatedEventIdsText)}
               onChange={(ids) => updateField('relatedEventIdsText', ids.join(' / '))}
             />
+
+            <aside className="keeper-relation-map" aria-label="현재 프로그램의 관계 지도">
+              <div className="keeper-relation-column"><strong lang="ko">자료 {selectedRelations.references.length}</strong>{selectedRelations.references.map((reference) => <button type="button" key={reference.id} onClick={() => openKeeperItem('reference', reference.id)}>{reference.title}</button>)}</div>
+              <div className="keeper-relation-centre"><span>{form.edition}</span><strong>{form.title}</strong></div>
+              <div className="keeper-relation-column"><strong lang="ko">프로그램 {selectedRelations.programmes.length}</strong>{selectedRelations.programmes.map((record) => <button type="button" key={record.id} onClick={() => selectEvent(record)}>{record.title}</button>)}</div>
+            </aside>
+
+            </section>
+            <section className="keeper-editor-group" id="keeper-section-publication" hidden={collapsedSections.includes('publication')}>
+              <h3 lang="ko">발행과 운영</h3>
 
             <div className="keeper-field-grid">
               <label className="keeper-field">
@@ -2291,9 +2877,25 @@ export default function KeeperPage() {
                 <p lang="ko">아직 발행 지문이 없습니다. 기존 공개 기록은 다음 발행부터 이곳에 쌓입니다.</p>
               )}
             </aside>
+            </section>
           </form>
+          {livePreviewOpen && (
+            <aside className="keeper-live-preview" aria-label="실시간 공개 화면 미리보기">
+              <header>
+                <strong lang="ko">공개 화면 미리보기</strong>
+                <div><button type="button" className={livePreviewViewport === 'desktop' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('desktop')}>Desktop</button><button type="button" className={livePreviewViewport === 'mobile' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('mobile')}>Mobile</button><button type="button" onClick={() => setPreviewRevision((current) => current + 1)}>새로고침</button><button type="button" aria-label="미리보기 닫기" onClick={() => setLivePreviewOpen(false)}>×</button></div>
+              </header>
+              <div data-viewport={livePreviewViewport}><iframe key={previewRevision} title={`${form.title} 공개 화면 미리보기`} src={`/archive/${selectedEvent.id}/?preview=1&embed=keeper`} /></div>
+            </aside>
+          )}
           </section>
         )}
+        <nav className="keeper-mobile-actions" aria-label="모바일 빠른 작업">
+          <button type="button" onClick={undoCurrent}><span lang="ko">되돌리기</span></button>
+          <button type="button" onClick={saveCurrentDraft}><span lang="ko">초안 봉인</span></button>
+          {mode === 'events' && <button type="button" onClick={() => setLivePreviewOpen((current) => !current)}><span lang="ko">미리보기</span></button>}
+          <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">찾기</span></button>
+        </nav>
       </main>
       <ConfirmDialog
         open={Boolean(pendingAction)}

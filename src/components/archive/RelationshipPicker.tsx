@@ -13,6 +13,8 @@ interface RelationshipPickerProps {
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   emptyLabel?: string;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 function normalize(value: string) {
@@ -26,6 +28,8 @@ export default function RelationshipPicker({
   selectedIds,
   onChange,
   emptyLabel = '맞는 항목이 없습니다.',
+  actionLabel,
+  onAction,
 }: RelationshipPickerProps) {
   const searchId = useId();
   const [query, setQuery] = useState('');
@@ -47,6 +51,11 @@ export default function RelationshipPicker({
   return (
     <fieldset className="relationship-picker">
       <legend lang="ko">{label}</legend>
+      {actionLabel && onAction && (
+        <button className="relationship-picker-action" type="button" onClick={onAction}>
+          <span lang="ko">{actionLabel}</span>
+        </button>
+      )}
       <p lang="ko">{description}</p>
       <label className="relationship-picker-search" htmlFor={searchId}>
         <span lang="ko">검색</span>
