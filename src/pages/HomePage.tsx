@@ -9,7 +9,7 @@ import {
   type ArchiveEvent,
 } from '../data/events';
 import type { SiteText } from '../data/siteText';
-import { applyArchiveDrafts } from '../utils/archiveDrafts';
+import { applyArchiveDrafts, archiveDraftStorageKey } from '../utils/archiveDrafts';
 import { loadServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
@@ -593,6 +593,16 @@ export default function HomePage() {
     return () => {
       ignore = true;
     };
+  }, []);
+
+  useEffect(() => {
+    function refreshFromAnotherTab(event: StorageEvent) {
+      if (event.key !== archiveDraftStorageKey) return;
+      setVersion((current) => current + 1);
+    }
+
+    window.addEventListener('storage', refreshFromAnotherTab);
+    return () => window.removeEventListener('storage', refreshFromAnotherTab);
   }, []);
 
   return (

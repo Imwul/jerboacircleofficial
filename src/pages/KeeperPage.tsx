@@ -17,7 +17,6 @@ import {
   applyArchiveDrafts,
   clearAllArchiveDrafts,
   clearArchiveDraft,
-  deleteArchiveDraft,
   readArchiveDrafts,
   readArchiveDraftRevisions,
   restoreDeletedArchiveDraft,
@@ -49,7 +48,6 @@ import {
   applyArchiveReferenceDrafts,
   clearAllArchiveReferenceDrafts,
   clearArchiveReferenceDraft,
-  deleteArchiveReferenceDraft,
   readArchiveReferenceDrafts,
   restoreDeletedArchiveReferenceDraft,
   writeArchiveReferenceDraft,
@@ -186,7 +184,9 @@ type KeeperPendingAction =
   | { kind: 'restore-publication'; publicationId: string; title: string; contentHash: string }
   | { kind: 'publish'; title: string; warningCount: number }
   | { kind: 'delete-record'; id: string; title: string; impactSummary: string }
+  | { kind: 'delete-records'; ids: string[]; titles: string[]; impactSummary: string }
   | { kind: 'delete-reference'; id: string; title: string; impactSummary: string }
+  | { kind: 'delete-references'; ids: string[]; titles: string[]; impactSummary: string }
   | { kind: 'restore-backup'; pathname: string; title: string }
   | null;
 
@@ -404,6 +404,7 @@ export default function KeeperPage() {
   const [templateId, setTemplateId] = useState('blank');
   const [savedViewName, setSavedViewName] = useState('');
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [selectedReferenceBatchIds, setSelectedReferenceBatchIds] = useState<string[]>([]);
   const [batchWorkflow, setBatchWorkflow] = useState<ArchiveWorkflowStatus | ''>('');
   const [batchVisibility, setBatchVisibility] = useState<ArchiveVisibility | ''>('');
   const [batchKind, setBatchKind] = useState('');
@@ -1080,6 +1081,10 @@ export default function KeeperPage() {
     setSelectedBatchIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   }
 
+  function toggleBatchReference(id: string) {
+    setSelectedReferenceBatchIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
+
   function applyBatchEdit() {
     if (selectedBatchIds.length === 0) return;
     if (!batchWorkflow && !batchVisibility && !batchKind.trim()) return setSyncStatus('일괄 변경할 항목을 하나 이상 선택하세요');
@@ -1203,6 +1208,10 @@ export default function KeeperPage() {
   }
 
   function requestDeleteRecord() {
+    if (archiveEvents.length <= 1) {
+      setSyncStatus('마지막 프로그램은 삭제할 수 없습니다 / 먼저 새 프로그램을 만든 뒤 다시 시도하세요');
+      return;
+    }
     const inboundLinks = archiveEvents.filter((record) => record.id !== selectedEvent.id && record.relatedEventIds.includes(selectedEvent.id));
     const publicationCount = selectedPublications.length;
     const impactSummary = [
@@ -1213,6 +1222,10 @@ export default function KeeperPage() {
   }
 
   function requestDeleteReference() {
+    if (referenceRecords.length <= 1) {
+      setSyncStatus('마지막 자료는 삭제할 수 없습니다 / 먼저 새 자료를 만든 뒤 다시 시도하세요');
+      return;
+    }
     const programmes = archiveEvents.filter((record) => record.referenceIds.includes(selectedReference.id));
     const children = referenceRecords.filter((reference) => reference.parentId === selectedReference.id);
     const impactSummary = [
@@ -1222,63 +1235,152 @@ export default function KeeperPage() {
     setPendingAction({ kind: 'delete-reference', id: selectedReference.id, title: selectedReference.title, impactSummary });
   }
 
-  function performDeleteRecord(id: string) {
-    if (id === selectedEvent.id && isDirty) {
-      writeArchiveDraft(id, toDraft(form), { label: 'automatic local draft', recordRevision: false });
+  function requestDeleteSelectedRecords() {
+    const selectedRecords = archiveEvents.filter((record) => selectedBatchIds.includes(record.id));
+    if (selectedRecords.length === 0) return;
+    if (selectedRecords.length >= archiveEvents.length) {
+      setSyncStatus('모든 프로그램을 한 번에 삭제할 수 없습니다 / 기록 한 장은 남겨 주세요');
+      return;
     }
-    deleteArchiveDraft(id);
+    const selectedIds = new Set(selectedRecords.map((record) => record.id));
+    const inboundLinks = archiveEvents.filter((record) => (
+      !selectedIds.has(record.id)
+      && record.relatedEventIds.some((relatedId) => selectedIds.has(relatedId))
+    ));
+    const publications = readArchivePublications();
+    const publicationCount = selectedRecords.reduce((count, record) => count + (publications[record.id]?.length ?? 0), 0);
+    const impactSummary = [
+      inboundLinks.length > 0 ? `남는 프로그램 ${inboundLinks.length}개의 연결이 정리됩니다` : '다른 프로그램의 연결은 없습니다',
+      publicationCount > 0 ? `발행 이력 ${publicationCount}개는 감사 기록으로 남습니다` : '발행 이력은 없습니다',
+    ].join(' · ');
+    setPendingAction({
+      kind: 'delete-records',
+      ids: selectedRecords.map((record) => record.id),
+      titles: selectedRecords.map((record) => record.title),
+      impactSummary,
+    });
+  }
+
+  function requestDeleteSelectedReferences() {
+    const selectedReferences = referenceRecords.filter((reference) => selectedReferenceBatchIds.includes(reference.id));
+    if (selectedReferences.length === 0) return;
+    if (selectedReferences.length >= referenceRecords.length) {
+      setSyncStatus('모든 자료를 한 번에 삭제할 수 없습니다 / 자료 한 장은 남겨 주세요');
+      return;
+    }
+    const selectedIds = new Set(selectedReferences.map((reference) => reference.id));
+    const programmes = archiveEvents.filter((record) => record.referenceIds.some((referenceId) => selectedIds.has(referenceId)));
+    const children = referenceRecords.filter((reference) => reference.parentId && selectedIds.has(reference.parentId));
+    const impactSummary = [
+      programmes.length > 0 ? `프로그램 ${programmes.length}개의 자료 연결이 정리됩니다` : '프로그램 연결은 없습니다',
+      children.length > 0 ? `하위 자료 ${children.length}개의 상위 원전 연결이 풀립니다` : '하위 자료 연결은 없습니다',
+    ].join(' · ');
+    setPendingAction({
+      kind: 'delete-references',
+      ids: selectedReferences.map((reference) => reference.id),
+      titles: selectedReferences.map((reference) => reference.title),
+      impactSummary,
+    });
+  }
+
+  function performDeleteRecords(ids: string[]) {
+    const targetIds = new Set(ids.filter((id) => archiveEvents.some((record) => record.id === id)));
+    if (targetIds.size === 0) return;
+    if (targetIds.has(selectedEvent.id) && isDirty) {
+      writeArchiveDraft(selectedEvent.id, toDraft(form), { label: 'automatic local draft', recordRevision: false });
+    }
     const nextDrafts = readArchiveDrafts();
+    const now = new Date().toISOString();
+    targetIds.forEach((id) => {
+      nextDrafts[id] = {
+        ...nextDrafts[id],
+        deletedAt: now,
+        updatedAt: now,
+      };
+    });
     archiveEvents.forEach((record) => {
-      if (record.id === id || !record.relatedEventIds.includes(id)) return;
+      if (targetIds.has(record.id) || !record.relatedEventIds.some((relatedId) => targetIds.has(relatedId))) return;
       nextDrafts[record.id] = {
         ...nextDrafts[record.id],
-        relatedEventIds: record.relatedEventIds.filter((relatedId) => relatedId !== id),
-        updatedAt: new Date().toISOString(),
+        relatedEventIds: record.relatedEventIds.filter((relatedId) => !targetIds.has(relatedId)),
+        updatedAt: now,
       };
     });
     writeArchiveDrafts(nextDrafts);
-    recordArchiveAudit({ action: 'delete', targetType: 'programme', targetId: id, title: selectedEvent.title });
+    archiveEvents.filter((record) => targetIds.has(record.id)).forEach((record) => {
+      recordArchiveAudit({ action: 'delete', targetType: 'programme', targetId: record.id, title: record.title });
+    });
     const remaining = applyArchiveDrafts(events);
-    const nextRecord = remaining[0];
-    if (nextRecord) {
+    const nextRecord = remaining.find((record) => record.id === selectedEvent.id) ?? remaining[0];
+    if (nextRecord && targetIds.has(selectedEvent.id)) {
       setSelectedId(nextRecord.id);
       setForm(toFormState(nextRecord));
     }
+    setSelectedBatchIds([]);
     setVersion((current) => current + 1);
-    setSyncStatus('프로그램이 삭제 보관함으로 옮겨졌습니다 / 공동 장부에 봉인하면 모두에게 반영됩니다');
+    setLastLocalSavedAt(now);
+    setSyncStatus(`${targetIds.size}개 프로그램이 삭제 보관함으로 옮겨졌습니다 / 공동 장부에 봉인하면 메인에서 모두 사라집니다`);
   }
 
-  function performDeleteReference(id: string) {
-    if (id === selectedReference.id && isReferenceDirty) writeArchiveReferenceDraft(referenceForm);
-    const currentReference = applyArchiveReferenceDrafts(archiveReferences).find((reference) => reference.id === id) ?? selectedReference;
-    deleteArchiveReferenceDraft(currentReference);
+  function performDeleteRecord(id: string) {
+    performDeleteRecords([id]);
+  }
+
+  function performDeleteReferences(ids: string[]) {
+    const targetIds = new Set(ids.filter((id) => referenceRecords.some((reference) => reference.id === id)));
+    if (targetIds.size === 0) return;
+    if (targetIds.has(selectedReference.id) && isReferenceDirty) writeArchiveReferenceDraft(referenceForm);
+    const currentReferences = applyArchiveReferenceDrafts(archiveReferences);
+    const nextReferences = readArchiveReferenceDrafts();
+    const now = new Date().toISOString();
+
+    currentReferences.forEach((reference) => {
+      if (targetIds.has(reference.id)) {
+        nextReferences[reference.id] = {
+          ...reference,
+          ...nextReferences[reference.id],
+          deletedAt: now,
+          updatedAt: now,
+        };
+      } else if (reference.parentId && targetIds.has(reference.parentId)) {
+        nextReferences[reference.id] = {
+          ...reference,
+          ...nextReferences[reference.id],
+          parentId: undefined,
+          updatedAt: now,
+        };
+      }
+    });
+    writeArchiveReferenceDrafts(nextReferences);
 
     const nextDrafts = readArchiveDrafts();
     archiveEvents.forEach((record) => {
-      if (!record.referenceIds.includes(id)) return;
+      if (!record.referenceIds.some((referenceId) => targetIds.has(referenceId))) return;
       nextDrafts[record.id] = {
         ...nextDrafts[record.id],
-        referenceIds: record.referenceIds.filter((referenceId) => referenceId !== id),
-        updatedAt: new Date().toISOString(),
+        referenceIds: record.referenceIds.filter((referenceId) => !targetIds.has(referenceId)),
+        updatedAt: now,
       };
     });
     writeArchiveDrafts(nextDrafts);
-
-    applyArchiveReferenceDrafts(archiveReferences).forEach((reference) => {
-      if (reference.id !== id && reference.parentId === id) {
-        writeArchiveReferenceDraft({ ...reference, parentId: undefined });
-      }
+    currentReferences.filter((reference) => targetIds.has(reference.id)).forEach((reference) => {
+      recordArchiveAudit({ action: 'delete', targetType: 'reference', targetId: reference.id, title: reference.title });
     });
-    recordArchiveAudit({ action: 'delete', targetType: 'reference', targetId: id, title: currentReference.title });
 
     const remaining = applyArchiveReferenceDrafts(archiveReferences);
-    const nextReference = remaining[0];
-    if (nextReference) {
+    const nextReference = remaining.find((reference) => reference.id === selectedReference.id) ?? remaining[0];
+    if (nextReference && targetIds.has(selectedReference.id)) {
       setSelectedReferenceId(nextReference.id);
       setReferenceForm(toReferenceForm(nextReference));
     }
+    setSelectedReferenceBatchIds([]);
     setVersion((current) => current + 1);
-    setSyncStatus('자료가 삭제 보관함으로 옮겨지고 프로그램 연결이 정리되었습니다 / 공동 장부에 봉인하면 모두에게 반영됩니다');
+    setLastLocalSavedAt(now);
+    setSyncStatus(`${targetIds.size}개 자료가 삭제 보관함으로 옮겨지고 프로그램 연결이 정리되었습니다 / 공동 장부에 봉인하면 모두에게 반영됩니다`);
+  }
+
+  function performDeleteReference(id: string) {
+    performDeleteReferences([id]);
   }
 
   function restoreDeletedRecord(id: string) {
@@ -1778,8 +1880,12 @@ export default function KeeperPage() {
       await performPublication();
     } else if (pendingAction.kind === 'delete-record') {
       performDeleteRecord(pendingAction.id);
+    } else if (pendingAction.kind === 'delete-records') {
+      performDeleteRecords(pendingAction.ids);
     } else if (pendingAction.kind === 'delete-reference') {
       performDeleteReference(pendingAction.id);
+    } else if (pendingAction.kind === 'delete-references') {
+      performDeleteReferences(pendingAction.ids);
     } else if (pendingAction.kind === 'restore-publication') {
       performRestorePublication(pendingAction.publicationId);
     } else if (pendingAction.kind === 'restore-backup') {
@@ -2218,12 +2324,13 @@ export default function KeeperPage() {
           {mode === 'events' ? (
             <>
               {selectedBatchIds.length > 0 && (
-                <section className="keeper-batch-panel" aria-label="선택한 프로그램 일괄 편집">
+                <section className="keeper-batch-panel" aria-label="선택한 프로그램 일괄 작업">
                   <strong lang="ko">{selectedBatchIds.length}개 선택됨</strong>
                   <select aria-label="발행 단계 일괄 변경" value={batchWorkflow} onChange={(event) => setBatchWorkflow(event.target.value as ArchiveWorkflowStatus | '')}><option value="">단계 유지</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select>
                   <select aria-label="공개 상태 일괄 변경" value={batchVisibility} onChange={(event) => setBatchVisibility(event.target.value as ArchiveVisibility | '')}><option value="">공개 상태 유지</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select>
                   <input aria-label="종류 일괄 변경" list="archive-content-kinds" value={batchKind} onChange={(event) => setBatchKind(event.target.value)} placeholder="종류 유지" />
                   <button type="button" onClick={applyBatchEdit}><span lang="ko">선택 항목 적용</span></button>
+                  <button className="keeper-batch-delete" type="button" onClick={requestDeleteSelectedRecords}><span lang="ko">선택 프로그램 삭제</span></button>
                   <button type="button" onClick={() => setSelectedBatchIds([])}><span lang="ko">선택 해제</span></button>
                 </section>
               )}
@@ -2257,20 +2364,30 @@ export default function KeeperPage() {
               )}
             </>
           ) : mode === 'references' ? (
-            <div className="keeper-list keeper-list-with-actions">
-              {visibleReferenceRecords.map((reference) => (
-                <article className={reference.id === selectedReferenceId ? 'is-selected' : ''} key={reference.id}>
-                  <button className="keeper-list-main" onClick={() => selectReference(reference)} type="button">
-                    <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
-                    <strong>{reference.title}</strong>
-                    <small>{reference.updatedAt ? `최근 수정 ${new Date(reference.updatedAt).toLocaleString('ko-KR')}` : reference.creator ?? reference.attribution ?? reference.id}</small>
-                  </button>
-                  <button className="keeper-list-star" type="button" aria-label={`${reference.title} 즐겨찾기`} aria-pressed={preferences.favouriteReferences.includes(reference.id)} onClick={() => toggleFavourite('reference', reference.id)}>{preferences.favouriteReferences.includes(reference.id) ? '★' : '☆'}</button>
-                  <div className="keeper-row-actions"><a href={`/catalogue/${reference.id}/`} target="_blank" rel="noreferrer"><span lang="ko">공개 보기</span></a><button type="button" onClick={() => duplicateReferenceRecord(reference)}><span lang="ko">복제</span></button></div>
-                </article>
-              ))}
-              {visibleReferenceRecords.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 자료가 없습니다.</p>}
-            </div>
+            <>
+              {selectedReferenceBatchIds.length > 0 && (
+                <section className="keeper-batch-panel" aria-label="선택한 자료 일괄 작업">
+                  <strong lang="ko">{selectedReferenceBatchIds.length}개 선택됨</strong>
+                  <button className="keeper-batch-delete" type="button" onClick={requestDeleteSelectedReferences}><span lang="ko">선택 자료 삭제</span></button>
+                  <button type="button" onClick={() => setSelectedReferenceBatchIds([])}><span lang="ko">선택 해제</span></button>
+                </section>
+              )}
+              <div className="keeper-list keeper-list-with-actions">
+                {visibleReferenceRecords.map((reference) => (
+                  <article className={reference.id === selectedReferenceId ? 'is-selected' : ''} key={reference.id}>
+                    <input type="checkbox" aria-label={`${reference.title} 일괄 선택`} checked={selectedReferenceBatchIds.includes(reference.id)} onChange={() => toggleBatchReference(reference.id)} />
+                    <button className="keeper-list-main" onClick={() => selectReference(reference)} type="button">
+                      <span lang="ko">{archiveReferenceKindLabel(reference.kind)}</span>
+                      <strong>{reference.title}</strong>
+                      <small>{reference.updatedAt ? `최근 수정 ${new Date(reference.updatedAt).toLocaleString('ko-KR')}` : reference.creator ?? reference.attribution ?? reference.id}</small>
+                    </button>
+                    <button className="keeper-list-star" type="button" aria-label={`${reference.title} 즐겨찾기`} aria-pressed={preferences.favouriteReferences.includes(reference.id)} onClick={() => toggleFavourite('reference', reference.id)}>{preferences.favouriteReferences.includes(reference.id) ? '★' : '☆'}</button>
+                    <div className="keeper-row-actions"><a href={`/catalogue/${reference.id}/`} target="_blank" rel="noreferrer"><span lang="ko">공개 보기</span></a><button type="button" onClick={() => duplicateReferenceRecord(reference)}><span lang="ko">복제</span></button></div>
+                  </article>
+                ))}
+                {visibleReferenceRecords.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 자료가 없습니다.</p>}
+              </div>
+            </>
           ) : (
             <div className="keeper-list">
               <button className="is-selected" type="button">
@@ -2958,8 +3075,12 @@ export default function KeeperPage() {
               ? '이 판본을 공개 발행할까요?'
               : pendingAction?.kind === 'delete-record'
                 ? '이 프로그램을 삭제할까요?'
+              : pendingAction?.kind === 'delete-records'
+                ? `${pendingAction.ids.length}개 프로그램을 삭제할까요?`
               : pendingAction?.kind === 'delete-reference'
                   ? '이 자료를 삭제할까요?'
+              : pendingAction?.kind === 'delete-references'
+                  ? `${pendingAction.ids.length}개 자료를 삭제할까요?`
               : pendingAction?.kind === 'restore-backup'
                 ? '이 공동 장부 백업으로 복원할까요?'
               : pendingAction?.kind === 'restore-publication'
@@ -2973,8 +3094,12 @@ export default function KeeperPage() {
               ? `“${pendingAction.title}”을 공동 장부에 공개하고 발행 지문을 보존합니다.${pendingAction.warningCount > 0 ? ` 경고 ${pendingAction.warningCount}건은 확인 후에도 남습니다.` : ''}`
               : pendingAction?.kind === 'delete-record'
                 ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
+                : pendingAction?.kind === 'delete-records'
+                  ? `“${pendingAction.titles.slice(0, 3).join('”, “')}${pendingAction.titles.length > 3 ? `” 외 ${pendingAction.titles.length - 3}개` : '”'}를 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 각 기록은 삭제 보관함에서 복원할 수 있습니다.`
                 : pendingAction?.kind === 'delete-reference'
                   ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
+                : pendingAction?.kind === 'delete-references'
+                  ? `“${pendingAction.titles.slice(0, 3).join('”, “')}${pendingAction.titles.length > 3 ? `” 외 ${pendingAction.titles.length - 3}개` : '”'}를 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 각 자료는 삭제 보관함에서 복원할 수 있습니다.`
               : pendingAction?.kind === 'restore-backup'
                 ? `${pendingAction.title} 백업으로 공동 장부 전체를 되돌립니다. 현재 공동 장부는 복원 직전 백업으로 따로 보존됩니다.`
               : pendingAction?.kind === 'restore-publication'
@@ -2988,14 +3113,24 @@ export default function KeeperPage() {
               ? '판본 발행'
               : pendingAction?.kind === 'delete-record'
                 ? '프로그램 삭제'
+                : pendingAction?.kind === 'delete-records'
+                  ? '선택 프로그램 삭제'
                 : pendingAction?.kind === 'delete-reference'
                   ? '자료 삭제'
+                  : pendingAction?.kind === 'delete-references'
+                    ? '선택 자료 삭제'
                   : pendingAction?.kind === 'restore-backup'
                     ? '공동 장부 복원'
                   : pendingAction?.kind === 'restore-publication'
                     ? '복구 초안 만들기'
                     : '이 버전 복원'}
-        tone={pendingAction?.kind === 'clear' || pendingAction?.kind === 'delete-record' || pendingAction?.kind === 'delete-reference' ? 'danger' : 'default'}
+        tone={pendingAction?.kind === 'clear'
+          || pendingAction?.kind === 'delete-record'
+          || pendingAction?.kind === 'delete-records'
+          || pendingAction?.kind === 'delete-reference'
+          || pendingAction?.kind === 'delete-references'
+          ? 'danger'
+          : 'default'}
         onCancel={() => setPendingAction(null)}
         onConfirm={() => { void confirmPendingAction(); }}
       />

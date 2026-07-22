@@ -495,6 +495,11 @@ html body #root .public-home.keeper-home .keeper-batch-panel :is(select, input, 
   font: 650 0.72rem/1.2 var(--font-ko);
 }
 
+html body #root .public-home.keeper-home .keeper-batch-panel .keeper-batch-delete {
+  background: var(--signal, #ea7657) !important;
+  font-weight: 800 !important;
+}
+
 html body #root .public-home.keeper-home .keeper-timeline {
   display: grid;
   gap: 0;

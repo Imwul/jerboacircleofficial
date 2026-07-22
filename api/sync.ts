@@ -211,10 +211,16 @@ function publicArchiveSnapshot(saved: any) {
 
   const drafts = isPlainObject(saved.data.drafts) ? saved.data.drafts : {};
   const publicDrafts = Object.fromEntries(
-    Object.entries(drafts).filter(([, value]) => (
-      isPlainObject(value)
-      && scheduledDraftIsPublic(value)
-    )),
+    Object.entries(drafts).flatMap(([id, value]) => {
+      if (!isPlainObject(value)) return [];
+      if (typeof value.deletedAt === 'string') {
+        return [[id, {
+          deletedAt: value.deletedAt,
+          ...(typeof value.updatedAt === 'string' ? { updatedAt: value.updatedAt } : {}),
+        }]];
+      }
+      return scheduledDraftIsPublic(value) ? [[id, value]] : [];
+    }),
   );
 
   return {
@@ -262,7 +268,7 @@ export default async function handler(request: any, response: any) {
         ok: true,
         exists: Boolean(readableSaved),
         saved: readableSaved,
-      }, isPublicArchiveRead ? 'public, s-maxage=60, stale-while-revalidate=300' : 'no-store');
+      }, isPublicArchiveRead ? 'public, max-age=0, must-revalidate' : 'no-store');
     }
 
     if (request.method === 'POST') {

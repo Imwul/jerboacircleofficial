@@ -1,7 +1,7 @@
 import type { ArchiveEvent } from '../data/events';
 import { defaultArchiveCollectionId, defaultArchiveSeasonId } from '../data/events';
 
-const draftStorageKey = 'jerboa-circle-archive-drafts';
+export const archiveDraftStorageKey = 'jerboa-circle-archive-drafts';
 const revisionStorageKey = 'jerboa-circle-archive-revisions';
 const maxRevisionsPerRecord = 18;
 
@@ -64,7 +64,7 @@ export function readArchiveDrafts(): ArchiveDraftMap {
   if (!canUseStorage()) return {};
 
   try {
-    const rawDrafts = window.localStorage.getItem(draftStorageKey);
+    const rawDrafts = window.localStorage.getItem(archiveDraftStorageKey);
     return rawDrafts ? (JSON.parse(rawDrafts) as ArchiveDraftMap) : {};
   } catch {
     return {};
@@ -125,7 +125,7 @@ export function writeArchiveDraft(id: string, draft: ArchiveEventDraft, options:
     updatedAt: draft.updatedAt || stampDate,
   };
   const nextDrafts = { ...drafts, [id]: stampedDraft };
-  window.localStorage.setItem(draftStorageKey, JSON.stringify(nextDrafts));
+  window.localStorage.setItem(archiveDraftStorageKey, JSON.stringify(nextDrafts));
 
   if (options.recordRevision !== false) {
     recordArchiveRevision(id, stampedDraft, options.label);
@@ -134,7 +134,7 @@ export function writeArchiveDraft(id: string, draft: ArchiveEventDraft, options:
 
 export function writeArchiveDrafts(drafts: ArchiveDraftMap) {
   if (!canUseStorage()) return;
-  window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+  window.localStorage.setItem(archiveDraftStorageKey, JSON.stringify(drafts));
 }
 
 export function clearArchiveDraft(id: string) {
@@ -142,7 +142,7 @@ export function clearArchiveDraft(id: string) {
 
   const drafts = readArchiveDrafts();
   delete drafts[id];
-  window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+  window.localStorage.setItem(archiveDraftStorageKey, JSON.stringify(drafts));
 }
 
 export function deleteArchiveDraft(id: string) {
@@ -170,7 +170,7 @@ export function restoreDeletedArchiveDraft(id: string) {
 
 export function clearAllArchiveDrafts() {
   if (!canUseStorage()) return;
-  window.localStorage.removeItem(draftStorageKey);
+  window.localStorage.removeItem(archiveDraftStorageKey);
 }
 
 export function restoreArchiveDraftRevision(recordId: string, revisionId: string) {
