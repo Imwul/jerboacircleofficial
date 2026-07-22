@@ -5826,3 +5826,80 @@ html body #root .public-home.keeper-home .keeper-register .keeper-mode-switch > 
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
+
+/* Keeper command buttons share one closed, vertically centred rhythm. */
+html body #root .public-home.keeper-home .keeper-command-bar {
+  grid-template-columns: minmax(15rem, 1fr) minmax(43rem, auto) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-actions {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  align-self: stretch !important;
+  align-items: stretch !important;
+  gap: 0.45rem !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-primary {
+  display: contents !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-primary > button,
+html body #root .public-home.keeper-home .keeper-command-more > summary {
+  display: flex !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: 3.25rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding-block: 0.55rem !important;
+  text-align: center !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-primary > button > span,
+html body #root .public-home.keeper-home .keeper-command-more > summary > span {
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-more {
+  width: 100% !important;
+  min-width: 0 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: stretch !important;
+}
+
+@media (max-width: 980px) {
+  html body #root .public-home.keeper-home .keeper-command-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary > button {
+    min-height: 3.5rem !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-more > summary {
+    min-height: 3.5rem !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary > button:nth-child(2),
+  html body #root .public-home.keeper-home .keeper-command-primary > button:nth-child(3) {
+    display: none !important;
+  }
+}

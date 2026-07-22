@@ -1937,38 +1937,40 @@ export default function KeeperPage() {
               <span data-state="published" lang="ko">최근 봉인 {archiveSavedAt ? timeLabel(new Date(archiveSavedAt)) : '없음'}</span>
             </div>
           </div>
-          <div className="keeper-command-primary">
-            <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">전체 찾기</span><kbd>⌘K</kbd></button>
-            <button type="button" onClick={undoCurrent} disabled={mode === 'events' ? programmeUndo.current.length === 0 : mode === 'references' ? referenceUndo.current.length === 0 : textUndo.current.length === 0}><span lang="ko">되돌리기</span></button>
-            <button type="button" onClick={redoCurrent} disabled={mode === 'events' ? programmeRedo.current.length === 0 : mode === 'references' ? referenceRedo.current.length === 0 : textRedo.current.length === 0}><span lang="ko">다시 적용</span></button>
-            <button type="button" onClick={saveArchiveToServer}><span lang="ko">공동 장부에 봉인</span></button>
-            <button type="button" onClick={loadArchiveFromServer}><span lang="ko">장부 열람</span></button>
-          </div>
-          <details className="keeper-command-more">
-            <summary lang="ko">백업과 관리</summary>
-            <div>
-              <button type="button" onClick={downloadArchiveDrafts}><span lang="ko">파일 백업</span></button>
-              <label>
-                <span lang="ko">파일 적용</span>
-                <input
-                  type="file"
-                  accept="application/json,.json"
-                  onChange={(event) => {
-                    const file = event.currentTarget.files?.[0];
-                    if (file) {
-                      void importArchiveDrafts(file);
-                      event.currentTarget.value = '';
-                    }
-                  }}
-                />
-              </label>
-              <button type="button" onClick={clearEveryDraft}><span lang="ko">로컬 초안 모두 삭제</span></button>
-              <button type="button" disabled={operationsBusy} onClick={() => { void toggleOperations(); }}>
-                <span lang="ko">{showOperations ? '운영 상태 닫기' : '운영 상태와 백업'}</span>
-              </button>
-              <button type="button" onClick={leaveKeeperDesk}><span lang="ko">Keeper 입장 종료</span></button>
+          <div className="keeper-command-actions">
+            <div className="keeper-command-primary">
+              <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">전체 찾기</span><kbd>⌘K</kbd></button>
+              <button type="button" onClick={undoCurrent} disabled={mode === 'events' ? programmeUndo.current.length === 0 : mode === 'references' ? referenceUndo.current.length === 0 : textUndo.current.length === 0}><span lang="ko">되돌리기</span></button>
+              <button type="button" onClick={redoCurrent} disabled={mode === 'events' ? programmeRedo.current.length === 0 : mode === 'references' ? referenceRedo.current.length === 0 : textRedo.current.length === 0}><span lang="ko">다시 적용</span></button>
+              <button type="button" onClick={saveArchiveToServer}><span lang="ko">공동 장부에 봉인</span></button>
+              <button type="button" onClick={loadArchiveFromServer}><span lang="ko">장부 열람</span></button>
             </div>
-          </details>
+            <details className="keeper-command-more">
+              <summary><span lang="ko">백업과 관리</span></summary>
+              <div>
+                <button type="button" onClick={downloadArchiveDrafts}><span lang="ko">파일 백업</span></button>
+                <label>
+                  <span lang="ko">파일 적용</span>
+                  <input
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      if (file) {
+                        void importArchiveDrafts(file);
+                        event.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </label>
+                <button type="button" onClick={clearEveryDraft}><span lang="ko">로컬 초안 모두 삭제</span></button>
+                <button type="button" disabled={operationsBusy} onClick={() => { void toggleOperations(); }}>
+                  <span lang="ko">{showOperations ? '운영 상태 닫기' : '운영 상태와 백업'}</span>
+                </button>
+                <button type="button" onClick={leaveKeeperDesk}><span lang="ko">Keeper 입장 종료</span></button>
+              </div>
+            </details>
+          </div>
           {hasArchiveConflict && (
             <p className="keeper-sync-conflict" role="alert" lang="ko">
               공동 장부가 다른 곳에서 먼저 바뀌었습니다. 장부를 열람한 뒤 다시 봉인하세요.
@@ -2176,7 +2178,7 @@ export default function KeeperPage() {
                 {preferences.savedViews.map((view) => (
                   <span key={view.id}><button type="button" onClick={() => applySavedView(view)}>{view.name}</button><button type="button" aria-label={`${view.name} 보기 삭제`} onClick={() => deleteSavedView(view.id)}>×</button></span>
                 ))}
-                <label><span lang="ko">현재 필터 저장</span><input value={savedViewName} onChange={(event) => setSavedViewName(event.target.value)} placeholder="예: 발행 대기" /><button type="button" onClick={createSavedView}>저장</button></label>
+                <label><span lang="ko">현재 필터 저장</span><input value={savedViewName} onChange={(event) => setSavedViewName(event.target.value)} placeholder="예: 발행 대기" /><button type="button" onClick={createSavedView}><span lang="ko">저장</span></button></label>
               </div>
             </div>
           )}
@@ -2226,9 +2228,9 @@ export default function KeeperPage() {
                       </button>
                       <button className="keeper-list-star" type="button" aria-label={`${event.title} 즐겨찾기`} aria-pressed={preferences.favouriteProgrammes.includes(event.id)} onClick={() => toggleFavourite('programme', event.id)}>{preferences.favouriteProgrammes.includes(event.id) ? '★' : '☆'}</button>
                       <div className="keeper-row-actions">
-                        <a href={`/archive/${event.id}/?preview=1`} target="_blank" rel="noreferrer">미리보기</a>
-                        <button type="button" onClick={() => duplicateRecord(event)}>복제</button>
-                        <button type="button" onClick={() => toggleRecordVisibility(event)}>{event.visibility === 'public' ? '비공개' : '공개'}</button>
+                        <a href={`/archive/${event.id}/?preview=1`} target="_blank" rel="noreferrer"><span lang="ko">미리보기</span></a>
+                        <button type="button" onClick={() => duplicateRecord(event)}><span lang="ko">복제</span></button>
+                        <button type="button" onClick={() => toggleRecordVisibility(event)}><span lang="ko">{event.visibility === 'public' ? '비공개' : '공개'}</span></button>
                       </div>
                     </article>
                   ))}
@@ -2246,7 +2248,7 @@ export default function KeeperPage() {
                     <small>{reference.updatedAt ? `최근 수정 ${new Date(reference.updatedAt).toLocaleString('ko-KR')}` : reference.creator ?? reference.attribution ?? reference.id}</small>
                   </button>
                   <button className="keeper-list-star" type="button" aria-label={`${reference.title} 즐겨찾기`} aria-pressed={preferences.favouriteReferences.includes(reference.id)} onClick={() => toggleFavourite('reference', reference.id)}>{preferences.favouriteReferences.includes(reference.id) ? '★' : '☆'}</button>
-                  <div className="keeper-row-actions"><a href={`/catalogue/${reference.id}/`} target="_blank" rel="noreferrer">공개 보기</a><button type="button" onClick={() => duplicateReferenceRecord(reference)}>복제</button></div>
+                  <div className="keeper-row-actions"><a href={`/catalogue/${reference.id}/`} target="_blank" rel="noreferrer"><span lang="ko">공개 보기</span></a><button type="button" onClick={() => duplicateReferenceRecord(reference)}><span lang="ko">복제</span></button></div>
                 </article>
               ))}
               {visibleReferenceRecords.length === 0 && <p className="keeper-list-empty" lang="ko">찾는 자료가 없습니다.</p>}
@@ -2883,7 +2885,7 @@ export default function KeeperPage() {
             <aside className="keeper-live-preview" aria-label="실시간 공개 화면 미리보기">
               <header>
                 <strong lang="ko">공개 화면 미리보기</strong>
-                <div><button type="button" className={livePreviewViewport === 'desktop' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('desktop')}>Desktop</button><button type="button" className={livePreviewViewport === 'mobile' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('mobile')}>Mobile</button><button type="button" onClick={() => setPreviewRevision((current) => current + 1)}>새로고침</button><button type="button" aria-label="미리보기 닫기" onClick={() => setLivePreviewOpen(false)}>×</button></div>
+                <div><button type="button" className={livePreviewViewport === 'desktop' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('desktop')}>Desktop</button><button type="button" className={livePreviewViewport === 'mobile' ? 'is-active' : ''} onClick={() => setLivePreviewViewport('mobile')}>Mobile</button><button type="button" onClick={() => setPreviewRevision((current) => current + 1)}><span lang="ko">새로고침</span></button><button type="button" aria-label="미리보기 닫기" onClick={() => setLivePreviewOpen(false)}>×</button></div>
               </header>
               <div data-viewport={livePreviewViewport}><iframe key={previewRevision} title={`${form.title} 공개 화면 미리보기`} src={`/archive/${selectedEvent.id}/?preview=1&embed=keeper`} /></div>
             </aside>
