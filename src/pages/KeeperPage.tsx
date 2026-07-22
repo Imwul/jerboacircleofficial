@@ -353,6 +353,7 @@ function posterUploadMessage(error: unknown) {
   if (code.includes('media_auth_required')) return 'Keeper 입장 시간이 끝났습니다 / 다시 입장한 뒤 포스터를 보존하세요';
   if (code.includes('image_too_large') || code.includes('payload_too_large') || code.includes('media_http_413')) return '포스터 용량을 줄이지 못했습니다 / 더 작은 PNG 파일로 다시 시도하세요';
   if (code.includes('invalid_image') || code.includes('image_decode_failed')) return 'PNG, JPG 또는 WebP 이미지인지 확인하세요';
+  if (code.includes('media_store_access_mismatch')) return '공동 이미지 저장소의 공개 설정이 맞지 않습니다 / 배포 설정을 확인하세요';
   if (code.includes('blob')) return '공동 이미지 저장소가 잠시 닫혔습니다 / 잠시 뒤 다시 시도하세요';
   return '포스터를 보존하지 못했습니다 / 연결을 확인하고 다시 시도하세요';
 }
@@ -413,6 +414,10 @@ export default function KeeperPage() {
   const [inlineReferenceOpen, setInlineReferenceOpen] = useState(false);
   const [inlineReferenceForm, setInlineReferenceForm] = useState<InlineReferenceForm>(emptyInlineReference);
   const [metadataBusy, setMetadataBusy] = useState(false);
+  const [posterUploadStatus, setPosterUploadStatus] = useState<{
+    state: 'idle' | 'busy' | 'success' | 'error';
+    message: string;
+  }>({ state: 'idle', message: '' });
   const programmeUndo = useRef<KeeperFormState[]>([]);
   const programmeRedo = useRef<KeeperFormState[]>([]);
   const referenceUndo = useRef<ReferenceFormState[]>([]);
@@ -570,6 +575,10 @@ export default function KeeperPage() {
   useEffect(() => {
     writeKeeperPreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    setPosterUploadStatus({ state: 'idle', message: '' });
+  }, [selectedId]);
 
   useEffect(() => {
     if (!isAccessGranted || !livePreviewOpen || mode !== 'events') return;
@@ -1786,6 +1795,7 @@ export default function KeeperPage() {
     if (!file) return;
 
     try {
+      setPosterUploadStatus({ state: 'busy', message: `${file.name} 준비 중` });
       setSyncStatus('포스터를 웹용으로 줄이는 중');
       const resizedPoster = await resizeImage(file, 1600, 2200);
       const authSession = roleSessionToken('archive-editor');
@@ -1793,16 +1803,21 @@ export default function KeeperPage() {
         if (!import.meta.env.DEV) throw new Error('archive_media_session_required');
         updateField('posterImage', resizedPoster);
         setSyncStatus('로컬 포스터 미리보기 준비됨 / 배포 환경에서 올리면 공동 이미지 저장소에 보존됩니다');
+        setPosterUploadStatus({ state: 'success', message: '로컬 미리보기 준비 완료' });
       } else {
+        setPosterUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
         setSyncStatus('포스터를 공동 이미지 저장소에 붙이는 중');
         const posterUrl = await uploadArchiveImage(resizedPoster, file.name, authSession);
         updateField('posterImage', posterUrl);
         if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
         setSyncStatus('포스터 이미지가 공동 저장소에 보존됨');
+        setPosterUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
     } catch (error) {
       console.error('Poster upload failed:', error);
-      setSyncStatus(posterUploadMessage(error));
+      const message = posterUploadMessage(error);
+      setSyncStatus(message);
+      setPosterUploadStatus({ state: 'error', message });
     } finally {
       event.currentTarget.value = '';
     }
@@ -1816,6 +1831,7 @@ export default function KeeperPage() {
       return;
     }
     try {
+      setPosterUploadStatus({ state: 'busy', message: '기존 포스터를 공동 저장소로 옮기는 중' });
       setSyncStatus('기존 포스터를 공동 이미지 저장소로 옮기는 중');
       const embeddedResponse = await fetch(form.posterImage);
       const embeddedBlob = await embeddedResponse.blob();
@@ -1825,6 +1841,7 @@ export default function KeeperPage() {
       updateField('posterImage', posterUrl);
       if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
       setSyncStatus('기존 포스터 이전 완료 / 초안을 봉인하세요');
+      setPosterUploadStatus({ state: 'success', message: '기존 포스터 이전 완료' });
     } catch (error) {
       console.error('Embedded poster migration failed:', error);
       const message = posterUploadMessage(error);
@@ -1834,6 +1851,7 @@ export default function KeeperPage() {
         setAccessStatus(message);
       }
       setSyncStatus(message);
+      setPosterUploadStatus({ state: 'error', message });
     }
   }
 
@@ -2641,7 +2659,12 @@ export default function KeeperPage() {
               <label className="keeper-field">
                 <span lang="ko">포스터 이미지 업로드</span>
                 <small lang="ko">이미지를 최적화해 이 프로그램의 포스터로 보존합니다.</small>
-                <input accept="image/*" onChange={readPosterFile} type="file" />
+                <input accept="image/png,image/jpeg,image/webp" disabled={posterUploadStatus.state === 'busy'} onChange={readPosterFile} type="file" />
+                {posterUploadStatus.message && (
+                  <small className="keeper-upload-status" data-state={posterUploadStatus.state} role="status" aria-live="polite" lang="ko">
+                    {posterUploadStatus.message}
+                  </small>
+                )}
               </label>
               {form.posterImage.startsWith('data:') && (
                 <button type="button" onClick={() => { void migrateEmbeddedPoster(); }}><span lang="ko">기존 포스터를 공동 저장소로 옮기기</span></button>

@@ -165,6 +165,32 @@ html body #root .public-home .keeper-actions .keeper-danger-action {
   }
 }
 
+html body #root .public-home.keeper-home .keeper-upload-status {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 0.55rem !important;
+  padding: 0.5rem 0.6rem !important;
+  border: 1px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-upload-status[data-state="busy"] {
+  background: var(--signal-gold) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-upload-status[data-state="success"] {
+  background: var(--signal-blue) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-upload-status[data-state="error"] {
+  border-color: #7a1714 !important;
+  background: #f0c7bd !important;
+}
+
 /* Keeper Desk V2.1: operator find, repeat actions, sectional editing and live review. */
 html body #root .keeper-command-overlay {
   position: fixed;

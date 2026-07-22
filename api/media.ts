@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
 import { verifyRoleSession } from '../server/authCore.js';
 
@@ -53,9 +53,50 @@ function safeName(value: unknown) {
     .slice(0, 70) || 'curiosity';
 }
 
+function safeMediaPathname(value: unknown) {
+  if (typeof value !== 'string' || value.length > 320 || value.includes('..') || value.includes('\\')) return null;
+  return /^(?:archive|cabinet)\/[a-zA-Z0-9/_-]+\.(?:jpg|png|webp)$/.test(value) ? value : null;
+}
+
+async function deliverPrivateMedia(request: any, response: any) {
+  const requestUrl = new URL(request.url || '/api/media', `https://${request.headers.host || 'jerboacircleofficial.vercel.app'}`);
+  const pathname = safeMediaPathname(requestUrl.searchParams.get('pathname'));
+  if (!pathname) return sendJson(response, 400, { ok: false, error: 'invalid_media_path' });
+
+  const result = await get(pathname, {
+    access: 'private',
+    ifNoneMatch: typeof request.headers['if-none-match'] === 'string' ? request.headers['if-none-match'] : undefined,
+  });
+  if (!result) return sendJson(response, 404, { ok: false, error: 'media_not_found' });
+
+  response.statusCode = result.statusCode;
+  response.setHeader('cache-control', 'public, max-age=31536000, immutable');
+  response.setHeader('etag', result.blob.etag);
+  if (result.statusCode === 304 || !result.stream) return response.end();
+
+  response.setHeader('content-type', result.blob.contentType || 'application/octet-stream');
+  response.setHeader('content-length', String(result.blob.size));
+  response.setHeader('x-content-type-options', 'nosniff');
+  const reader = result.stream.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    response.write(Buffer.from(value));
+  }
+  return response.end();
+}
+
 export default async function handler(request: any, response: any) {
+  if (request.method === 'GET') {
+    try {
+      return await deliverPrivateMedia(request, response);
+    } catch (error) {
+      console.error('Media delivery failed:', error);
+      return sendJson(response, 500, { ok: false, error: 'media_delivery_failed' });
+    }
+  }
   if (request.method !== 'POST') {
-    response.setHeader('allow', 'POST');
+    response.setHeader('allow', 'GET, POST');
     return sendJson(response, 405, { ok: false, error: 'method_not_allowed' });
   }
   if (!hasSyncKey(request) && !hasMediaSession(request)) {
@@ -79,7 +120,7 @@ export default async function handler(request: any, response: any) {
     const folder = body?.scope === 'archive' ? 'archive' : 'cabinet';
     const pathname = `${folder}/${new Date().toISOString().slice(0, 10)}/${safeName(body?.fileName)}.${extension}`;
     const uploaded = await put(pathname, image, {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: true,
       contentType,
       cacheControlMaxAge: 31_536_000,
@@ -87,7 +128,7 @@ export default async function handler(request: any, response: any) {
 
     return sendJson(response, 200, {
       ok: true,
-      url: uploaded.url,
+      url: `/api/media?pathname=${encodeURIComponent(uploaded.pathname)}`,
       pathname: uploaded.pathname,
     });
   } catch (error) {
@@ -95,6 +136,9 @@ export default async function handler(request: any, response: any) {
     if (code === 'payload_too_large') return sendJson(response, 413, { ok: false, error: code });
     if (code === 'Unexpected end of JSON input' || error instanceof SyntaxError) return sendJson(response, 400, { ok: false, error: 'invalid_json' });
     console.error('Media upload failed:', error);
+    if (code.includes('Cannot use public access on a private store')) {
+      return sendJson(response, 503, { ok: false, error: 'media_store_access_mismatch' });
+    }
     return sendJson(response, 500, { ok: false, error: 'media_upload_failed' });
   }
 }
