@@ -58,6 +58,7 @@ import { getArchiveMediaAsset } from '../data/mediaAssets';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import KeeperEditorActionBar, { type KeeperOperation } from '../components/keeper/KeeperEditorActionBar';
 import { parseArchiveDraftImport } from '../utils/archiveImport';
 import {
   archiveEventFromForm,
@@ -97,6 +98,7 @@ import {
   type KeeperSavedView,
 } from '../utils/keeperPreferences';
 import { suggestReferenceMetadata } from '../utils/referenceMetadata';
+import { useDialogFocus } from '../utils/useDialogFocus';
 import {
   clearKeeperProgrammeWorkingCopies,
   readKeeperProgrammeWorkingCopies,
@@ -415,6 +417,9 @@ export default function KeeperPage() {
   const [kindFilter, setKindFilter] = useState<string>('all');
   const [sharedSnapshot, setSharedSnapshot] = useState<ArchiveSyncPayload | null>(null);
   const [lastLocalSavedAt, setLastLocalSavedAt] = useState<string | null>(null);
+  const [activeOperation, setActiveOperation] = useState<KeeperOperation>('idle');
+  const [operationError, setOperationError] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
   const [conflictState, setConflictState] = useState<ArchiveConflictState | null>(null);
   const [conflictChoices, setConflictChoices] = useState<{
     drafts: 'local' | 'remote';
@@ -453,24 +458,31 @@ export default function KeeperPage() {
   }>({ state: 'idle', message: '' });
   const [workingCopyVersion, setWorkingCopyVersion] = useState(0);
   const [newPrimaryTheme, setNewPrimaryTheme] = useState('');
+  const activeOperationRef = useRef<KeeperOperation>('idle');
+  const commandDialogRef = useDialogFocus<HTMLElement>(commandOpen, () => setCommandOpen(false));
   const programmeUndo = useRef<KeeperFormState[]>([]);
   const programmeRedo = useRef<KeeperFormState[]>([]);
   const referenceUndo = useRef<ReferenceFormState[]>([]);
   const referenceRedo = useRef<ReferenceFormState[]>([]);
   const textUndo = useRef<SiteText[]>([]);
   const textRedo = useRef<SiteText[]>([]);
+  const editorRef = useRef<HTMLElement>(null);
   const isDirty = JSON.stringify(form) !== JSON.stringify(toFormState(selectedEvent));
   const isReferenceDirty = JSON.stringify(referenceForm) !== JSON.stringify(toReferenceForm(selectedReference));
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
   const selectedPublications = useMemo(() => readArchivePublications()[selectedEvent.id] ?? [], [selectedEvent.id, version]);
   const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents, referenceRecords), [archiveEvents, referenceRecords]);
-  const publicationCandidate = useMemo(() => archiveEventFromForm(
-    selectedEvent.id,
-    form,
-    selectedEvent,
-    selectedEvent.publishedAt || new Date().toISOString().slice(0, 10),
-  ), [form, selectedEvent]);
+  const publicationCandidate = useMemo(() => ({
+    ...archiveEventFromForm(
+      selectedEvent.id,
+      form,
+      selectedEvent,
+      selectedEvent.publishedAt || new Date().toISOString().slice(0, 10),
+    ),
+    visibility: 'public' as const,
+    workflowStatus: 'published' as const,
+  }), [form, selectedEvent]);
   const publicationIssues = useMemo(
     () => inspectPublicationReadiness(publicationCandidate, archiveEvents, referenceRecords),
     [publicationCandidate, archiveEvents, referenceRecords],
@@ -658,7 +670,7 @@ export default function KeeperPage() {
       if (!commandKey) return;
       if (event.key.toLowerCase() === 's') {
         event.preventDefault();
-        saveCurrentDraft();
+        void saveCurrentDraft();
       } else if (event.key.toLowerCase() === 'z') {
         event.preventDefault();
         if (event.shiftKey) redoCurrent();
@@ -695,37 +707,37 @@ export default function KeeperPage() {
   }, [form, isAccessGranted, isDirty, selectedEvent.id, selectedEvent.title]);
 
   useEffect(() => {
-    if (!isAccessGranted || !isDirty) return;
+    if (!isAccessGranted || !isDirty || isComposing) return;
     const timer = window.setTimeout(() => {
       writeArchiveDraft(selectedEvent.id, toDraft(form), { label: 'automatic local draft', recordRevision: false });
       setVersion((current) => current + 1);
       setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`프로그램 수정 자동 보관됨 / ${timeLabel()}`);
-    }, 650);
+    }, 1_800);
     return () => window.clearTimeout(timer);
-  }, [form, isAccessGranted, isDirty, selectedEvent.id]);
+  }, [form, isAccessGranted, isComposing, isDirty, selectedEvent.id]);
 
   useEffect(() => {
-    if (!isAccessGranted || !isReferenceDirty || referenceForm.id !== selectedReference.id) return;
+    if (!isAccessGranted || !isReferenceDirty || isComposing || referenceForm.id !== selectedReference.id) return;
     const timer = window.setTimeout(() => {
       const savedReference = writeArchiveReferenceDraft(referenceForm);
       setReferenceForm(savedReference);
       setVersion((current) => current + 1);
       setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`자료 수정 자동 보관됨 / ${timeLabel()}`);
-    }, 650);
+    }, 1_800);
     return () => window.clearTimeout(timer);
-  }, [isAccessGranted, isReferenceDirty, referenceForm, selectedReference.id]);
+  }, [isAccessGranted, isComposing, isReferenceDirty, referenceForm, selectedReference.id]);
 
   useEffect(() => {
-    if (!isAccessGranted || !isTextDirty) return;
+    if (!isAccessGranted || !isTextDirty || isComposing) return;
     const timer = window.setTimeout(() => {
       writeSiteTextDraft(siteTextForm);
       setLastLocalSavedAt(new Date().toISOString());
       setSyncStatus(`문구 수정 자동 보관됨 / ${timeLabel()}`);
-    }, 650);
+    }, 1_800);
     return () => window.clearTimeout(timer);
-  }, [isAccessGranted, isTextDirty, siteTextForm]);
+  }, [isAccessGranted, isComposing, isTextDirty, siteTextForm]);
 
   useEffect(() => {
     if (!isAccessGranted) return;
@@ -739,6 +751,16 @@ export default function KeeperPage() {
     window.addEventListener('pagehide', preserveLastChanges);
     return () => window.removeEventListener('pagehide', preserveLastChanges);
   }, [form, isAccessGranted, isDirty, isReferenceDirty, isTextDirty, referenceForm, selectedEvent.id, selectedReference.id, siteTextForm]);
+
+  useEffect(() => {
+    if (!isAccessGranted || (!isDirty && !isReferenceDirty && !isTextDirty)) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnBeforeLeaving);
+    return () => window.removeEventListener('beforeunload', warnBeforeLeaving);
+  }, [isAccessGranted, isDirty, isReferenceDirty, isTextDirty]);
 
   async function enterKeeperDesk(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -870,9 +892,11 @@ export default function KeeperPage() {
     }
     setSelectedId(event.id);
     setForm(toFormState(event));
+    setOperationError('');
     programmeUndo.current = [];
     programmeRedo.current = [];
     setPreferences((current) => withRecentItem(current, 'programme', event.id));
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ block: 'start' }));
   }
 
   function selectReference(reference: ArchiveReference) {
@@ -883,9 +907,11 @@ export default function KeeperPage() {
     }
     setSelectedReferenceId(reference.id);
     setReferenceForm(toReferenceForm(reference));
+    setOperationError('');
     referenceUndo.current = [];
     referenceRedo.current = [];
     setPreferences((current) => withRecentItem(current, 'reference', reference.id));
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ block: 'start' }));
   }
 
   function openKeeperItem(kind: KeeperItemKind, id: string) {
@@ -927,6 +953,7 @@ export default function KeeperPage() {
   }
 
   function updateReferenceField<Key extends keyof ReferenceFormState>(key: Key, value: ReferenceFormState[Key]) {
+    setOperationError('');
     setReferenceForm((current) => {
       referenceUndo.current = [...referenceUndo.current.slice(-49), current];
       referenceRedo.current = [];
@@ -936,12 +963,7 @@ export default function KeeperPage() {
 
   function saveReferenceDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const savedReference = persistReferenceForm();
-    if (!savedReference) return;
-    recordArchiveAudit({ action: 'edit', targetType: 'reference', targetId: savedReference.id, title: savedReference.title });
-    setLastLocalSavedAt(new Date().toISOString());
-    setVersion((current) => current + 1);
-    setSyncStatus(`이 자료를 기기에 임시 저장함 / ${timeLabel()}`);
+    void saveCurrentDraft();
   }
 
   function createNewReference() {
@@ -987,6 +1009,7 @@ export default function KeeperPage() {
   }
 
   function updateField<Key extends keyof KeeperFormState>(key: Key, value: KeeperFormState[Key]) {
+    setOperationError('');
     setForm((current) => {
       programmeUndo.current = [...programmeUndo.current.slice(-49), current];
       programmeRedo.current = [];
@@ -1015,6 +1038,7 @@ export default function KeeperPage() {
   }
 
   function updateSiteTextField(key: keyof SiteText, value: string) {
+    setOperationError('');
     setSiteTextForm((current) => {
       textUndo.current = [...textUndo.current.slice(-49), current];
       textRedo.current = [];
@@ -1062,56 +1086,81 @@ export default function KeeperPage() {
     setSyncStatus('되돌린 수정을 다시 적용했습니다');
   }
 
-  function saveCurrentDraft() {
-    if (mode === 'events') {
-      const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
-      if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
-      writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
-      removeKeeperProgrammeWorkingCopy(selectedEvent.id);
-      setWorkingCopyVersion((current) => current + 1);
-      recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: selectedEvent.id, title: form.title });
-    } else if (mode === 'references') {
-      const savedReference = persistReferenceForm();
-      if (!savedReference) return;
-      recordArchiveAudit({ action: 'edit', targetType: 'reference', targetId: savedReference.id, title: savedReference.title });
-    } else {
-      const validation = validateSiteTextForm(siteTextForm);
-      if (validation) return setSyncStatus(`입력 확인 / ${validation}`);
-      writeSiteTextDraft(siteTextForm);
-      recordArchiveAudit({ action: 'edit', targetType: 'site-text', title: '공개 문구 장부' });
+  function beginOperation(operation: KeeperOperation) {
+    if (activeOperationRef.current !== 'idle') return false;
+    activeOperationRef.current = operation;
+    setActiveOperation(operation);
+    setOperationError('');
+    return true;
+  }
+
+  function endOperation() {
+    activeOperationRef.current = 'idle';
+    setActiveOperation('idle');
+  }
+
+  function reportOperationError(message: string) {
+    setOperationError(message);
+    setSyncStatus(message);
+  }
+
+  async function saveCurrentDraft() {
+    if (!beginOperation('saving')) return false;
+    try {
+      await Promise.resolve();
+      if (mode === 'events') {
+        const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
+        if (validation) {
+          reportOperationError(`임시 저장 실패 / ${validation}`);
+          return false;
+        }
+        writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
+        removeKeeperProgrammeWorkingCopy(selectedEvent.id);
+        setWorkingCopyVersion((current) => current + 1);
+        recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: selectedEvent.id, title: form.title });
+      } else if (mode === 'references') {
+        const validation = validateReferenceForm(referenceForm, referenceRecords, selectedReference.id);
+        if (validation) {
+          reportOperationError(`임시 저장 실패 / ${validation}`);
+          return false;
+        }
+        const savedReference = persistReferenceForm();
+        if (!savedReference) {
+          reportOperationError('임시 저장 실패 / 자료 내용을 다시 확인하세요');
+          return false;
+        }
+        recordArchiveAudit({ action: 'edit', targetType: 'reference', targetId: savedReference.id, title: savedReference.title });
+      } else {
+        const validation = validateSiteTextForm(siteTextForm);
+        if (validation) {
+          reportOperationError(`임시 저장 실패 / ${validation}`);
+          return false;
+        }
+        writeSiteTextDraft(siteTextForm);
+        recordArchiveAudit({ action: 'edit', targetType: 'site-text', title: '공개 문구 장부' });
+      }
+      const savedAt = new Date().toISOString();
+      setLastLocalSavedAt(savedAt);
+      setVersion((current) => current + 1);
+      setSyncStatus(`기기에 임시 저장됨 / ${timeLabel(new Date(savedAt))}`);
+      return true;
+    } catch (error) {
+      console.error('Keeper local draft save failed:', error);
+      reportOperationError('임시 저장 실패 / 기기 저장 공간을 확인한 뒤 다시 시도하세요');
+      return false;
+    } finally {
+      endOperation();
     }
-    setLastLocalSavedAt(new Date().toISOString());
-    setVersion((current) => current + 1);
-    setSyncStatus(`이 기기에 임시 저장함 / ${timeLabel()}`);
   }
 
   function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
-    if (validation) {
-      setSyncStatus(`입력 확인 / ${validation}`);
-      return;
-    }
-    writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
-    removeKeeperProgrammeWorkingCopy(selectedEvent.id);
-    setWorkingCopyVersion((current) => current + 1);
-    recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: selectedEvent.id, title: form.title });
-    setLastLocalSavedAt(new Date().toISOString());
-    setVersion((current) => current + 1);
-    setSyncStatus(`이 프로그램을 기기에 임시 저장함 / ${timeLabel()}`);
+    void saveCurrentDraft();
   }
 
   function saveSiteTextDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validation = validateSiteTextForm(siteTextForm);
-    if (validation) {
-      setSyncStatus(`입력 확인 / ${validation}`);
-      return;
-    }
-    writeSiteTextDraft(siteTextForm);
-    recordArchiveAudit({ action: 'edit', targetType: 'site-text', title: '공개 문구 장부' });
-    setLastLocalSavedAt(new Date().toISOString());
-    setSyncStatus(`문구를 기기에 임시 저장함 / ${timeLabel()}`);
+    void saveCurrentDraft();
   }
 
   function discardSiteTextChanges() {
@@ -1723,28 +1772,29 @@ export default function KeeperPage() {
   }
 
   async function saveArchiveToServer() {
+    if (!beginOperation('syncing')) return;
     try {
       const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents, referenceRecords) : '';
       if (archiveValidation) {
-        setSyncStatus(`입력 확인 / ${archiveValidation}`);
+        reportOperationError(`공동 장부 반영 실패 / ${archiveValidation}`);
         return;
       }
       const textValidation = mode === 'text' || isTextDirty ? validateSiteTextForm(siteTextForm) : '';
       if (textValidation) {
-        setSyncStatus(`입력 확인 / ${textValidation}`);
+        reportOperationError(`공동 장부 반영 실패 / ${textValidation}`);
         return;
       }
       const referenceValidation = mode === 'references' || isReferenceDirty
         ? validateReferenceForm(referenceForm, referenceRecords, selectedReference.id)
         : '';
       if (referenceValidation) {
-        setSyncStatus(`입력 확인 / ${referenceValidation}`);
+        reportOperationError(`공동 장부 반영 실패 / ${referenceValidation}`);
         return;
       }
       if (isDirty) {
         writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
       }
-      setSyncStatus('모든 변경을 공개 반영하는 중');
+      setSyncStatus('모든 기기 저장본을 공동 장부에 반영하는 중');
       if (mode === 'text' || isTextDirty) {
         writeSiteTextDraft(siteTextForm);
       }
@@ -1758,7 +1808,7 @@ export default function KeeperPage() {
         return;
       }
 
-      recordArchiveAudit({ action: 'sync', targetType: 'archive', title: '모든 변경 공개 반영', detail: syncStatus });
+      recordArchiveAudit({ action: 'sync', targetType: 'archive', title: '공동 장부 전체 반영', detail: syncStatus });
       const payload = createArchiveSyncPayload();
       const result = await saveServerSync<ArchiveSyncPayload>('archive', payload, auth.syncKey, {
         baseSavedAt: archiveSavedAt,
@@ -1772,7 +1822,7 @@ export default function KeeperPage() {
       clearKeeperProgrammeWorkingCopies();
       setWorkingCopyVersion((current) => current + 1);
       setVersion((current) => current + 1);
-      setSyncStatus(`모든 변경 공개 반영 완료 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
+      setSyncStatus(`공동 장부 전체 반영 완료 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
     } catch (error) {
       if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
         const local = createArchiveSyncPayload();
@@ -1783,13 +1833,16 @@ export default function KeeperPage() {
         return;
       }
       console.error('Archive server save failed:', error);
-      setSyncStatus('공개 반영 실패 / 연결 상태를 확인하세요');
+      reportOperationError('공동 장부 전체 반영 실패 / 연결 상태를 확인하고 다시 시도하세요');
+    } finally {
+      endOperation();
     }
   }
 
   async function loadArchiveFromServer() {
+    if (!beginOperation('loading')) return;
     try {
-      setSyncStatus('최신 공개본을 불러오는 중');
+      setSyncStatus('공동 장부를 다시 불러오는 중');
       const auth = await resolveArchiveAuth();
       const result = await loadServerSync<ArchiveSyncPayload>('archive', auth.syncKey, {
         authSession: auth.authSession,
@@ -1799,14 +1852,21 @@ export default function KeeperPage() {
         applyArchivePayload(result.saved.data, result.saved.savedAt);
         setSharedSnapshot(result.saved.data);
         setConflictState(null);
-        setSyncStatus(`최신 공개본 불러오기 완료 / ${timeLabel(new Date(result.saved.savedAt))}`);
+        setSyncStatus(`공동 장부 다시 불러오기 완료 / ${timeLabel(new Date(result.saved.savedAt))}`);
       } else {
         setArchiveSavedAt(null);
-        setSyncStatus('불러올 공개본이 없습니다');
+        setSyncStatus('불러올 공동 장부가 없습니다');
       }
     } catch (error) {
       console.error('Archive server load failed:', error);
-      setSyncStatus('최신 공개본을 불러오지 못했습니다 / 연결 상태를 확인하세요');
+      if (import.meta.env.DEV) {
+        setOperationError('');
+        setSyncStatus('로컬 미리보기 / 공동 장부는 배포 화면에서 확인합니다');
+      } else {
+        reportOperationError('공동 장부를 불러오지 못했습니다 / 연결 상태를 확인하고 다시 시도하세요');
+      }
+    } finally {
+      endOperation();
     }
   }
 
@@ -2001,15 +2061,17 @@ export default function KeeperPage() {
   }
 
   async function performPublication() {
+    if (!beginOperation('publishing')) return;
+    try {
     const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
     if (validation) {
-      setSyncStatus(`발행 보류 / ${validation}`);
+      reportOperationError(`게시 실패 / ${validation}`);
       return;
     }
     const issues = inspectPublicationReadiness(publicationCandidate, archiveEvents, referenceRecords);
     const errors = issues.filter((issue) => issue.severity === 'error');
     if (errors.length > 0) {
-      setSyncStatus(`발행 보류 / ${errors[0].message}`);
+      reportOperationError(`게시 실패 / ${errors[0].message}`);
       return;
     }
 
@@ -2063,7 +2125,10 @@ export default function KeeperPage() {
         return;
       }
       console.error('Archive publication failed:', error);
-      setSyncStatus('판본 발행 실패 / 열쇠 또는 연결을 확인하세요');
+      reportOperationError('게시 실패 / 입장 상태와 연결을 확인하고 다시 시도하세요');
+    }
+    } finally {
+      endOperation();
     }
   }
 
@@ -2285,7 +2350,7 @@ export default function KeeperPage() {
 
       {commandOpen && (
         <div className="keeper-command-overlay" role="presentation" onMouseDown={() => setCommandOpen(false)}>
-          <section className="keeper-command-palette" role="dialog" aria-modal="true" aria-label="Keeper 전체 찾기" onMouseDown={(event) => event.stopPropagation()}>
+          <section className="keeper-command-palette" ref={commandDialogRef} role="dialog" aria-modal="true" aria-label="Keeper 전체 찾기" onMouseDown={(event) => event.stopPropagation()}>
             <label>
               <span lang="ko">프로그램과 자료 전체 찾기</span>
               <input
@@ -2319,19 +2384,29 @@ export default function KeeperPage() {
             <div className="keeper-storage-states" aria-label="저장 상태">
               <span data-state="local" lang="ko">기기 임시 저장 {lastLocalSavedAt ? timeLabel(new Date(lastLocalSavedAt)) : '대기'}</span>
               <span data-state={unsyncedChangeCount > 0 ? 'pending' : 'synced'} lang="ko">
-                {sharedSnapshot ? unsyncedChangeCount > 0 ? `공개본과 ${unsyncedChangeCount}곳 다름` : '공개본과 일치' : '공개본 미확인'}
+                {sharedSnapshot ? unsyncedChangeCount > 0 ? `공동 장부와 ${unsyncedChangeCount}곳 다름` : '공동 장부와 일치' : '공동 장부 미확인'}
               </span>
-              <span data-state="published" lang="ko">최근 공개 반영 {archiveSavedAt ? timeLabel(new Date(archiveSavedAt)) : '없음'}</span>
+              <span data-state="published" lang="ko">최근 사이트 게시 {archiveSavedAt ? timeLabel(new Date(archiveSavedAt)) : '없음'}</span>
             </div>
           </div>
           <div className="keeper-command-actions">
             <div className="keeper-command-primary">
               <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">전체 찾기</span><kbd>⌘K</kbd></button>
-              <button type="button" onClick={undoCurrent} disabled={mode === 'events' ? programmeUndo.current.length === 0 : mode === 'references' ? referenceUndo.current.length === 0 : textUndo.current.length === 0}><span lang="ko">되돌리기</span></button>
-              <button type="button" onClick={redoCurrent} disabled={mode === 'events' ? programmeRedo.current.length === 0 : mode === 'references' ? referenceRedo.current.length === 0 : textRedo.current.length === 0}><span lang="ko">다시 적용</span></button>
-              <button className="keeper-command-publish" type="button" disabled={hasArchiveConflict} onClick={saveArchiveToServer}><span lang="ko">모든 변경 공개 반영</span></button>
-              <button type="button" disabled={hasArchiveConflict} onClick={loadArchiveFromServer}><span lang="ko">최신 공개본 불러오기</span></button>
+              <button type="button" onClick={undoCurrent} disabled={activeOperation !== 'idle' || (mode === 'events' ? programmeUndo.current.length === 0 : mode === 'references' ? referenceUndo.current.length === 0 : textUndo.current.length === 0)}><span lang="ko">되돌리기</span></button>
+              <button type="button" onClick={redoCurrent} disabled={activeOperation !== 'idle' || (mode === 'events' ? programmeRedo.current.length === 0 : mode === 'references' ? referenceRedo.current.length === 0 : textRedo.current.length === 0)}><span lang="ko">다시 적용</span></button>
             </div>
+            <details className="keeper-command-site-actions">
+              <summary><span lang="ko">사이트 전체 관리</span></summary>
+              <div>
+                <small lang="ko">모든 프로그램·자료·문구의 기기 저장본을 한꺼번에 다룹니다.</small>
+                <button className="keeper-command-publish" type="button" disabled={hasArchiveConflict || activeOperation !== 'idle'} onClick={saveArchiveToServer}>
+                  <span lang="ko">{activeOperation === 'syncing' ? '반영 중...' : '공동 장부에 모두 반영'}</span>
+                </button>
+                <button type="button" disabled={hasArchiveConflict || activeOperation !== 'idle'} onClick={loadArchiveFromServer}>
+                  <span lang="ko">{activeOperation === 'loading' ? '불러오는 중...' : '공동 장부 다시 불러오기'}</span>
+                </button>
+              </div>
+            </details>
             <details className="keeper-command-more">
               <summary><span lang="ko">백업과 관리</span></summary>
               <div>
@@ -2577,8 +2652,8 @@ export default function KeeperPage() {
                 <button type="button" className={listView === 'timeline' ? 'is-active' : ''} onClick={() => setListView('timeline')}><span lang="ko">일정</span></button>
               </div>
               <div className="keeper-list-filters" aria-label="프로그램 필터">
-                <label><span lang="ko">단계</span><select value={workflowFilter} onChange={(event) => setWorkflowFilter(event.target.value as ArchiveWorkflowStatus | 'all')}><option value="all">전체</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select></label>
-                <label><span lang="ko">공개</span><select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as ArchiveVisibility | 'all')}><option value="all">전체</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select></label>
+                <label><span lang="ko">단계</span><select value={workflowFilter} onChange={(event) => setWorkflowFilter(event.target.value as ArchiveWorkflowStatus | 'all')}><option value="all">전체</option><option value="draft">초안</option><option value="preview">미리보기</option><option value="published">발행됨</option><option value="archived">보관됨</option></select></label>
+                <label><span lang="ko">공개</span><select value={visibilityFilter} onChange={(event) => setVisibilityFilter(event.target.value as ArchiveVisibility | 'all')}><option value="all">전체</option><option value="public">공개</option><option value="unlisted">주소로만 공개</option><option value="private">비공개</option></select></label>
                 <label><span lang="ko">종류</span><select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)}><option value="all">전체</option>{programmeKinds.map((kind) => <option value={kind} key={kind}>{kind}</option>)}</select></label>
               </div>
               <div className="keeper-saved-views">
@@ -2609,8 +2684,8 @@ export default function KeeperPage() {
               {selectedBatchIds.length > 0 && (
                 <section className="keeper-batch-panel" aria-label="선택한 프로그램 일괄 작업">
                   <strong lang="ko">{selectedBatchIds.length}개 선택됨</strong>
-                  <select aria-label="발행 단계 일괄 변경" value={batchWorkflow} onChange={(event) => setBatchWorkflow(event.target.value as ArchiveWorkflowStatus | '')}><option value="">단계 유지</option><option value="draft">draft</option><option value="preview">preview</option><option value="published">published</option><option value="archived">archived</option></select>
-                  <select aria-label="공개 상태 일괄 변경" value={batchVisibility} onChange={(event) => setBatchVisibility(event.target.value as ArchiveVisibility | '')}><option value="">공개 상태 유지</option><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select>
+                  <select aria-label="발행 단계 일괄 변경" value={batchWorkflow} onChange={(event) => setBatchWorkflow(event.target.value as ArchiveWorkflowStatus | '')}><option value="">단계 유지</option><option value="draft">초안</option><option value="preview">미리보기</option><option value="published">발행됨</option><option value="archived">보관됨</option></select>
+                  <select aria-label="공개 상태 일괄 변경" value={batchVisibility} onChange={(event) => setBatchVisibility(event.target.value as ArchiveVisibility | '')}><option value="">공개 상태 유지</option><option value="public">공개</option><option value="unlisted">주소로만 공개</option><option value="private">비공개</option></select>
                   <input aria-label="종류 일괄 변경" list="archive-batch-content-kinds" value={batchKind} onChange={(event) => setBatchKind(event.target.value)} placeholder="종류 유지" />
                   <datalist id="archive-batch-content-kinds">{programmeKinds.map((kind) => <option value={kind} key={kind} />)}</datalist>
                   <button type="button" onClick={applyBatchEdit}><span lang="ko">선택 항목 적용</span></button>
@@ -2700,7 +2775,19 @@ export default function KeeperPage() {
         </aside>
 
         {mode === 'text' ? (
-          <section className="keeper-editor godmode-editor" aria-label="Site text editor">
+          <section className="keeper-editor godmode-editor" ref={editorRef} aria-label="Site text editor">
+            <KeeperEditorActionBar
+              mode="text"
+              dirty={isTextDirty}
+              busy={activeOperation !== 'idle'}
+              operation={activeOperation}
+              error={operationError}
+              lastSavedAt={lastLocalSavedAt}
+              remoteKnown={Boolean(sharedSnapshot)}
+              hasRemoteDifference={unsyncedChangeCount > 0}
+              onSave={() => { void saveCurrentDraft(); }}
+              onDiscard={discardSiteTextChanges}
+            />
             <div className="keeper-preview godmode-preview">
               <div>
                 <span>🜔 Scriptorium</span>
@@ -2709,7 +2796,12 @@ export default function KeeperPage() {
               </div>
             </div>
 
-            <form className="keeper-form godmode-form" onSubmit={saveSiteTextDraft}>
+            <form
+              className="keeper-form godmode-form"
+              onSubmit={saveSiteTextDraft}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
+            >
               <div className="keeper-editor-heading">
                 <p className="section-kicker"><span className="kicker-en" lang="en">Scriptorium</span><span className="kicker-divider" aria-hidden="true"> / </span><span className="kicker-ko" lang="ko">고정 문구 장부</span></p>
                 <h2>Text fields</h2>
@@ -2735,15 +2827,25 @@ export default function KeeperPage() {
                 ))}
               </div>
 
-              <div className="keeper-actions">
-                <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">문구 임시 저장</span></button>
-                <button className="archive-cta inverse keeper-secondary-action" disabled={!isTextDirty} onClick={discardSiteTextChanges} type="button"><span className="archive-cta-label" lang="ko">저장된 문구로 되돌리기</span></button>
+              <div className="keeper-actions keeper-actions-secondary">
                 <a className="archive-cta" href="/"><span className="archive-cta-label" lang="ko">공개 화면 보기</span></a>
               </div>
             </form>
           </section>
         ) : mode === 'references' ? (
-          <section className="keeper-editor" aria-label="Selected reference editor">
+          <section className="keeper-editor" ref={editorRef} aria-label="Selected reference editor">
+            <KeeperEditorActionBar
+              mode="references"
+              dirty={isReferenceDirty}
+              busy={activeOperation !== 'idle'}
+              operation={activeOperation}
+              error={operationError}
+              lastSavedAt={lastLocalSavedAt}
+              remoteKnown={Boolean(sharedSnapshot)}
+              hasRemoteDifference={unsyncedChangeCount > 0}
+              onSave={() => { void saveCurrentDraft(); }}
+              onDiscard={discardReferenceChanges}
+            />
             <div className="keeper-preview godmode-preview">
               <div>
                 <span lang="ko">{archiveReferenceKindLabel(referenceForm.kind)}</span>
@@ -2752,7 +2854,12 @@ export default function KeeperPage() {
               </div>
             </div>
 
-            <form className="keeper-form" onSubmit={saveReferenceDraft}>
+            <form
+              className="keeper-form"
+              onSubmit={saveReferenceDraft}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
+            >
               <div className="keeper-editor-heading">
                 <p className="section-kicker"><span lang="en">Reference node</span> / <span lang="ko">자료 편집 중</span></p>
                 <h2>{referenceForm.title}</h2>
@@ -2941,19 +3048,37 @@ export default function KeeperPage() {
                 onChange={(ids) => updateReferenceField('parentId', ids.at(-1) || undefined)}
               />
 
-              <div className="keeper-actions">
-                <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">이 자료 임시 저장</span></button>
-                <button className="archive-cta inverse keeper-secondary-action" disabled={!isReferenceDirty} onClick={discardReferenceChanges} type="button"><span className="archive-cta-label" lang="ko">저장된 자료로 되돌리기</span></button>
-              </div>
             </form>
           </section>
         ) : (
-          <section className="keeper-editor" aria-label="Selected archive record editor">
+          <section className="keeper-editor" ref={editorRef} aria-label="Selected archive record editor">
+          <KeeperEditorActionBar
+            mode="events"
+            dirty={isDirty}
+            busy={activeOperation !== 'idle'}
+            operation={activeOperation}
+            error={operationError}
+            lastSavedAt={lastLocalSavedAt}
+            remoteKnown={Boolean(sharedSnapshot)}
+            hasRemoteDifference={unsyncedChangeCount > 0}
+            workflowStatus={form.workflowStatus}
+            visibility={form.visibility}
+            publicationBlocked={publicationErrorCount > 0}
+            hasPublication={selectedPublications.length > 0 || selectedEvent.workflowStatus === 'published'}
+            onSave={() => { void saveCurrentDraft(); }}
+            onPublish={requestPublication}
+            onDiscard={discardProgrammeChanges}
+          />
           <div className="keeper-preview">
             <img src={form.posterImage} alt={form.posterAlt || `${form.title} poster preview`} />
           </div>
 
-          <form className="keeper-form" onSubmit={saveDraft}>
+          <form
+            className="keeper-form"
+            onSubmit={saveDraft}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
+          >
             <div className="keeper-editor-heading">
               <p className="section-kicker"><span lang="en">{selectedEvent.edition}</span> / <span lang="ko">편집 중</span></p>
               <h2>{form.title}</h2>
@@ -3003,7 +3128,7 @@ export default function KeeperPage() {
 
             <label className="keeper-field">
               <span lang="ko">제목</span>
-              <input value={form.title} onChange={(event) => updateField('title', event.target.value)} />
+              <input id="keeper-programme-title" value={form.title} onChange={(event) => updateField('title', event.target.value)} />
             </label>
 
             <label className="keeper-field">
@@ -3034,9 +3159,9 @@ export default function KeeperPage() {
               <label className="keeper-field">
                 <span lang="ko">상태</span>
                 <select value={form.status} onChange={(event) => updateField('status', event.target.value as EventStatus)}>
-                  <option value="current">current</option>
-                  <option value="upcoming">upcoming</option>
-                  <option value="past">past</option>
+                  <option value="current">현재 프로그램</option>
+                  <option value="upcoming">예정 프로그램</option>
+                  <option value="past">지난 프로그램</option>
                 </select>
               </label>
             </div>
@@ -3064,9 +3189,9 @@ export default function KeeperPage() {
               <label className="keeper-field">
                 <span lang="ko">공개 상태</span>
                 <select value={form.visibility} onChange={(event) => updateField('visibility', event.target.value as ArchiveVisibility)}>
-                  <option value="public">public</option>
-                  <option value="unlisted">unlisted</option>
-                  <option value="private">private</option>
+                  <option value="public">공개</option>
+                  <option value="unlisted">주소로만 공개</option>
+                  <option value="private">비공개</option>
                 </select>
               </label>
             </div>
@@ -3074,10 +3199,10 @@ export default function KeeperPage() {
             <label className="keeper-field">
               <span lang="ko">발행 단계</span>
               <select value={form.workflowStatus} onChange={(event) => updateField('workflowStatus', event.target.value as ArchiveWorkflowStatus)}>
-                <option value="draft">draft</option>
-                <option value="preview">preview</option>
-                <option value="published">published</option>
-                <option value="archived">archived</option>
+                <option value="draft">초안</option>
+                <option value="preview">미리보기</option>
+                <option value="published">발행됨</option>
+                <option value="archived">보관됨</option>
               </select>
             </label>
 
@@ -3282,22 +3407,17 @@ export default function KeeperPage() {
               </label>
             </div>
 
-            <div className="keeper-actions">
-              <button className="archive-cta" type="submit"><span className="archive-cta-label" lang="ko">이 프로그램 임시 저장</span></button>
-              <button className="archive-cta inverse keeper-secondary-action" disabled={!isDirty} onClick={discardProgrammeChanges} type="button"><span className="archive-cta-label" lang="ko">저장된 프로그램으로 되돌리기</span></button>
-            </div>
-
             <aside className="keeper-publication-panel" aria-label="Publication preflight">
               <div>
                 <span lang="en">Publication preflight</span>
                 <strong lang="ko">
                   {publicationErrorCount > 0
-                    ? `발행 보류 ${publicationErrorCount}건${publicationWarningCount > 0 ? ` · 경고 ${publicationWarningCount}건` : ''}`
-                    : `발행 가능${publicationWarningCount > 0 ? ` · 경고 ${publicationWarningCount}건` : ''}`}
+                    ? `게시 전 확인 ${publicationErrorCount}건${publicationWarningCount > 0 ? ` · 권장 ${publicationWarningCount}건` : ''}`
+                    : `게시 가능${publicationWarningCount > 0 ? ` · 권장 ${publicationWarningCount}건` : ''}`}
                 </strong>
               </div>
               <p lang="ko">
-                임시 저장은 이 기기에만 남습니다. 판본 발행은 공개 상태·자료 관계·도판 권리를 다시 검사하고 변경할 수 없는 발행 지문을 남깁니다.
+                임시 저장은 이 기기에만 남습니다. 게시는 공개 상태·자료 관계·도판 권리를 다시 검사하고 변경 이력을 남깁니다.
               </p>
               {publicationIssues.length > 0 ? (
                 <ul className="keeper-integrity-list">
@@ -3338,9 +3458,6 @@ export default function KeeperPage() {
                   </ul>
                 )}
               </div>
-              <button type="button" disabled={publicationErrorCount > 0} onClick={requestPublication}>
-                <span lang="ko">검사 후 판본 발행</span>
-              </button>
             </aside>
 
             <aside className="keeper-record-preview" aria-label="Public archive record preview">
@@ -3408,10 +3525,17 @@ export default function KeeperPage() {
           )}
           </section>
         )}
-        <nav className="keeper-mobile-actions" aria-label="모바일 빠른 작업">
-          <button type="button" onClick={undoCurrent}><span lang="ko">되돌리기</span></button>
-          <button type="button" onClick={saveCurrentDraft}><span lang="ko">임시 저장</span></button>
-          {mode === 'events' && <button type="button" onClick={() => setLivePreviewOpen((current) => !current)}><span lang="ko">미리보기</span></button>}
+        <nav className="keeper-mobile-actions" data-mode={mode} aria-label="모바일 빠른 작업">
+          <span className="keeper-mobile-save-state" role={operationError ? 'alert' : 'status'} aria-live="polite" lang="ko">
+            {activeOperation !== 'idle'
+              ? activeOperation === 'publishing' ? '게시 중...' : activeOperation === 'saving' ? '저장 중...' : '공동 장부 처리 중...'
+              : operationError || (mode === 'events' ? isDirty : mode === 'references' ? isReferenceDirty : isTextDirty)
+                ? operationError || '저장되지 않은 변경 있음'
+                : lastLocalSavedAt ? `저장됨 ${timeLabel(new Date(lastLocalSavedAt))}` : '편집 준비됨'}
+          </span>
+          <button type="button" disabled={activeOperation !== 'idle' || !(mode === 'events' ? isDirty : mode === 'references' ? isReferenceDirty : isTextDirty)} onClick={() => { void saveCurrentDraft(); }}><span lang="ko">임시 저장</span></button>
+          {mode === 'events' && <button className="keeper-mobile-publish" type="button" disabled={activeOperation !== 'idle' || publicationErrorCount > 0} onClick={requestPublication}><span lang="ko">{selectedPublications.length > 0 || selectedEvent.workflowStatus === 'published' ? '변경 게시' : '게시하기'}</span></button>}
+          {mode === 'events' && <button type="button" disabled={activeOperation !== 'idle'} onClick={() => setLivePreviewOpen((current) => !current)}><span lang="ko">미리보기</span></button>}
           <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">찾기</span></button>
         </nav>
       </main>
@@ -3422,7 +3546,7 @@ export default function KeeperPage() {
           : pendingAction?.kind === 'clear'
             ? '이 기기의 임시 저장을 모두 지울까요?'
             : pendingAction?.kind === 'publish'
-              ? '이 판본을 공개 발행할까요?'
+              ? '이 프로그램을 공개할까요?'
               : pendingAction?.kind === 'delete-record'
                 ? '이 프로그램을 삭제할까요?'
               : pendingAction?.kind === 'delete-records'
@@ -3440,8 +3564,8 @@ export default function KeeperPage() {
           ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. ${pendingAction.diffSummary}. 이 기기의 임시 저장 내용은 파일의 내용으로 교체됩니다.`
           : pendingAction?.kind === 'clear'
             ? '현재 공개본은 유지되지만, 이 기기에 임시 저장한 모든 수정이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
-            : pendingAction?.kind === 'publish'
-              ? `“${pendingAction.title}”을 공개본으로 반영하고 발행 지문을 보존합니다.${pendingAction.warningCount > 0 ? ` 경고 ${pendingAction.warningCount}건은 확인 후에도 남습니다.` : ''}`
+          : pendingAction?.kind === 'publish'
+              ? `“${pendingAction.title}”의 현재 내용을 공개하고 변경 이력을 보존합니다.${pendingAction.warningCount > 0 ? ` 권장 확인 ${pendingAction.warningCount}건이 남아 있습니다.` : ''}`
               : pendingAction?.kind === 'delete-record'
                 ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
                 : pendingAction?.kind === 'delete-records'
@@ -3460,7 +3584,7 @@ export default function KeeperPage() {
           : pendingAction?.kind === 'clear'
             ? '기기 임시 저장 삭제'
             : pendingAction?.kind === 'publish'
-              ? '판본 발행'
+              ? '게시하기'
               : pendingAction?.kind === 'delete-record'
                 ? '프로그램 삭제'
                 : pendingAction?.kind === 'delete-records'

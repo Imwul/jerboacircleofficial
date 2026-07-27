@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   min-height: 100vh;
+  min-height: 100dvh;
   background:
     linear-gradient(90deg, transparent 0 4.8rem, rgba(123, 36, 29, 0.22) 4.8rem 4.88rem, rgba(31, 68, 136, 0.18) 5.15rem 5.22rem, transparent 5.22rem),
     linear-gradient(180deg, transparent 0 3.05rem, rgba(21, 18, 15, 0.045) 3.08rem, transparent 3.12rem),
@@ -28,6 +29,7 @@
   top: 0;
   display: flex;
   height: 100vh;
+  height: 100dvh;
   flex-direction: column;
   border-right: 4px double #15120f;
   background:

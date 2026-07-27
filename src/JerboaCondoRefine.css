@@ -478,6 +478,10 @@ html body #root .confirm-dialog-backdrop {
 html body #root .confirm-dialog {
   display: grid;
   width: min(34rem, 100%);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border: 2px solid #050505;
   padding: clamp(1.2rem, 3vw, 2rem);
   background: var(--signal-cream, #f7efdd);

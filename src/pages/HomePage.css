@@ -1,5 +1,6 @@
 .public-home {
   min-height: 100vh;
+  min-height: 100dvh;
   background:
     linear-gradient(90deg, transparent 0 5.6rem, rgba(123, 36, 29, 0.28) 5.6rem 5.68rem, rgba(31, 68, 136, 0.22) 5.95rem 6.02rem, transparent 6.02rem),
     linear-gradient(180deg, transparent 0 3.05rem, rgba(21, 18, 15, 0.045) 3.08rem, transparent 3.12rem),

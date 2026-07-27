@@ -15,12 +15,14 @@
 /* Keeper access and durable editing controls */
 html body #root .public-home.keeper-access-home {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--signal-green) !important;
 }
 
 html body #root .public-home .keeper-access-room {
   display: grid;
   min-height: calc(100vh - 4.5rem);
+  min-height: calc(100dvh - 4.5rem);
   place-items: center;
   padding: clamp(1rem, 5vw, 4rem);
 }
@@ -1686,6 +1688,7 @@ html body #root .public-home {
   width: 100% !important;
   max-width: none !important;
   min-height: 100vh !important;
+  min-height: 100dvh !important;
   margin: 0 !important;
   border: 0 !important;
   overflow-x: clip !important;
@@ -2257,6 +2260,7 @@ html body #root .public-home.detail-home .detail-record {
   width: 100% !important;
   height: auto !important;
   min-height: calc(100vh - 4.75rem) !important;
+  min-height: calc(100dvh - 4.75rem) !important;
   border: 0 !important;
 }
 
@@ -2268,6 +2272,7 @@ html body #root .public-home.detail-home .detail-poster {
   justify-content: center !important;
   width: 100% !important;
   height: calc(100vh - 4.75rem) !important;
+  height: calc(100dvh - 4.75rem) !important;
   min-height: 0 !important;
   padding: var(--jerboa-layout-gutter) !important;
   border: 0 !important;
@@ -2292,6 +2297,7 @@ html body #root .public-home.detail-home .detail-copy {
   width: 100% !important;
   height: auto !important;
   min-height: calc(100vh - 4.75rem) !important;
+  min-height: calc(100dvh - 4.75rem) !important;
   padding: clamp(1.4rem, 2.7vw, 3rem) !important;
   border: 0 !important;
 }
@@ -3978,6 +3984,7 @@ html body #root .public-home.detail-home main.missing-record {
   display: block !important;
   width: 100% !important;
   min-height: calc(100vh - 4.75rem) !important;
+  min-height: calc(100dvh - 4.75rem) !important;
   padding: clamp(1.25rem, 4vw, 4rem) !important;
 }
 
@@ -5839,6 +5846,43 @@ html body #root .public-home.detail-home .detail-archive-context .archive-knowle
   line-height: 1.4 !important;
 }
 
+/* Narrow-screen containment. Keep the existing composition, but make sure
+   long labels and field borders are measured inside their own frames. */
+@media (max-width: 640px) {
+  html body #root .public-home .keeper-access-room {
+    padding-inline: 0.75rem;
+  }
+
+  html body #root .public-home .keeper-access-form {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  html body #root .public-home .keeper-access-form > * {
+    min-width: 0;
+  }
+
+  html body #root .members-archive .member-login-manuscript {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  html body #root .members-archive .member-login-manuscript figcaption,
+  html body #root .members-archive .member-login-manuscript figcaption a,
+  html body #root .members-archive .member-login-manuscript figcaption :is(span, small) {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  html body #root .members-archive .member-login-manuscript figcaption :is(span, small) {
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Final archive registers -------------------------------------------------
    These rules intentionally live last. Earlier catalogue experiments use
    card-by-card borders; the finished register uses one frame, one continuous
@@ -6356,5 +6400,416 @@ html body #root .public-home.keeper-home .keeper-record-menu-panel > .keeper-dan
     left: 0 !important;
     right: auto !important;
     width: 100% !important;
+  }
+}
+
+/* Keeper workflow hardening: record actions and site-wide publishing are
+   deliberately separate while retaining the existing ledger language. */
+html body #root .public-home.keeper-home details:not([open]) > :not(summary) {
+  display: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-room {
+  width: min(100%, 160rem) !important;
+  margin-inline: auto !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-bar {
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, auto) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-actions {
+  display: flex !important;
+  width: min(100%, 70rem) !important;
+  min-width: 0 !important;
+  align-items: stretch !important;
+  justify-content: flex-end !important;
+  gap: 0.45rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-primary {
+  display: grid !important;
+  flex: 0 1 25rem !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.45rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions {
+  position: relative !important;
+  flex: 0 0 9.5rem !important;
+  min-width: 0 !important;
+  align-self: stretch !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > summary {
+  display: flex !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 3.25rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1.5px solid var(--ink) !important;
+  padding: 0.55rem 0.65rem !important;
+  background: var(--paper) !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.76rem !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  list-style: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > div {
+  position: absolute !important;
+  top: calc(100% + 0.4rem) !important;
+  right: 0 !important;
+  z-index: 6 !important;
+  display: grid !important;
+  width: min(22rem, calc(100vw - 2rem)) !important;
+  gap: 0.4rem !important;
+  border: 1.5px solid var(--ink) !important;
+  padding: 0.55rem !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > div > small {
+  font-family: var(--font-ko) !important;
+  font-size: 0.7rem !important;
+  font-weight: 650 !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-command-primary,
+  .keeper-command-site-actions > div
+) > button,
+html body #root .public-home.keeper-home .keeper-command-more > summary {
+  display: flex !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 3.25rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0.55rem 0.65rem !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-more {
+  flex: 0 0 8rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-actionbar {
+  position: sticky !important;
+  top: 9.6rem !important;
+  z-index: 58 !important;
+  display: grid !important;
+  grid-template-columns: minmax(11rem, 1fr) auto auto !important;
+  gap: 0.65rem !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+  border-bottom: 2px solid var(--ink) !important;
+  padding: 0.65rem clamp(0.75rem, 1.7vw, 1.3rem) !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-actionbar[data-dirty="true"] {
+  background: var(--signal-gold) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-actionbar[data-error="true"] {
+  background: var(--signal-pink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-state {
+  display: grid !important;
+  min-width: 0 !important;
+  align-content: center !important;
+  gap: 0.12rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-state > strong {
+  font-size: 0.88rem !important;
+  font-weight: 900 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-state > span {
+  min-width: 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-content: center !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.3rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-meta > span {
+  border: 1px solid var(--ink) !important;
+  padding: 0.2rem 0.38rem !important;
+  background: var(--paper) !important;
+  font-size: 0.67rem !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-meta > span[data-state="pending"] {
+  background: var(--signal-pink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(7.5rem, 1fr) !important;
+  gap: 0.4rem !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons > button {
+  min-width: 0 !important;
+  min-height: 3rem !important;
+  border: 1.5px solid var(--ink) !important;
+  padding: 0.55rem 0.7rem !important;
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  font: 800 0.76rem/1.25 var(--font-ko) !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons > .keeper-editor-publish {
+  background: var(--memory) !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-editor-action-buttons,
+  .keeper-command-actions,
+  .keeper-mobile-actions
+) button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.48 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-register {
+  max-height: calc(100vh - 9.55rem) !important;
+  max-height: calc(100dvh - 9.55rem) !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-field,
+  .keeper-record-preview,
+  .keeper-publication-diff,
+  .keeper-integrity-list,
+  .relationship-picker-options
+) {
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-field :is(input, textarea, select),
+html body #root .public-home.keeper-home .keeper-poster-upload input[type="file"] {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-poster-upload input[type="file"] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+html body #root .public-home.keeper-home .keeper-poster-upload label:focus-within {
+  outline: 3px solid var(--ink) !important;
+  outline-offset: -5px !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-field,
+  .keeper-record-preview,
+  .keeper-publication-diff,
+  .keeper-integrity-list,
+  .relationship-picker-options
+) :is(p, small, strong, li, a) {
+  overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 1180px) {
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    flex-wrap: wrap !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary {
+    flex: 1 1 30rem !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-actionbar {
+    grid-template-columns: minmax(10rem, 1fr) minmax(18rem, auto) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-buttons {
+    grid-column: 1 / -1 !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  html body #root .public-home.keeper-home .keeper-command-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    grid-column: 1 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    justify-self: stretch !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-actionbar {
+    position: static !important;
+    top: auto !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home.keeper-home .archive-header {
+    grid-template-columns: minmax(6.8rem, 0.7fr) minmax(0, 1.3fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-nav {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-nav > a {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    padding-inline: 0.25rem !important;
+    text-align: center !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-recent > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow-x: hidden !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-recent button {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary {
+    flex: 1 1 100% !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary > button:nth-child(n + 2) {
+    display: none !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-site-actions {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+  }
+
+  html body #root .public-home.keeper-home :is(
+    .keeper-command-primary,
+    .keeper-command-site-actions,
+    .keeper-command-more,
+    .keeper-command-more > div
+  ) {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-site-actions > summary {
+    justify-content: center !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-more {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-site-actions > div {
+    position: static !important;
+    width: 100% !important;
+    margin-top: 0.4rem !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-actionbar {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-meta {
+    justify-content: flex-start !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-buttons {
+    grid-column: 1 !important;
+    grid-auto-flow: row !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-buttons > .keeper-editor-publish {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-mobile-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-mobile-actions[data-mode="references"],
+  html body #root .public-home.keeper-home .keeper-mobile-actions[data-mode="text"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-mobile-save-state {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+    border-bottom: 1px solid var(--ink) !important;
+    padding: 0.35rem 0.55rem !important;
+    background: var(--signal-cream) !important;
+    font: 750 0.68rem/1.25 var(--font-ko) !important;
+    text-align: center !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-mobile-actions button {
+    min-height: 2.75rem !important;
+  }
+
+  html body #root .relationship-picker-options > label {
+    min-height: 2.75rem !important;
+    align-items: center !important;
   }
 }
