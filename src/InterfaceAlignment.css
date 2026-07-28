@@ -1,0 +1,862 @@
+/* Interface alignment layer
+   A single, last-loaded sizing system for the public archive, member rooms,
+   and Keeper Desk. It keeps the editorial character while making every
+   working control and supporting label legible at a glance. */
+
+:root {
+  --jerboa-control-height: 48px;
+  --jerboa-control-height-compact: 44px;
+  --jerboa-readable-small: 13px;
+  --jerboa-readable-label: 14px;
+  --jerboa-header-height: 88px;
+  --jerboa-rule: 1.5px;
+}
+
+html,
+body,
+#root {
+  min-width: 0;
+}
+
+body {
+  overflow-x: clip;
+}
+
+html body #root :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid currentColor !important;
+  outline-offset: 3px !important;
+}
+
+html body #root :is(button, summary, select) {
+  touch-action: manipulation;
+}
+
+/* Public navigation ----------------------------------------------------- */
+
+html body #root .public-home .archive-header {
+  grid-template-columns: minmax(13.5rem, 16rem) minmax(0, 1fr) !important;
+  min-height: var(--jerboa-header-height) !important;
+  align-items: stretch !important;
+}
+
+html body #root .public-home .archive-wordmark {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: var(--jerboa-header-height) !important;
+  padding: 0.75rem 1rem !important;
+  align-content: center !important;
+}
+
+html body #root .public-home .archive-nav {
+  min-width: 0 !important;
+  min-height: var(--jerboa-header-height) !important;
+  align-items: stretch !important;
+}
+
+html body #root .public-home .archive-nav > a {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: var(--jerboa-header-height) !important;
+  padding: 0.7rem clamp(0.55rem, 1vw, 1.1rem) !important;
+  gap: 0.15rem !important;
+  place-content: center !important;
+  place-items: center !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+html body #root .public-home .archive-nav > a .nav-en,
+html body #root .public-home .archive-nav > a > span:not([lang="ko"]) {
+  font-size: clamp(1.05rem, 1.2vw, 1.35rem) !important;
+  line-height: 1 !important;
+}
+
+html body #root .public-home .archive-nav > a :is(small, span[lang="ko"]) {
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.8rem, 0.72vw, 0.9rem) !important;
+  font-weight: 750 !important;
+  line-height: 1.3 !important;
+}
+
+/* Public reading and controls ----------------------------------------- */
+
+html body #root .public-home :is(
+  .event-description,
+  .detail-long,
+  .catalogue-intro > p,
+  .catalogue-detail > p,
+  .manifesto-block > p,
+  .join-block h2,
+  .orientation-ledger strong
+) {
+  font-size: clamp(1rem, 0.9vw, 1.15rem) !important;
+  line-height: 1.68 !important;
+}
+
+html body #root .public-home .section-kicker {
+  min-height: 1.7rem !important;
+  align-items: center !important;
+  font-size: clamp(0.84rem, 0.78vw, 0.95rem) !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home .archive-cta {
+  box-sizing: border-box !important;
+  min-width: 10.5rem !important;
+  min-height: 50px !important;
+  padding: 0.8rem 1.15rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: clamp(0.94rem, 0.82vw, 1.05rem) !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home :is(
+  .archive-view-switch > button,
+  .archive-view-switch > a,
+  .archive-filter-set > button,
+  .archive-filter-reset,
+  .catalogue-export-actions > button
+) {
+  box-sizing: border-box !important;
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.68rem 0.9rem !important;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(0.88rem, 0.78vw, 1rem) !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home .archive-filter-set {
+  align-items: stretch !important;
+  gap: 0.45rem !important;
+}
+
+html body #root .public-home .archive-filter-set > button {
+  min-width: 4.6rem !important;
+}
+
+html body #root .public-home .archive-view-switch > :is(button, a) {
+  min-width: 10rem !important;
+  gap: 0.15rem !important;
+}
+
+html body #root .public-home .archive-view-switch small {
+  font-size: var(--jerboa-readable-small) !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home :is(
+  .archive-search input,
+  .archive-select select,
+  .catalogue-tools input,
+  .detail-keeper-form input,
+  .detail-keeper-form select,
+  .detail-keeper-form textarea
+) {
+  box-sizing: border-box !important;
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.7rem 0.8rem !important;
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home .archive-select > span,
+html body #root .public-home .catalogue-tools label > span {
+  font-size: var(--jerboa-readable-label) !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home .archive-bookmark {
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  font-size: 1.1rem !important;
+}
+
+html body #root div.public-home .poster-archive .poster-tile .poster-visual > button.archive-bookmark {
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+html body #root div.public-home .archive-tools .archive-discovery .archive-filter-set > button,
+html body #root div.public-home.catalogue-home .catalogue-tools .archive-filter-set > button {
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.68rem 0.9rem !important;
+}
+
+html body #root div.public-home .archive-tools .archive-discovery :is(
+  .archive-search input,
+  .archive-select select
+) {
+  min-height: var(--jerboa-control-height) !important;
+  height: auto !important;
+}
+
+html body #root .public-home .poster-caption :is(small, p),
+html body #root .public-home .catalogue-index small,
+html body #root .public-home .catalogue-index em,
+html body #root .public-home .text-index :is(li, small),
+html body #root .public-home .event-meta :is(dt, dd) {
+  font-size: clamp(0.82rem, 0.72vw, 0.94rem) !important;
+  line-height: 1.5 !important;
+}
+
+html body #root .public-home .archive-footer {
+  min-height: 4.5rem !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  padding-block: 0.75rem !important;
+  font-size: clamp(0.8rem, 0.72vw, 0.92rem) !important;
+}
+
+html body #root .public-home .archive-footer nav {
+  align-items: stretch !important;
+  gap: 0.35rem !important;
+}
+
+html body #root .public-home .archive-footer nav a {
+  display: inline-flex !important;
+  min-height: var(--jerboa-control-height-compact) !important;
+  padding: 0.55rem 0.65rem !important;
+  align-items: center !important;
+  font-size: clamp(0.8rem, 0.72vw, 0.92rem) !important;
+}
+
+/* Archive record ------------------------------------------------------ */
+
+html body #root .public-home.detail-home .detail-record {
+  align-items: stretch !important;
+}
+
+html body #root .public-home.detail-home .detail-copy {
+  min-width: 0 !important;
+  padding: clamp(2rem, 3.8vw, 4.75rem) clamp(2rem, 4.2vw, 5.5rem) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy > :is(
+  .detail-long,
+  .constellation-grid,
+  .detail-archive-context,
+  .event-meta
+) {
+  width: 100% !important;
+  max-width: 76rem !important;
+}
+
+html body #root .public-home.detail-home .detail-copy .detail-long {
+  max-width: 68ch !important;
+}
+
+html body #root .public-home.detail-home .detail-copy .detail-archive-context {
+  margin-top: clamp(2rem, 3vw, 3.5rem) !important;
+}
+
+html body #root .public-home.detail-home .detail-copy .constellation-grid {
+  gap: 0 !important;
+  align-items: stretch !important;
+}
+
+html body #root .public-home.detail-home .text-index {
+  min-width: 0 !important;
+}
+
+html body #root .public-home.detail-home .text-index > :is(span, ol),
+html body #root .public-home.detail-home .text-index li,
+html body #root .public-home.detail-home .event-meta > div {
+  min-height: 2.75rem !important;
+}
+
+html body #root .public-home.detail-home .detail-poster {
+  box-sizing: border-box !important;
+  display: grid !important;
+  min-width: 0 !important;
+  place-items: center !important;
+  padding: clamp(2.25rem, 4vw, 5rem) !important;
+}
+
+html body #root .public-home.detail-home .detail-poster img {
+  display: block !important;
+  width: auto !important;
+  max-width: min(100%, 32rem) !important;
+  height: auto !important;
+  max-height: calc(100svh - 12rem) !important;
+  object-fit: contain !important;
+}
+
+/* Catalogue ----------------------------------------------------------- */
+
+html body #root .public-home.catalogue-home .catalogue-room {
+  width: min(100%, 112rem) !important;
+  margin-inline: auto !important;
+  padding-inline: clamp(1.25rem, 4vw, 5rem) !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-tools {
+  align-items: end !important;
+  gap: 1rem !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-index > a {
+  box-sizing: border-box !important;
+  min-height: 76px !important;
+  padding-block: 0.8rem !important;
+  align-items: center !important;
+}
+
+html body #root .public-home.catalogue-home .catalogue-export-actions {
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+/* Member rooms -------------------------------------------------------- */
+
+html body #root .members-archive {
+  font-size: 1rem !important;
+}
+
+html body #root .members-archive :is(button, input, select, textarea) {
+  box-sizing: border-box !important;
+  min-height: var(--jerboa-control-height) !important;
+  font-size: clamp(0.9rem, 0.78vw, 1rem) !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .members-archive :is(input, select, textarea) {
+  padding: 0.72rem 0.8rem !important;
+}
+
+html body #root .members-archive :is(
+  small,
+  .archive-ko-label,
+  .member-text-action,
+  [class*="text-[8px]"],
+  [class*="text-[9px]"],
+  [class*="text-[10px]"],
+  [class*="text-[11px]"]
+) {
+  font-size: clamp(0.78rem, 0.7vw, 0.9rem) !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .members-archive .archive-sidebar :is(
+  .archive-public-return,
+  .archive-godmode-link
+) small[lang="ko"] {
+  font-size: clamp(0.8rem, 0.72vw, 0.92rem) !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .members-archive .archive-source-plate figcaption :is(span, small),
+html body #root .members-archive .member-login-manuscript figcaption :is(span, small) {
+  font-size: clamp(0.76rem, 0.66vw, 0.86rem) !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .members-archive .member-login-actions {
+  width: min(100%, 34rem) !important;
+}
+
+html body #root .members-archive .member-login-actions > button,
+html body #root .members-archive .member-login-import > button {
+  width: 100% !important;
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.7rem 1rem !important;
+}
+
+html body #root .members-archive .member-record-row .record-title > span,
+html body #root .members-archive .member-record-row :is(
+  .record-meta,
+  .member-record-mark,
+  .member-record-index
+) {
+  font-size: clamp(0.8rem, 0.72vw, 0.92rem) !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .members-archive button:disabled,
+html body #root .public-home.keeper-home button:disabled {
+  opacity: 0.62 !important;
+}
+
+/* Keeper Desk --------------------------------------------------------- */
+
+html body #root .public-home.keeper-home .keeper-room {
+  grid-template-columns: minmax(21rem, 24rem) minmax(0, 1fr) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-bar {
+  top: var(--jerboa-header-height) !important;
+  min-height: 90px !important;
+  gap: 0.9rem !important;
+  padding: 0.85rem clamp(1rem, 2vw, 2rem) !important;
+  align-items: center !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-state {
+  gap: 0.2rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-state strong {
+  font-size: 0.94rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-state > small {
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-storage-states {
+  gap: 0.38rem !important;
+  margin-top: 0.35rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-storage-states > span {
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.76rem !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-actions {
+  width: min(100%, 78rem) !important;
+  gap: 0.55rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-primary {
+  flex-basis: 29rem !important;
+  gap: 0.55rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions {
+  flex-basis: 10.5rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-more {
+  flex-basis: 9rem !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-command-primary > button,
+  .keeper-command-site-actions > summary,
+  .keeper-command-more > summary
+) {
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.68rem 0.72rem !important;
+  font-family: var(--font-ko) !important;
+  font-size: 0.84rem !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > div {
+  gap: 0.55rem !important;
+  padding: 0.75rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > div > small {
+  font-size: 0.8rem !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-command-site-actions > div > button,
+html body #root .public-home.keeper-home .keeper-command-more > div :is(button, label) {
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.65rem 0.75rem !important;
+  font-size: 0.85rem !important;
+  line-height: 1.35 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-register {
+  top: calc(var(--jerboa-header-height) + 90px) !important;
+  max-height: calc(100dvh - var(--jerboa-header-height) - 90px) !important;
+  padding: clamp(1rem, 1.8vw, 1.6rem) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-register > p[lang="ko"],
+html body #root .public-home.keeper-home .keeper-draft-count {
+  font-size: 0.9rem !important;
+  line-height: 1.55 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-mode-switch {
+  gap: 0.5rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-mode-switch > button,
+html body #root .public-home.keeper-home .keeper-view-switch > button {
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.68rem 0.55rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-mode-switch > button > span,
+html body #root .public-home.keeper-home .keeper-view-switch > button > span {
+  font-size: 0.86rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-list-search,
+  .keeper-list-filters label,
+  .keeper-field > label,
+  .godmode-field > label
+) {
+  font-size: 0.86rem !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-list-search input,
+  .keeper-list-filters select,
+  .keeper-field input,
+  .keeper-field select,
+  .keeper-field textarea,
+  .godmode-field input,
+  .godmode-field select,
+  .godmode-field textarea
+) {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  padding: 0.72rem 0.8rem !important;
+  font-family: var(--font-ko) !important;
+  font-size: 1rem !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-field textarea,
+  .godmode-field textarea
+) {
+  min-height: 128px !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-list > button,
+  .keeper-list-with-actions article,
+  .keeper-recent button,
+  .keeper-working-copies button,
+  .keeper-command-results button
+) {
+  min-height: 54px !important;
+  padding-block: 0.7rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .public-home.keeper-home :is(
+  .keeper-list,
+  .keeper-recent,
+  .keeper-working-copies,
+  .keeper-field,
+  .keeper-editor-group
+) small {
+  font-size: var(--jerboa-readable-small) !important;
+  line-height: 1.45 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-actionbar {
+  top: calc(var(--jerboa-header-height) + 90px) !important;
+  min-height: 76px !important;
+  grid-template-columns: minmax(13rem, 1fr) auto auto !important;
+  gap: 0.85rem !important;
+  padding: 0.8rem clamp(1rem, 2vw, 1.6rem) !important;
+  align-items: center !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-state > strong {
+  font-size: 0.94rem !important;
+  line-height: 1.3 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-state > span {
+  font-size: 0.82rem !important;
+  line-height: 1.4 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-meta {
+  gap: 0.4rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-meta > span {
+  min-height: 1.8rem !important;
+  padding: 0.35rem 0.5rem !important;
+  align-content: center !important;
+  font-size: 0.76rem !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons {
+  width: 100% !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-columns: minmax(0, 1fr) !important;
+  gap: 0.5rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons > button {
+  min-height: var(--jerboa-control-height) !important;
+  padding: 0.68rem 0.75rem !important;
+  font: 800 0.84rem/1.3 var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-access-form {
+  width: min(100%, 48rem) !important;
+  padding: clamp(2rem, 4vw, 3.5rem) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-access-form > p {
+  font-size: 1rem !important;
+  line-height: 1.65 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-access-form input,
+html body #root .public-home.keeper-home .keeper-access-form button {
+  min-height: 52px !important;
+  font-size: 1rem !important;
+}
+
+/* Wide monitors ------------------------------------------------------- */
+
+@media (min-width: 1600px) {
+  :root {
+    --jerboa-header-height: 94px;
+    --jerboa-control-height: 50px;
+  }
+
+  html body #root .public-home .archive-header {
+    grid-template-columns: minmax(15rem, 17.5rem) minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-nav > a .nav-en,
+  html body #root .public-home .archive-nav > a > span:not([lang="ko"]) {
+    font-size: clamp(1.2rem, 1.12vw, 1.48rem) !important;
+  }
+
+  html body #root .public-home .archive-nav > a :is(small, span[lang="ko"]) {
+    font-size: 0.92rem !important;
+  }
+
+  html body #root .public-home.archive-home > main,
+  html body #root .public-home.archive-home > .archive-footer {
+    width: min(100%, 120rem) !important;
+    margin-inline: auto !important;
+  }
+
+  html body #root .public-home.archive-home > main > :is(
+    .publication-masthead,
+    .featured-event,
+    .poster-archive,
+    .manifesto-block,
+    .join-block
+  ) {
+    width: 100% !important;
+  }
+
+  html body #root .public-home.detail-home .detail-record {
+    grid-template-columns: minmax(31rem, 30vw) minmax(0, 1fr) !important;
+    width: min(100%, 130rem) !important;
+    margin-inline: auto !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy {
+    padding: 4.75rem clamp(4.5rem, 5vw, 7rem) !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy .detail-long {
+    font-size: 1.12rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-poster {
+    min-height: calc(100svh - var(--jerboa-header-height)) !important;
+    padding: 4.5rem !important;
+  }
+
+  html body #root .members-archive .member-login {
+    width: min(100%, 92rem) !important;
+    max-width: 92rem !important;
+    grid-template-columns: minmax(24rem, 0.8fr) minmax(0, 1.2fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-room {
+    grid-template-columns: minmax(23rem, 26rem) minmax(0, 1fr) !important;
+    width: min(100%, 160rem) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-bar {
+    min-height: 96px !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-register {
+    top: calc(var(--jerboa-header-height) + 96px) !important;
+    max-height: calc(100dvh - var(--jerboa-header-height) - 96px) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-actionbar {
+    top: calc(var(--jerboa-header-height) + 96px) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-form {
+    width: min(100%, 88rem) !important;
+    max-width: 88rem !important;
+  }
+}
+
+/* Narrow screens ------------------------------------------------------ */
+
+@media (max-width: 980px) {
+  html body #root .public-home.keeper-home .keeper-room {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home :is(
+    .keeper-command-bar,
+    .keeper-register,
+    .keeper-editor-actionbar
+  ) {
+    position: static !important;
+    top: auto !important;
+    max-height: none !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-actionbar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-meta {
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --jerboa-header-height: 76px;
+    --jerboa-control-height: 48px;
+  }
+
+  html body #root .public-home .archive-header {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-wordmark {
+    width: 100% !important;
+    min-height: var(--jerboa-header-height) !important;
+    border-bottom: var(--jerboa-rule) solid var(--ink) !important;
+  }
+
+  html body #root .public-home .archive-nav {
+    display: flex !important;
+    width: 100% !important;
+    min-height: 72px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain !important;
+    scroll-snap-type: x proximity !important;
+  }
+
+  html body #root .public-home .archive-nav > a {
+    flex: 1 0 9.25rem !important;
+    min-height: 72px !important;
+    padding: 0.65rem 0.7rem !important;
+    scroll-snap-align: start !important;
+  }
+
+  html body #root .public-home .archive-nav > a .nav-en,
+  html body #root .public-home .archive-nav > a > span:not([lang="ko"]) {
+    font-size: 1.02rem !important;
+  }
+
+  html body #root .public-home .archive-nav > a :is(small, span[lang="ko"]) {
+    font-size: 0.8rem !important;
+  }
+
+  html body #root .public-home .archive-view-switch {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-view-switch > :is(button, a) {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #root .public-home .archive-filter-set {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home .archive-filter-set > button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body #root .public-home.detail-home .detail-record {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.detail-home .detail-poster {
+    min-height: auto !important;
+    padding: 2rem 1.25rem !important;
+  }
+
+  html body #root .public-home.detail-home .detail-poster img {
+    max-height: 68svh !important;
+  }
+
+  html body #root .public-home.detail-home .detail-copy {
+    padding: 2rem 1.25rem 3rem !important;
+  }
+
+  html body #root .public-home.catalogue-home .catalogue-room {
+    padding-inline: 1rem !important;
+  }
+
+  html body #root .members-archive :is(button, input, select, textarea) {
+    min-height: 48px !important;
+    font-size: 1rem !important;
+  }
+
+  html body #root .members-archive .member-login-actions {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-primary {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-command-site-actions,
+  html body #root .public-home.keeper-home .keeper-command-more {
+    width: 100% !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-buttons {
+    grid-auto-flow: row !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-editor-action-buttons > .keeper-editor-publish {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root *,
+  html body #root *::before,
+  html body #root *::after {
+    scroll-behavior: auto !important;
+  }
+}

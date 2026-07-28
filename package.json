@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:vercel": "npx vercel dev",
-    "build": "vite build && node scripts/prepare-static-routes.cjs",
+    "build": "vite build && node scripts/prepare-static-routes.cjs && node scripts/prepare-sites-output.cjs",
     "check": "npm run lint && npm run build && node scripts/smoke-static-routes.cjs && node scripts/check-performance-budget.cjs",
     "lint": "tsc --noEmit",
     "preview": "vite preview"

@@ -10,6 +10,7 @@ const container = document.getElementById('root');
 if (container) {
   const root = createRoot(container);
   void import('./WorkroomLayout.css')
+    .then(() => import('./InterfaceAlignment.css'))
     .then(() => {
       root.render(
         <React.StrictMode>
