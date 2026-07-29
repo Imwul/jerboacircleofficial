@@ -3,9 +3,9 @@ import {
   archiveCollections,
   archiveSeasons,
   events,
-  getCollectionsForEvent,
   getPublicArchiveEvents,
   getSeasonById,
+  type ArchiveCollection,
   type ArchiveEvent,
 } from '../data/events';
 import type { SiteText } from '../data/siteText';
@@ -13,6 +13,12 @@ import { applyArchiveDrafts, archiveDraftStorageKey } from '../utils/archiveDraf
 import { loadServerSync } from '../utils/serverSync';
 import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
 import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import {
+  applyArchiveCollectionDrafts,
+  archiveCollectionStorageKey,
+  writeArchiveCollectionDrafts,
+  type ArchiveCollectionDraftMap,
+} from '../utils/archiveCollectionDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import { readArchiveBookmarks, writeArchiveBookmarks } from '../utils/readingMarks';
@@ -34,6 +40,7 @@ import '../JerboaCondoRefine.css';
 interface ArchiveSyncPayload {
   schemaVersion?: 1 | 2 | 3;
   drafts?: ArchiveDraftMap;
+  collections?: ArchiveCollectionDraftMap;
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;
 }
@@ -232,6 +239,7 @@ function matchesArchiveQuery(
   query: string,
   archiveEvents: ArchiveEvent[],
   references: ArchiveReference[],
+  collections: ArchiveCollection[],
 ) {
   if (!query.trim()) return true;
 
@@ -248,7 +256,9 @@ function matchesArchiveQuery(
     event.location,
     getSeasonById(event.seasonId)?.title,
     getSeasonById(event.seasonId)?.label,
-    ...getCollectionsForEvent(event).map((collection) => collection.title),
+    ...collections
+      .filter((collection) => event.collectionIds.includes(collection.id) || collection.eventIds.includes(event.id))
+      .map((collection) => collection.title),
     ...event.passage,
     ...event.materials,
     ...event.themes,
@@ -300,7 +310,17 @@ function PosterTile({
   );
 }
 
-function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents: ArchiveEvent[]; references: ArchiveReference[]; siteText: SiteText }) {
+function PosterArchive({
+  archiveEvents,
+  collections,
+  references,
+  siteText,
+}: {
+  archiveEvents: ArchiveEvent[];
+  collections: ArchiveCollection[];
+  references: ArchiveReference[];
+  siteText: SiteText;
+}) {
   const initialQueryState = useMemo(readArchiveQueryState, []);
   const [query, setQuery] = useState(initialQueryState.query);
   const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>(initialQueryState.status);
@@ -311,17 +331,19 @@ function PosterArchive({ archiveEvents, references, siteText }: { archiveEvents:
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
   const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
   const seasonOptions = archiveSeasons.filter((season) => archiveEvents.some((event) => event.seasonId === season.id));
-  const collectionOptions = archiveCollections.filter((collection) => (
+  const collectionOptions = collections.filter((collection) => (
     collection.visibility === 'public'
     && archiveEvents.some((event) => event.collectionIds.includes(collection.id) || collection.eventIds.includes(event.id))
   ));
   const visibleEvents = archiveEvents.filter((event) => {
     const statusMatches = statusFilter === 'all' || event.status === statusFilter;
     const seasonMatches = seasonFilter === 'all' || event.seasonId === seasonFilter;
-    const collectionMatches = collectionFilter === 'all' || event.collectionIds.includes(collectionFilter);
+    const collectionMatches = collectionFilter === 'all'
+      || event.collectionIds.includes(collectionFilter)
+      || collections.find((collection) => collection.id === collectionFilter)?.eventIds.includes(event.id);
     const filedMatches = !filedOnly || bookmarkedIds.includes(event.id);
     return statusMatches && seasonMatches && collectionMatches && filedMatches
-      && matchesArchiveQuery(event, query, archiveEvents, references);
+      && matchesArchiveQuery(event, query, archiveEvents, references, collections);
   });
   const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
   const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
@@ -559,6 +581,7 @@ export default function HomePage() {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
   const archiveEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
+  const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
   const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0] ?? events[0];
 
@@ -579,6 +602,10 @@ export default function HomePage() {
 
         if (result.saved.data.drafts) {
           writeArchiveDrafts(result.saved.data.drafts);
+        }
+
+        if (result.saved.data.collections) {
+          writeArchiveCollectionDrafts(result.saved.data.collections);
         }
 
         if (result.saved.data.siteText) {
@@ -607,7 +634,7 @@ export default function HomePage() {
 
   useEffect(() => {
     function refreshFromAnotherTab(event: StorageEvent) {
-      if (event.key !== archiveDraftStorageKey) return;
+      if (event.key !== archiveDraftStorageKey && event.key !== archiveCollectionStorageKey) return;
       setVersion((current) => current + 1);
     }
 
@@ -622,7 +649,7 @@ export default function HomePage() {
       <main>
         <Masthead featuredEvent={currentEvent} siteText={siteText} />
         <FeaturedEvent featuredEvent={currentEvent} siteText={siteText} />
-        <PosterArchive archiveEvents={archiveEvents} references={references} siteText={siteText} />
+        <PosterArchive archiveEvents={archiveEvents} collections={collectionRecords} references={references} siteText={siteText} />
         <ManifestoBlock siteText={siteText} />
         <JoinBlock siteText={siteText} />
       </main>

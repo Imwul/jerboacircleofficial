@@ -1,6 +1,7 @@
 import {
   archiveCollections,
   archiveSeasons,
+  type ArchiveCollection,
   type ArchiveEvent,
 } from '../data/events';
 import {
@@ -22,11 +23,12 @@ export interface ArchiveIntegrityIssue {
 export function inspectArchiveIntegrity(
   records: ArchiveEvent[],
   references: ArchiveReference[] = archiveReferences,
+  collections: ArchiveCollection[] = archiveCollections,
 ): ArchiveIntegrityIssue[] {
   const issues: ArchiveIntegrityIssue[] = [];
   const recordIds = new Set(records.map((record) => record.id));
   const seasonIds = new Set(archiveSeasons.map((season) => season.id));
-  const collectionIds = new Set(archiveCollections.map((collection) => collection.id));
+  const collectionIds = new Set(collections.map((collection) => collection.id));
   const referenceIds = new Set(references.map((reference) => reference.id));
 
   records.forEach((record, index) => {

@@ -4,6 +4,8 @@ import type { ArchiveReferenceDraftMap } from './archiveReferenceDrafts';
 import type { ArchivePublicationManifest, ArchivePublicationMap } from './publicationLedger';
 import type { SiteText } from '../data/siteText';
 import type { ArchiveAuditEntry, ArchiveAuditAction } from './archiveAudit';
+import type { ArchiveCollection } from '../data/events';
+import type { ArchiveCollectionDraftMap } from './archiveCollectionDrafts';
 
 const stringFields = new Set<keyof ArchiveEventDraft>([
   'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage', 'posterAlt',
@@ -44,6 +46,7 @@ function readDraftCandidate(payload: unknown) {
   if (payload.type === 'jerboa-sync-recovery') assert(payload.scope === 'archive', '회원 장부 복구 파일은 아카이브에 적용할 수 없습니다.');
   if (isRecord(payload.drafts)) return {
     drafts: payload.drafts,
+    collections: isRecord(payload.collections) ? payload.collections : {},
     references: isRecord(payload.references) ? payload.references : {},
     publications: isRecord(payload.publications) ? payload.publications : {},
     siteText: isRecord(payload.siteText) ? payload.siteText : {},
@@ -52,6 +55,7 @@ function readDraftCandidate(payload: unknown) {
   if (isRecord(payload.data) && isRecord(payload.data.drafts)) {
     return {
       drafts: payload.data.drafts,
+      collections: isRecord(payload.data.collections) ? payload.data.collections : {},
       references: isRecord(payload.data.references) ? payload.data.references : {},
       publications: isRecord(payload.data.publications) ? payload.data.publications : {},
       siteText: isRecord(payload.data.siteText) ? payload.data.siteText : {},
@@ -59,9 +63,28 @@ function readDraftCandidate(payload: unknown) {
     };
   }
   if (!('type' in payload) && !('version' in payload) && !('data' in payload)) {
-    return { drafts: payload, references: {}, publications: {}, siteText: {}, auditLog: [] };
+    return { drafts: payload, collections: {}, references: {}, publications: {}, siteText: {}, auditLog: [] };
   }
   throw new Error('파일에서 아카이브 초안을 찾을 수 없습니다.');
+}
+
+function validateCollections(candidate: Record<string, unknown>) {
+  const entries = Object.entries(candidate);
+  assert(entries.length <= 1_000, '컬렉션이 1,000개를 넘어 적용할 수 없습니다.');
+  const collections: ArchiveCollectionDraftMap = {};
+  entries.forEach(([id, value]) => {
+    assert(id.length > 0 && id.length <= 120, '컬렉션 ID 길이가 올바르지 않습니다.');
+    assert(!['__proto__', 'prototype', 'constructor'].includes(id), '사용할 수 없는 컬렉션 ID가 포함되어 있습니다.');
+    assert(isRecord(value), `${id}: 컬렉션 내용이 객체 형식이 아닙니다.`);
+    assert(value.id === id, `${id}: 컬렉션 객체의 ID가 장부 키와 다릅니다.`);
+    assert(typeof value.title === 'string' && value.title.trim().length > 0 && value.title.length <= 5_000, `${id}: 컬렉션 이름이 올바르지 않습니다.`);
+    assert(typeof value.description === 'string' && value.description.length <= 25_000, `${id}: 컬렉션 설명이 올바르지 않습니다.`);
+    assert(Array.isArray(value.eventIds) && value.eventIds.length <= 1_000 && value.eventIds.every((entry) => typeof entry === 'string' && entry.length <= 120), `${id}: 프로그램 목록이 올바르지 않습니다.`);
+    assert(Array.isArray(value.themeIds) && value.themeIds.length <= 1_000 && value.themeIds.every((entry) => typeof entry === 'string' && entry.length <= 120), `${id}: 주제 목록이 올바르지 않습니다.`);
+    assert(typeof value.visibility === 'string' && ['public', 'unlisted', 'private'].includes(value.visibility), `${id}: 공개 상태가 올바르지 않습니다.`);
+    collections[id] = value as unknown as ArchiveCollection;
+  });
+  return collections;
 }
 
 function validateSiteText(candidate: Record<string, unknown>) {
@@ -181,11 +204,12 @@ function validatePublications(candidate: Record<string, unknown>) {
 export function parseArchiveDraftImport(payload: unknown) {
   const candidate = readDraftCandidate(payload);
   const entries = Object.entries(candidate.drafts);
+  const collections = validateCollections(candidate.collections);
   const references = validateReferences(candidate.references);
   const { publications, publicationCount } = validatePublications(candidate.publications);
   const siteText = validateSiteText(candidate.siteText);
   const auditLog = validateAuditLog(candidate.auditLog);
-  assert(entries.length > 0 || Object.keys(references).length > 0 || publicationCount > 0 || Object.keys(siteText).length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
+  assert(entries.length > 0 || Object.keys(collections).length > 0 || Object.keys(references).length > 0 || publicationCount > 0 || Object.keys(siteText).length > 0, '비어 있는 초안 파일은 적용할 수 없습니다.');
   assert(entries.length <= 1_000, '초안 기록이 1,000개를 넘어 적용할 수 없습니다.');
 
   const drafts: ArchiveDraftMap = {};
@@ -198,5 +222,17 @@ export function parseArchiveDraftImport(payload: unknown) {
     fieldCount += Object.keys(draft).length;
   });
 
-  return { drafts, references, publications, siteText, auditLog, recordCount: entries.length, referenceCount: Object.keys(references).length, publicationCount, fieldCount };
+  return {
+    drafts,
+    collections,
+    references,
+    publications,
+    siteText,
+    auditLog,
+    recordCount: entries.length,
+    collectionCount: Object.keys(collections).length,
+    referenceCount: Object.keys(references).length,
+    publicationCount,
+    fieldCount,
+  };
 }

@@ -8,6 +8,7 @@ import {
   defaultArchiveSeasonId,
   events,
   type ArchiveContentKind,
+  type ArchiveCollection,
   type ArchiveEvent,
   type ArchiveVisibility,
   type ArchiveWorkflowStatus,
@@ -26,6 +27,14 @@ import {
   type ArchiveEventDraft,
   type ArchiveDraftMap,
 } from '../utils/archiveDrafts';
+import {
+  applyArchiveCollectionDrafts,
+  clearArchiveCollectionDrafts,
+  readArchiveCollectionDrafts,
+  writeArchiveCollectionDraft,
+  writeArchiveCollectionDrafts,
+  type ArchiveCollectionDraftMap,
+} from '../utils/archiveCollectionDrafts';
 import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import {
   getSiteText,
@@ -113,6 +122,7 @@ import '../JerboaCondoRefine.css';
 interface ArchiveSyncPayload {
   schemaVersion?: 1 | 2 | 3;
   drafts?: ArchiveDraftMap;
+  collections?: ArchiveCollectionDraftMap;
   siteText?: Partial<SiteText>;
   references?: ArchiveReferenceDraftMap;
   publications?: ArchivePublicationMap;
@@ -198,7 +208,7 @@ function validateReferenceForm(form: ReferenceFormState, references: ArchiveRefe
 }
 
 type KeeperPendingAction =
-  | { kind: 'import'; drafts: ArchiveDraftMap; references: ArchiveReferenceDraftMap; publications: ArchivePublicationMap; siteText: Partial<SiteText>; auditLog: ArchiveAuditEntry[]; recordCount: number; referenceCount: number; publicationCount: number; fieldCount: number; diffSummary: string }
+  | { kind: 'import'; drafts: ArchiveDraftMap; collections: ArchiveCollectionDraftMap; references: ArchiveReferenceDraftMap; publications: ArchivePublicationMap; siteText: Partial<SiteText>; auditLog: ArchiveAuditEntry[]; recordCount: number; collectionCount: number; referenceCount: number; publicationCount: number; fieldCount: number; diffSummary: string }
   | { kind: 'clear' }
   | { kind: 'restore'; revisionId: string; title: string }
   | { kind: 'restore-publication'; publicationId: string; title: string; contentHash: string }
@@ -285,6 +295,16 @@ function makeRecordId(title: string) {
   return `${slug || 'new-programme'}-${Date.now().toString(36)}`;
 }
 
+function makeCollectionId(title: string, collections: ArchiveCollection[]) {
+  const slug = title
+    .toLocaleLowerCase('ko-KR')
+    .replace(/[^a-z0-9가-힣]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'new-collection';
+  if (!collections.some((collection) => collection.id === slug)) return slug;
+  return `${slug}-${Date.now().toString(36)}`;
+}
+
 function nextEditionLabel(records: ArchiveEvent[]) {
   const highestEdition = records.reduce((highest, record) => {
     const editionNumber = Number(record.edition.match(/\d+/)?.[0] ?? 0);
@@ -301,6 +321,7 @@ function changedMapCount(left: Record<string, unknown> = {}, right: Record<strin
 function archivePayloadChangeCount(left: ArchiveSyncPayload | null, right: ArchiveSyncPayload) {
   if (!left) return 0;
   return changedMapCount(left.drafts, right.drafts)
+    + changedMapCount(left.collections, right.collections)
     + changedMapCount(left.references, right.references)
     + changedMapCount(left.siteText as Record<string, unknown>, right.siteText as Record<string, unknown>)
     + changedMapCount(left.publications, right.publications)
@@ -318,6 +339,7 @@ function importDiffSummary(current: ArchiveSyncPayload, incoming: ArchiveSyncPay
   };
   return [
     describe('프로그램', current.drafts, incoming.drafts),
+    describe('컬렉션', current.collections, incoming.collections),
     describe('자료', current.references, incoming.references),
     describe('공개 문구', current.siteText as Record<string, unknown>, incoming.siteText as Record<string, unknown>),
     describe('발행본', current.publications, incoming.publications),
@@ -396,6 +418,7 @@ export default function KeeperPage() {
   ));
   const [version, setVersion] = useState(0);
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
+  const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
   const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const [selectedId, setSelectedId] = useState(archiveEvents[0].id);
   const selectedEvent = archiveEvents.find((event) => event.id === selectedId) ?? archiveEvents[0];
@@ -423,9 +446,10 @@ export default function KeeperPage() {
   const [conflictState, setConflictState] = useState<ArchiveConflictState | null>(null);
   const [conflictChoices, setConflictChoices] = useState<{
     drafts: 'local' | 'remote';
+    collections: 'local' | 'remote';
     references: 'local' | 'remote';
     siteText: 'local' | 'remote';
-  }>({ drafts: 'local', references: 'local', siteText: 'local' });
+  }>({ drafts: 'local', collections: 'local', references: 'local', siteText: 'local' });
   const [showOperations, setShowOperations] = useState(false);
   const [operationsStatus, setOperationsStatus] = useState<ArchiveOperationalStatus | null>(null);
   const [operationsBusy, setOperationsBusy] = useState(false);
@@ -458,6 +482,10 @@ export default function KeeperPage() {
   }>({ state: 'idle', message: '' });
   const [workingCopyVersion, setWorkingCopyVersion] = useState(0);
   const [newPrimaryTheme, setNewPrimaryTheme] = useState('');
+  const [inlineCollectionOpen, setInlineCollectionOpen] = useState(false);
+  const [inlineCollectionTitle, setInlineCollectionTitle] = useState('');
+  const [inlineCollectionDescription, setInlineCollectionDescription] = useState('');
+  const [inlineCollectionVisibility, setInlineCollectionVisibility] = useState<ArchiveVisibility>('public');
   const activeOperationRef = useRef<KeeperOperation>('idle');
   const commandDialogRef = useDialogFocus<HTMLElement>(commandOpen, () => setCommandOpen(false));
   const programmeUndo = useRef<KeeperFormState[]>([]);
@@ -472,7 +500,10 @@ export default function KeeperPage() {
   const isTextDirty = JSON.stringify(siteTextForm) !== JSON.stringify(getSiteText());
   const selectedRevisions = useMemo(() => readArchiveDraftRevisions(selectedEvent.id), [selectedEvent.id, version]);
   const selectedPublications = useMemo(() => readArchivePublications()[selectedEvent.id] ?? [], [selectedEvent.id, version]);
-  const integrityIssues = useMemo(() => inspectArchiveIntegrity(archiveEvents, referenceRecords), [archiveEvents, referenceRecords]);
+  const integrityIssues = useMemo(
+    () => inspectArchiveIntegrity(archiveEvents, referenceRecords, collectionRecords),
+    [archiveEvents, collectionRecords, referenceRecords],
+  );
   const publicationCandidate = useMemo(() => ({
     ...archiveEventFromForm(
       selectedEvent.id,
@@ -503,6 +534,7 @@ export default function KeeperPage() {
       ...readArchiveDrafts(),
       ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
     },
+    collections: readArchiveCollectionDrafts(),
     siteText: siteTextForm,
     references: {
       ...readArchiveReferenceDrafts(),
@@ -1037,6 +1069,50 @@ export default function KeeperPage() {
     setSyncStatus(`메인 주제 ${theme} 추가됨 / 프로그램을 저장하면 반영됩니다`);
   }
 
+  function createInlineCollection() {
+    const title = inlineCollectionTitle.trim();
+    if (!title) {
+      setSyncStatus('컬렉션 이름을 입력하세요');
+      return;
+    }
+
+    const existingCollection = collectionRecords.find((collection) => (
+      collection.title.toLocaleLowerCase('ko-KR') === title.toLocaleLowerCase('ko-KR')
+    ));
+    const collection = existingCollection ?? {
+      id: makeCollectionId(title, collectionRecords),
+      title,
+      description: inlineCollectionDescription.trim() || `${title}에 속한 프로그램`,
+      eventIds: [],
+      themeIds: [],
+      visibility: inlineCollectionVisibility,
+    };
+
+    if (!existingCollection) writeArchiveCollectionDraft(collection);
+    if (!existingCollection) {
+      recordArchiveAudit({
+        action: 'create',
+        targetType: 'archive',
+        targetId: collection.id,
+        title: collection.title,
+        detail: '편집 화면에서 컬렉션 즉시 추가',
+      });
+    }
+    const selectedIds = splitDraftList(form.collectionIdsText);
+    if (!selectedIds.includes(collection.id)) {
+      updateField('collectionIdsText', [...selectedIds, collection.id].join(' / '));
+    }
+    setInlineCollectionTitle('');
+    setInlineCollectionDescription('');
+    setInlineCollectionVisibility('public');
+    setInlineCollectionOpen(false);
+    setLastLocalSavedAt(new Date().toISOString());
+    setVersion((current) => current + 1);
+    setSyncStatus(existingCollection
+      ? `기존 컬렉션 “${collection.title}”을 선택했습니다`
+      : `컬렉션 “${collection.title}”을 만들고 현재 프로그램에 연결했습니다`);
+  }
+
   function updateSiteTextField(key: keyof SiteText, value: string) {
     setOperationError('');
     setSiteTextForm((current) => {
@@ -1109,7 +1185,7 @@ export default function KeeperPage() {
     try {
       await Promise.resolve();
       if (mode === 'events') {
-        const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
+        const validation = validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords);
         if (validation) {
           reportOperationError(`임시 저장 실패 / ${validation}`);
           return false;
@@ -1672,6 +1748,7 @@ export default function KeeperPage() {
     return {
       schemaVersion: 3 as const,
       drafts,
+      collections: overrides.collections ?? readArchiveCollectionDrafts(),
       siteText: overrides.siteText ?? siteTextForm,
       references: overrides.references ?? {
         ...readArchiveReferenceDrafts(),
@@ -1684,6 +1761,7 @@ export default function KeeperPage() {
 
   function applyArchivePayload(payload: ArchiveSyncPayload, savedAt?: string | null) {
     if (payload.drafts) writeArchiveDrafts(payload.drafts);
+    if (payload.collections) writeArchiveCollectionDrafts(payload.collections);
     if (payload.siteText) {
       const nextSiteText = mergeSiteText(payload.siteText);
       writeSiteTextDraft(nextSiteText);
@@ -1736,6 +1814,7 @@ export default function KeeperPage() {
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
     const merged = createArchiveSyncPayload({
       drafts: conflictChoices.drafts === 'local' ? local.drafts : remote.drafts,
+      collections: conflictChoices.collections === 'local' ? local.collections : remote.collections,
       references: conflictChoices.references === 'local' ? local.references : remote.references,
       siteText: conflictChoices.siteText === 'local' ? local.siteText : remote.siteText,
       publications: mergePublicationMaps(remote.publications, local.publications),
@@ -1774,7 +1853,7 @@ export default function KeeperPage() {
   async function saveArchiveToServer() {
     if (!beginOperation('syncing')) return;
     try {
-      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents, referenceRecords) : '';
+      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords) : '';
       if (archiveValidation) {
         reportOperationError(`공동 장부 반영 실패 / ${archiveValidation}`);
         return;
@@ -1949,6 +2028,7 @@ export default function KeeperPage() {
       version: 3,
       exportedAt: new Date().toISOString(),
       drafts: readArchiveDrafts(),
+      collections: readArchiveCollectionDrafts(),
       siteText: getSiteText(),
       references: readArchiveReferenceDrafts(),
       publications: readArchivePublications(),
@@ -1970,6 +2050,7 @@ export default function KeeperPage() {
       const parsed = parseArchiveDraftImport(JSON.parse(await file.text()));
       const incoming: ArchiveSyncPayload = {
         drafts: parsed.drafts,
+        collections: parsed.collections,
         siteText: parsed.siteText,
         references: parsed.references,
         publications: parsed.publications,
@@ -1988,6 +2069,7 @@ export default function KeeperPage() {
 
   function performClearEveryDraft() {
     clearAllArchiveDrafts();
+    clearArchiveCollectionDrafts();
     clearAllArchiveReferenceDrafts();
     clearKeeperProgrammeWorkingCopies();
     const baseEvent = events.find((event) => event.id === selectedId) ?? events[0];
@@ -2063,7 +2145,7 @@ export default function KeeperPage() {
   async function performPublication() {
     if (!beginOperation('publishing')) return;
     try {
-    const validation = validateKeeperForm(form, archiveEvents, referenceRecords);
+    const validation = validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords);
     if (validation) {
       reportOperationError(`게시 실패 / ${validation}`);
       return;
@@ -2136,6 +2218,7 @@ export default function KeeperPage() {
     if (!pendingAction) return;
     if (pendingAction.kind === 'import') {
       writeArchiveDrafts(pendingAction.drafts);
+      writeArchiveCollectionDrafts(pendingAction.collections);
       const importedSiteText = mergeSiteText(pendingAction.siteText);
       writeSiteTextDraft(importedSiteText);
       setSiteTextForm(importedSiteText);
@@ -2152,7 +2235,7 @@ export default function KeeperPage() {
       const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
       setForm(toFormState(nextSelected));
       setVersion((current) => current + 1);
-      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개 · 자료 ${pendingAction.referenceCount}개 · 발행본 ${pendingAction.publicationCount}개`);
+      setSyncStatus(`검증된 초안 파일 적용됨 / 기록 ${pendingAction.recordCount}개 · 컬렉션 ${pendingAction.collectionCount}개 · 자료 ${pendingAction.referenceCount}개 · 발행본 ${pendingAction.publicationCount}개`);
     } else if (pendingAction.kind === 'clear') {
       performClearEveryDraft();
     } else if (pendingAction.kind === 'publish') {
@@ -2448,7 +2531,7 @@ export default function KeeperPage() {
             <div>
               <p className="section-kicker" lang="en">Conflict ledger</p>
               <h2 id="keeper-conflict-title" lang="ko">어느 내용을 공개본에 남길지 선택하세요</h2>
-              <p lang="ko">발행 이력은 양쪽을 합쳐 보존합니다. 프로그램, 자료, 문구별로 남길 내용을 선택합니다.</p>
+              <p lang="ko">발행 이력은 양쪽을 합쳐 보존합니다. 프로그램, 컬렉션, 자료, 문구별로 남길 내용을 선택합니다.</p>
             </div>
             <label>
               <span lang="ko">프로그램</span>
@@ -2457,6 +2540,14 @@ export default function KeeperPage() {
                 <option value="remote">현재 공개본</option>
               </select>
               <small lang="ko">차이 {changedMapCount(conflictState.local.drafts, conflictState.remote.drafts)}개</small>
+            </label>
+            <label>
+              <span lang="ko">컬렉션</span>
+              <select value={conflictChoices.collections} onChange={(event) => setConflictChoices((current) => ({ ...current, collections: event.target.value as 'local' | 'remote' }))}>
+                <option value="local">이 기기의 임시 저장</option>
+                <option value="remote">현재 공개본</option>
+              </select>
+              <small lang="ko">차이 {changedMapCount(conflictState.local.collections, conflictState.remote.collections)}개</small>
             </label>
             <label>
               <span lang="ko">자료 장부</span>
@@ -3230,15 +3321,57 @@ export default function KeeperPage() {
 
             <RelationshipPicker
               label="컬렉션"
-              description="이 프로그램이 나타날 공개 묶음을 선택합니다. ID를 직접 입력할 필요가 없습니다."
-              options={archiveCollections.map((collection) => ({
+              description="이 프로그램이 나타날 묶음을 선택하거나, 필요한 컬렉션을 이 자리에서 바로 만듭니다."
+              options={collectionRecords.map((collection) => ({
                 id: collection.id,
                 title: collection.title,
                 meta: collection.visibility,
               }))}
               selectedIds={splitDraftList(form.collectionIdsText)}
               onChange={(ids) => updateField('collectionIdsText', ids.join(' / '))}
+              actionLabel={inlineCollectionOpen ? '새 컬렉션 닫기' : '새 컬렉션 추가'}
+              onAction={() => setInlineCollectionOpen((current) => !current)}
             />
+            {inlineCollectionOpen && (
+              <section className="keeper-inline-collection" aria-label="새 컬렉션 만들기">
+                <div>
+                  <strong lang="ko">새 컬렉션</strong>
+                  <small lang="ko">만드는 즉시 현재 프로그램에 선택됩니다.</small>
+                </div>
+                <label>
+                  <span lang="ko">이름</span>
+                  <input
+                    autoFocus
+                    value={inlineCollectionTitle}
+                    onChange={(event) => setInlineCollectionTitle(event.target.value)}
+                    placeholder="예: Summer Reading"
+                  />
+                </label>
+                <label>
+                  <span lang="ko">설명</span>
+                  <input
+                    value={inlineCollectionDescription}
+                    onChange={(event) => setInlineCollectionDescription(event.target.value)}
+                    placeholder="비우면 이름을 바탕으로 자동 작성"
+                  />
+                </label>
+                <label>
+                  <span lang="ko">공개 상태</span>
+                  <select
+                    value={inlineCollectionVisibility}
+                    onChange={(event) => setInlineCollectionVisibility(event.target.value as ArchiveVisibility)}
+                  >
+                    <option value="public">공개</option>
+                    <option value="unlisted">주소로만 공개</option>
+                    <option value="private">비공개</option>
+                  </select>
+                </label>
+                <div className="keeper-inline-collection-actions">
+                  <button type="button" onClick={() => setInlineCollectionOpen(false)}><span lang="ko">취소</span></button>
+                  <button type="button" onClick={createInlineCollection}><span lang="ko">만들고 선택</span></button>
+                </div>
+              </section>
+            )}
 
             </section>
             <section className="keeper-editor-group" id="keeper-section-artwork" hidden={collapsedSections.includes('artwork')}>
@@ -3561,7 +3694,7 @@ export default function KeeperPage() {
                 ? '이 발행본에서 복구 초안을 만들까요?'
               : '이전 초안으로 되돌릴까요?'}
         description={pendingAction?.kind === 'import'
-          ? `기록 ${pendingAction.recordCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. ${pendingAction.diffSummary}. 이 기기의 임시 저장 내용은 파일의 내용으로 교체됩니다.`
+          ? `기록 ${pendingAction.recordCount}개, 컬렉션 ${pendingAction.collectionCount}개, 자료 ${pendingAction.referenceCount}개, 발행본 ${pendingAction.publicationCount}개와 필드 ${pendingAction.fieldCount}개를 확인했습니다. ${pendingAction.diffSummary}. 이 기기의 임시 저장 내용은 파일의 내용으로 교체됩니다.`
           : pendingAction?.kind === 'clear'
             ? '현재 공개본은 유지되지만, 이 기기에 임시 저장한 모든 수정이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
           : pendingAction?.kind === 'publish'

@@ -2,6 +2,7 @@ import {
   archiveCollections,
   archiveSeasons,
   type ArchiveContentKind,
+  type ArchiveCollection,
   type ArchiveEvent,
   type ArchiveVisibility,
   type ArchiveWorkflowStatus,
@@ -153,6 +154,7 @@ export function validateArchiveRecordForm(
   form: ArchiveRecordFormState,
   records: ArchiveEvent[],
   references: ArchiveReference[] = archiveReferences,
+  collections: ArchiveCollection[] = archiveCollections,
 ) {
   const requiredFields: Array<[keyof ArchiveRecordFormState, string]> = [
     ['edition', '판본'],
@@ -172,7 +174,7 @@ export function validateArchiveRecordForm(
 
   const collectionIds = splitArchiveFormList(form.collectionIdsText);
   if (collectionIds.length === 0) return '컬렉션을 하나 이상 선택하세요';
-  const missingCollection = collectionIds.find((id) => !archiveCollections.some((collection) => collection.id === id));
+  const missingCollection = collectionIds.find((id) => !collections.some((collection) => collection.id === id));
   if (missingCollection) return `없는 컬렉션 ID입니다: ${missingCollection}`;
   if (splitArchiveFormList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
   if (splitArchiveFormList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
