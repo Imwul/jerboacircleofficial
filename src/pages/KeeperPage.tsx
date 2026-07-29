@@ -43,6 +43,7 @@ import {
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
 import { uploadArchiveImage } from '../utils/cabinetMedia';
+import { editorialPlates } from '../data/manuscriptPlates';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, clearRoleSession, readRoleSession, roleSessionToken } from '../utils/roleAuth';
@@ -476,6 +477,10 @@ export default function KeeperPage() {
     state: 'idle' | 'busy' | 'success' | 'error';
     message: string;
   }>({ state: 'idle', message: '' });
+  const [detailImageUploadStatus, setDetailImageUploadStatus] = useState<{
+    state: 'idle' | 'busy' | 'success' | 'error';
+    message: string;
+  }>({ state: 'idle', message: '' });
   const [referenceImageUploadStatus, setReferenceImageUploadStatus] = useState<{
     state: 'idle' | 'busy' | 'success' | 'error';
     message: string;
@@ -488,6 +493,8 @@ export default function KeeperPage() {
   const [inlineCollectionVisibility, setInlineCollectionVisibility] = useState<ArchiveVisibility>('public');
   const activeOperationRef = useRef<KeeperOperation>('idle');
   const commandDialogRef = useDialogFocus<HTMLElement>(commandOpen, () => setCommandOpen(false));
+  const detailImageInputRef = useRef<HTMLInputElement>(null);
+  const referenceImageInputRef = useRef<HTMLInputElement>(null);
   const programmeUndo = useRef<KeeperFormState[]>([]);
   const programmeRedo = useRef<KeeperFormState[]>([]);
   const referenceUndo = useRef<ReferenceFormState[]>([]);
@@ -671,6 +678,7 @@ export default function KeeperPage() {
 
   useEffect(() => {
     setPosterUploadStatus({ state: 'idle', message: '' });
+    setDetailImageUploadStatus({ state: 'idle', message: '' });
   }, [selectedId]);
 
   useEffect(() => {
@@ -2291,11 +2299,64 @@ export default function KeeperPage() {
     }
   }
 
+  async function readProgrammeDetailImage(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        throw new Error('invalid_image');
+      }
+      setDetailImageUploadStatus({ state: 'busy', message: `${file.name} 준비 중` });
+      setSyncStatus('프로그램 상세 이미지를 웹용으로 줄이는 중');
+      const resizedImage = await resizeImage(file, 1800, 1600);
+      const authSession = roleSessionToken('archive-editor');
+      let detailImage = resizedImage;
+      if (!authSession) {
+        if (!import.meta.env.DEV) throw new Error('archive_media_session_required');
+        setSyncStatus('로컬 상세 이미지 미리보기 준비됨 / 공개 반영은 배포된 Keeper Desk에서 업로드하세요');
+        setDetailImageUploadStatus({ state: 'success', message: '로컬 미리보기 준비 완료' });
+      } else {
+        setDetailImageUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
+        detailImage = await uploadArchiveImage(resizedImage, `${selectedEvent.id}-detail-${file.name}`, authSession);
+        setSyncStatus('프로그램 상세 이미지가 공동 저장소에 보존됨 / 프로그램을 저장하거나 게시하세요');
+        setDetailImageUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
+      }
+      setForm((current) => {
+        programmeUndo.current = [...programmeUndo.current.slice(-49), current];
+        programmeRedo.current = [];
+        return {
+          ...current,
+          detailImage,
+          detailImageAlt: current.detailImageAlt.trim()
+            ? current.detailImageAlt
+            : `${current.title} 상세 본문 이미지`,
+        };
+      });
+    } catch (error) {
+      console.error('Programme detail image upload failed:', error);
+      const message = referenceImageUploadMessage(error);
+      setSyncStatus(message);
+      setDetailImageUploadStatus({ state: 'error', message });
+    } finally {
+      event.currentTarget.value = '';
+    }
+  }
+
+  function removeProgrammeDetailImage() {
+    updateField('detailImage', '');
+    setDetailImageUploadStatus({ state: 'idle', message: '프로그램별 상세 이미지를 제거하고 기본 이미지로 되돌렸습니다' });
+    setSyncStatus('상세 이미지를 기본 이미지로 되돌렸습니다 / 프로그램을 저장하면 반영됩니다');
+  }
+
   async function readReferenceImage(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        throw new Error('invalid_image');
+      }
       setReferenceImageUploadStatus({ state: 'busy', message: `${file.name} 준비 중` });
       setSyncStatus('자료 이미지를 웹용으로 줄이는 중');
       const resizedImage = await resizeImage(file, 1800, 1800);
@@ -3090,15 +3151,23 @@ export default function KeeperPage() {
                 <div className="keeper-reference-media-controls">
                   <h3 id="keeper-reference-media-title" lang="ko">대표 이미지</h3>
                   <p lang="ko">자료의 공개 상세 화면에 표시할 PNG, JPG 또는 WebP 이미지를 붙입니다.</p>
-                  <label className="keeper-reference-file">
+                  <button
+                    className="keeper-reference-file"
+                    type="button"
+                    disabled={referenceImageUploadStatus.state === 'busy'}
+                    onClick={() => referenceImageInputRef.current?.click()}
+                  >
                     <span lang="ko">{referenceForm.imageUrl ? '대표 이미지 교체' : '대표 이미지 붙이기'}</span>
-                    <input
-                      accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
-                      disabled={referenceImageUploadStatus.state === 'busy'}
-                      onChange={readReferenceImage}
-                      type="file"
-                    />
-                  </label>
+                  </button>
+                  <input
+                    ref={referenceImageInputRef}
+                    className="keeper-reference-file-input"
+                    accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                    aria-label="대표 이미지 파일 선택"
+                    disabled={referenceImageUploadStatus.state === 'busy'}
+                    onChange={readReferenceImage}
+                    type="file"
+                  />
                   {referenceForm.imageUrl && (
                     <button type="button" className="keeper-secondary-action" onClick={removeReferenceImage}>
                       <span lang="ko">올린 이미지 제거</span>
@@ -3405,6 +3474,65 @@ export default function KeeperPage() {
                 <button type="button" onClick={() => { void migrateEmbeddedPoster(); }}><span lang="ko">기존 포스터를 공동 저장소로 옮기기</span></button>
               )}
             </div>
+
+            <label className="keeper-field">
+              <span lang="ko">상세 본문 이미지 URL</span>
+              <input
+                value={form.detailImage}
+                onChange={(event) => updateField('detailImage', event.target.value)}
+                placeholder="비우면 공통 기본 이미지가 사용됩니다"
+              />
+            </label>
+
+            <label className="keeper-field">
+              <span lang="ko">상세 본문 이미지 대체 텍스트</span>
+              <input
+                value={form.detailImageAlt}
+                onChange={(event) => updateField('detailImageAlt', event.target.value)}
+                placeholder="이미지의 장면과 의미를 짧게 설명"
+              />
+            </label>
+
+            <section className="keeper-reference-media keeper-programme-detail-media" aria-labelledby="keeper-programme-detail-media-title">
+              <div className="keeper-reference-media-preview">
+                <img
+                  src={form.detailImage || editorialPlates.detail.src}
+                  alt={form.detailImageAlt || `${form.title} 상세 본문 이미지 미리보기`}
+                  decoding="async"
+                />
+              </div>
+              <div className="keeper-reference-media-controls">
+                <h3 id="keeper-programme-detail-media-title" lang="ko">상세 본문 이미지</h3>
+                <p lang="ko">프로그램 기록을 열었을 때 긴 설명 옆에 나타나는 이미지를 프로그램마다 따로 붙입니다.</p>
+                <button
+                  className="keeper-reference-file"
+                  type="button"
+                  disabled={detailImageUploadStatus.state === 'busy'}
+                  onClick={() => detailImageInputRef.current?.click()}
+                >
+                  <span lang="ko">{form.detailImage ? '상세 이미지 교체' : '상세 이미지 붙이기'}</span>
+                </button>
+                <input
+                  ref={detailImageInputRef}
+                  className="keeper-reference-file-input"
+                  accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                  aria-label="프로그램 상세 이미지 파일 선택"
+                  disabled={detailImageUploadStatus.state === 'busy'}
+                  onChange={readProgrammeDetailImage}
+                  type="file"
+                />
+                {form.detailImage && (
+                  <button type="button" className="keeper-secondary-action" onClick={removeProgrammeDetailImage}>
+                    <span lang="ko">기본 이미지로 되돌리기</span>
+                  </button>
+                )}
+                {detailImageUploadStatus.message && (
+                  <small className="keeper-upload-status" data-state={detailImageUploadStatus.state} role="status" aria-live="polite" lang="ko">
+                    {detailImageUploadStatus.message}
+                  </small>
+                )}
+              </div>
+            </section>
 
             </section>
             <section className="keeper-editor-group" id="keeper-section-content" hidden={collapsedSections.includes('content')}>

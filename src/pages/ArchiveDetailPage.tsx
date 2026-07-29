@@ -518,28 +518,31 @@ function EventDetail({
           <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
           <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
-          <figure className="detail-manuscript-plate" aria-hidden="true">
-            <img src={editorialPlates.detail.src} alt="" loading="lazy" decoding="async" />
+          <figure className="detail-manuscript-plate">
+            <img
+              src={event.detailImage || editorialPlates.detail.src}
+              alt={event.detailImageAlt || ''}
+              aria-hidden={event.detailImageAlt ? undefined : true}
+              loading="lazy"
+              decoding="async"
+            />
           </figure>
           <p className="detail-long" lang="ko">{event.longDescription}</p>
-          <div className="constellation-grid" aria-label="Archive record path and materials">
-            <div className="text-index">
-              <span className="text-index-title"><span lang="ko">여정</span></span>
-              <ol>
-                {event.passage.map((item) => (
-                  <li key={item}><span lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</span></li>
-                ))}
-              </ol>
-            </div>
-            <div className="text-index">
-              <span className="text-index-title"><span lang="ko">자료</span></span>
-              <ol>
-                {event.materials.map((item) => (
-                  <li key={item}><span lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</span></li>
-                ))}
-              </ol>
-            </div>
-          </div>
+          <section className="detail-journey-sequence" aria-labelledby="detail-journey-title">
+            <header>
+              <span lang="en">Procession</span>
+              <h2 id="detail-journey-title" lang="ko">여정</h2>
+              <small lang="ko">{event.passage.length}개의 통과 지점</small>
+            </header>
+            <ol>
+              {event.passage.map((item, index) => (
+                <li key={`${index}-${item}`}>
+                  <span className="detail-journey-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <strong lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</strong>
+                </li>
+              ))}
+            </ol>
+          </section>
           {(references.length > 0 || connections.length > 0) && (
             <section className="detail-archive-context" aria-labelledby="archive-relations-title">
               <p className="section-kicker" id="archive-relations-title">

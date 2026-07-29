@@ -9,7 +9,7 @@ import type { ArchiveCollectionDraftMap } from './archiveCollectionDrafts';
 
 const stringFields = new Set<keyof ArchiveEventDraft>([
   'seasonId', 'edition', 'title', 'subtitle', 'latinQuote', 'marginalia', 'date', 'posterImage', 'posterAlt',
-  'shortDescription', 'longDescription', 'location', 'ctaLabel', 'ctaHref', 'publishedAt', 'updatedAt', 'createdAt', 'deletedAt', 'publishAt', 'unpublishAt',
+  'detailImage', 'detailImageAlt', 'shortDescription', 'longDescription', 'location', 'ctaLabel', 'ctaHref', 'publishedAt', 'updatedAt', 'createdAt', 'deletedAt', 'publishAt', 'unpublishAt',
 ]);
 const listFields = new Set<keyof ArchiveEventDraft>([
   'collectionIds', 'passage', 'materials', 'primaryThemes', 'themes', 'referenceIds', 'relatedEventIds',

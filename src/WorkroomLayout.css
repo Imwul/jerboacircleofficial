@@ -256,23 +256,25 @@ html body #root .public-home.keeper-home .keeper-reference-media-controls > butt
   cursor: pointer !important;
 }
 
-html body #root .public-home.keeper-home .keeper-reference-file input {
+html body #root .public-home.keeper-home .keeper-reference-file-input {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
   overflow: hidden !important;
   clip: rect(0 0 0 0) !important;
   clip-path: inset(50%) !important;
   white-space: nowrap !important;
 }
 
-html body #root .public-home.keeper-home .keeper-reference-file:focus-within {
+html body #root .public-home.keeper-home .keeper-reference-file:focus-visible {
   outline: 3px solid var(--ink) !important;
   outline-offset: 2px !important;
   box-shadow: inset 0 0 0 2px var(--signal-gold) !important;
 }
 
-html body #root .public-home.keeper-home .keeper-reference-file:has(input:disabled) {
+html body #root .public-home.keeper-home .keeper-reference-file:disabled {
   cursor: wait !important;
   opacity: 0.62 !important;
 }

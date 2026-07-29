@@ -26,6 +26,8 @@ export interface ArchiveRecordFormState {
   status: EventStatus;
   posterImage: string;
   posterAlt: string;
+  detailImage: string;
+  detailImageAlt: string;
   shortDescription: string;
   longDescription: string;
   passageText: string;
@@ -75,6 +77,8 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
     status: event.status,
     posterImage: event.posterImage,
     posterAlt: event.posterAlt ?? `${event.title} 포스터`,
+    detailImage: event.detailImage ?? '',
+    detailImageAlt: event.detailImageAlt ?? '',
     shortDescription: event.shortDescription,
     longDescription: event.longDescription,
     passageText: event.passage.join(' / '),
@@ -110,6 +114,8 @@ export function toArchiveEventDraft(form: ArchiveRecordFormState, event?: Archiv
     status: form.status,
     posterImage: form.posterImage,
     posterAlt: form.posterAlt || undefined,
+    detailImage: form.detailImage || undefined,
+    detailImageAlt: form.detailImageAlt || undefined,
     shortDescription: form.shortDescription,
     longDescription: form.longDescription,
     passage: splitArchiveFormList(form.passageText),
@@ -170,6 +176,7 @@ export function validateArchiveRecordForm(
 
   const emptyField = requiredFields.find(([key]) => !String(form[key]).trim());
   if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (form.detailImage.trim() && !form.detailImageAlt.trim()) return '상세 본문 이미지 대체 텍스트를 입력하세요';
   if (!archiveSeasons.some((season) => season.id === form.seasonId)) return '시즌을 선택하세요';
 
   const collectionIds = splitArchiveFormList(form.collectionIdsText);

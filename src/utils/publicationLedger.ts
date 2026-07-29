@@ -158,6 +158,8 @@ export function comparePublicationManifest(
     { key: 'marginalia', label: '여백 문장' },
     { key: 'date', label: '표시 일자' },
     { key: 'posterAlt', label: '포스터 대체 설명' },
+    { key: 'detailImage', label: '상세 본문 이미지' },
+    { key: 'detailImageAlt', label: '상세 본문 이미지 대체 설명' },
     { key: 'publishAt', label: '공개 시작 시각' },
     { key: 'unpublishAt', label: '공개 종료 시각' },
     { key: 'status', label: '프로그램 상태' },
@@ -252,6 +254,12 @@ export function inspectPublicationReadiness(
   }
   if (!event.posterAlt?.trim()) {
     issues.push({ id: 'poster-alt', severity: 'warning', message: '포스터 대체 텍스트를 입력하면 화면 읽기 도구에서도 기록을 이해할 수 있습니다.' });
+  }
+  if (event.detailImage?.startsWith('data:')) {
+    issues.push({ id: 'embedded-detail-image', severity: 'error', message: '상세 본문 이미지를 공동 이미지 저장소로 옮긴 뒤 발행하세요.' });
+  }
+  if (event.detailImage && !event.detailImageAlt?.trim()) {
+    issues.push({ id: 'detail-image-alt', severity: 'warning', message: '상세 본문 이미지 대체 텍스트를 입력하세요.' });
   }
   if (event.visibility !== 'public') issues.push({ id: 'visibility', severity: 'error', message: '공개 상태가 public이어야 발행할 수 있습니다.' });
   if (event.workflowStatus !== 'published') issues.push({ id: 'workflow', severity: 'error', message: '발행 단계가 published여야 합니다.' });

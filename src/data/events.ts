@@ -51,6 +51,8 @@ export interface ArchiveEvent {
   status: EventStatus;
   posterImage: string;
   posterAlt?: string;
+  detailImage?: string;
+  detailImageAlt?: string;
   shortDescription: string;
   longDescription: string;
   passage: string[];

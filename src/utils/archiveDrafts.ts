@@ -22,6 +22,8 @@ export type ArchiveEventDraft = Partial<
     | 'status'
     | 'posterImage'
     | 'posterAlt'
+    | 'detailImage'
+    | 'detailImageAlt'
     | 'shortDescription'
     | 'longDescription'
     | 'passage'
@@ -212,6 +214,8 @@ function eventFromDraft(id: string, draft: ArchiveEventDraft, fallback: ArchiveE
     status: draft.status || 'upcoming',
     posterImage: draft.posterImage || fallback.posterImage,
     posterAlt: draft.posterAlt || fallback.posterAlt,
+    detailImage: draft.detailImage || fallback.detailImage,
+    detailImageAlt: draft.detailImageAlt || fallback.detailImageAlt,
     shortDescription: draft.shortDescription || '',
     longDescription: draft.longDescription || '',
     passage: listFromDraft(draft.passage, []),
