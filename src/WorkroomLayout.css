@@ -3634,6 +3634,7 @@ html body #root .public-home :is(.archive-results-count, .keeper-draft-count) {
   html body #root .public-home .featured-copy > .editorial-plate--featured,
   html body #root .public-home .featured-copy > .event-description,
   html body #root .public-home .featured-copy > .constellation-grid,
+  html body #root .public-home .featured-copy > .featured-journey-sequence,
   html body #root .public-home .featured-copy > .event-meta,
   html body #root .public-home .featured-copy > .archive-cta {
     grid-column: 1 !important;

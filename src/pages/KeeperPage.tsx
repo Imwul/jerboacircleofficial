@@ -370,6 +370,12 @@ function timeLabel(date = new Date()) {
   });
 }
 
+function journeyStepsFromText(value: string) {
+  if (value.includes('\n')) return value.split('\n');
+  const steps = splitDraftList(value);
+  return steps.length > 0 ? steps : [''];
+}
+
 function validateSiteTextForm(siteText: SiteText) {
   const requiredKeys: Array<[keyof SiteText, string]> = [
     ['wordmarkSmall', '헤더 작은 문구'],
@@ -495,6 +501,8 @@ export default function KeeperPage() {
   const commandDialogRef = useDialogFocus<HTMLElement>(commandOpen, () => setCommandOpen(false));
   const detailImageInputRef = useRef<HTMLInputElement>(null);
   const referenceImageInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef(form);
+  formRef.current = form;
   const programmeUndo = useRef<KeeperFormState[]>([]);
   const programmeRedo = useRef<KeeperFormState[]>([]);
   const referenceUndo = useRef<ReferenceFormState[]>([]);
@@ -1055,6 +1063,53 @@ export default function KeeperPage() {
       programmeRedo.current = [];
       return { ...current, [key]: value };
     });
+  }
+
+  function updateJourneyStep(index: number, value: string) {
+    const steps = journeyStepsFromText(form.passageText);
+    steps[index] = value;
+    updateField('passageText', steps.join('\n'));
+  }
+
+  function addJourneyStep() {
+    const steps = journeyStepsFromText(form.passageText);
+    updateField('passageText', [...steps, `새 단계 ${steps.length + 1}`].join('\n'));
+  }
+
+  function moveJourneyStep(index: number, direction: -1 | 1) {
+    const steps = journeyStepsFromText(form.passageText);
+    const target = index + direction;
+    if (target < 0 || target >= steps.length) return;
+    [steps[index], steps[target]] = [steps[target], steps[index]];
+    updateField('passageText', steps.join('\n'));
+  }
+
+  function removeJourneyStep(index: number) {
+    const steps = journeyStepsFromText(form.passageText);
+    if (steps.length <= 1) {
+      setSyncStatus('여정 단계는 하나 이상 남겨 주세요');
+      return;
+    }
+    updateField('passageText', steps.filter((_, stepIndex) => stepIndex !== index).join('\n'));
+  }
+
+  function persistUploadedProgrammeImage(nextForm: KeeperFormState, label: string, localPreview: boolean) {
+    programmeUndo.current = [...programmeUndo.current.slice(-49), formRef.current];
+    programmeRedo.current = [];
+    formRef.current = nextForm;
+    setForm(nextForm);
+    writeArchiveDraft(selectedEvent.id, toDraft(nextForm), {
+      label: `${label} upload`,
+      recordRevision: false,
+    });
+    removeKeeperProgrammeWorkingCopy(selectedEvent.id);
+    setWorkingCopyVersion((current) => current + 1);
+    setVersion((current) => current + 1);
+    const savedAt = new Date().toISOString();
+    setLastLocalSavedAt(savedAt);
+    setSyncStatus(localPreview
+      ? `${label} 로컬 미리보기와 프로그램 임시 저장 완료`
+      : `${label} 업로드와 프로그램 임시 저장 완료 / 변경 게시하면 공개됩니다`);
   }
 
   function togglePrimaryTheme(theme: string) {
@@ -2267,7 +2322,8 @@ export default function KeeperPage() {
   }
 
   async function readPosterFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     try {
@@ -2275,32 +2331,36 @@ export default function KeeperPage() {
       setSyncStatus('포스터를 웹용으로 줄이는 중');
       const resizedPoster = await resizeImage(file, 1600, 2200);
       const authSession = roleSessionToken('archive-editor');
+      let posterImage = resizedPoster;
+      const localPreview = !authSession;
       if (!authSession) {
         if (!import.meta.env.DEV) throw new Error('archive_media_session_required');
-        updateField('posterImage', resizedPoster);
-        setSyncStatus('로컬 포스터 미리보기 준비됨 / 배포 환경에서 올리면 공동 이미지 저장소에 보존됩니다');
         setPosterUploadStatus({ state: 'success', message: '로컬 미리보기 준비 완료' });
       } else {
         setPosterUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
         setSyncStatus('포스터를 공동 이미지 저장소에 붙이는 중');
-        const posterUrl = await uploadArchiveImage(resizedPoster, file.name, authSession);
-        updateField('posterImage', posterUrl);
-        if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
-        setSyncStatus('포스터 이미지가 공동 저장소에 보존됨');
+        posterImage = await uploadArchiveImage(resizedPoster, file.name, authSession);
         setPosterUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
+      const current = formRef.current;
+      persistUploadedProgrammeImage({
+        ...current,
+        posterImage,
+        posterAlt: current.posterAlt.trim() ? current.posterAlt : `${current.title} 프로그램 포스터`,
+      }, '포스터 이미지', localPreview);
     } catch (error) {
       console.error('Poster upload failed:', error);
       const message = posterUploadMessage(error);
       setSyncStatus(message);
       setPosterUploadStatus({ state: 'error', message });
     } finally {
-      event.currentTarget.value = '';
+      input.value = '';
     }
   }
 
   async function readProgrammeDetailImage(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     try {
@@ -2312,6 +2372,7 @@ export default function KeeperPage() {
       const resizedImage = await resizeImage(file, 1800, 1600);
       const authSession = roleSessionToken('archive-editor');
       let detailImage = resizedImage;
+      const localPreview = !authSession;
       if (!authSession) {
         if (!import.meta.env.DEV) throw new Error('archive_media_session_required');
         setSyncStatus('로컬 상세 이미지 미리보기 준비됨 / 공개 반영은 배포된 Keeper Desk에서 업로드하세요');
@@ -2322,24 +2383,21 @@ export default function KeeperPage() {
         setSyncStatus('프로그램 상세 이미지가 공동 저장소에 보존됨 / 프로그램을 저장하거나 게시하세요');
         setDetailImageUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
-      setForm((current) => {
-        programmeUndo.current = [...programmeUndo.current.slice(-49), current];
-        programmeRedo.current = [];
-        return {
-          ...current,
-          detailImage,
-          detailImageAlt: current.detailImageAlt.trim()
-            ? current.detailImageAlt
-            : `${current.title} 상세 본문 이미지`,
-        };
-      });
+      const current = formRef.current;
+      persistUploadedProgrammeImage({
+        ...current,
+        detailImage,
+        detailImageAlt: current.detailImageAlt.trim()
+          ? current.detailImageAlt
+          : `${current.title} 상세 본문 이미지`,
+      }, '상세 본문 이미지', localPreview);
     } catch (error) {
       console.error('Programme detail image upload failed:', error);
       const message = referenceImageUploadMessage(error);
       setSyncStatus(message);
       setDetailImageUploadStatus({ state: 'error', message });
     } finally {
-      event.currentTarget.value = '';
+      input.value = '';
     }
   }
 
@@ -2350,7 +2408,8 @@ export default function KeeperPage() {
   }
 
   async function readReferenceImage(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     try {
@@ -2387,7 +2446,7 @@ export default function KeeperPage() {
       setSyncStatus(message);
       setReferenceImageUploadStatus({ state: 'error', message });
     } finally {
-      event.currentTarget.value = '';
+      input.value = '';
     }
   }
 
@@ -3556,23 +3615,36 @@ export default function KeeperPage() {
               />
             </label>
 
-            <label className="keeper-field">
-              <span lang="ko">여정 단계</span>
-              <textarea
-                rows={3}
-                value={form.passageText}
-                onChange={(event) => updateField('passageText', event.target.value)}
-              />
-            </label>
-
-            <label className="keeper-field">
-              <span lang="ko">자료 묶음</span>
-              <textarea
-                rows={3}
-                value={form.materialsText}
-                onChange={(event) => updateField('materialsText', event.target.value)}
-              />
-            </label>
+            <section className="keeper-journey-editor" aria-labelledby="keeper-journey-editor-title">
+              <header>
+                <div>
+                  <span lang="en">Procession</span>
+                  <h4 id="keeper-journey-editor-title" lang="ko">여정 구성</h4>
+                  <small lang="ko">공개 화면에 나타날 진행 순서를 단계별로 편집합니다.</small>
+                </div>
+                <button type="button" onClick={addJourneyStep}><span lang="ko">단계 추가</span></button>
+              </header>
+              <ol>
+                {journeyStepsFromText(form.passageText).map((step, index, steps) => (
+                  <li key={`${index}-${steps.length}`}>
+                    <span className="keeper-journey-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                    <label>
+                      <span className="sr-only" lang="ko">{index + 1}번째 여정 단계</span>
+                      <input
+                        aria-label={`${index + 1}번째 여정 단계`}
+                        value={step}
+                        onChange={(event) => updateJourneyStep(index, event.target.value)}
+                      />
+                    </label>
+                    <div className="keeper-journey-actions">
+                      <button type="button" disabled={index === 0} onClick={() => moveJourneyStep(index, -1)} aria-label={`${index + 1}번째 단계를 위로 이동`}>↑</button>
+                      <button type="button" disabled={index === steps.length - 1} onClick={() => moveJourneyStep(index, 1)} aria-label={`${index + 1}번째 단계를 아래로 이동`}>↓</button>
+                      <button type="button" disabled={steps.length === 1} onClick={() => removeJourneyStep(index)} aria-label={`${index + 1}번째 단계 삭제`}>×</button>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
 
             <section className="keeper-primary-theme-editor" aria-labelledby="keeper-primary-theme-title">
               <header>

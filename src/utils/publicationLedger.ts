@@ -265,7 +265,6 @@ export function inspectPublicationReadiness(
   if (event.workflowStatus !== 'published') issues.push({ id: 'workflow', severity: 'error', message: '발행 단계가 published여야 합니다.' });
   if (event.collectionIds.length === 0) issues.push({ id: 'collections', severity: 'error', message: '공개 컬렉션을 하나 이상 연결해야 합니다.' });
   if (event.passage.length === 0) issues.push({ id: 'passage', severity: 'error', message: '여정 단계를 하나 이상 기록해야 합니다.' });
-  if (event.materials.length === 0) issues.push({ id: 'materials', severity: 'error', message: '자료 묶음을 하나 이상 기록해야 합니다.' });
   if (event.primaryThemes.length === 0) issues.push({ id: 'primary-themes', severity: 'error', message: '메인 주제를 하나 이상 기록해야 합니다.' });
   if (event.referenceIds.length === 0) issues.push({ id: 'references', severity: 'warning', message: '연결된 원전 없이 발행됩니다. 필요할 때 나중에 덧붙일 수 있습니다.' });
   if (event.publishAt) {

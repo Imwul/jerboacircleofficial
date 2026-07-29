@@ -338,7 +338,7 @@ html body #root .public-home.detail-home .detail-journey-sequence > ol > li:not(
   text-align: center !important;
 }
 
-html body #root .public-home.detail-home .detail-journey-index {
+html body #root .public-home.detail-home :is(.detail-journey-index, .programme-journey-index) {
   font: 800 0.78rem/1 var(--font-body) !important;
   letter-spacing: 0.08em !important;
 }
@@ -347,6 +347,103 @@ html body #root .public-home.detail-home .detail-journey-sequence strong {
   align-self: end !important;
   font-family: var(--font-ko) !important;
   font-size: clamp(1rem, 1.1vw, 1.28rem) !important;
+  line-height: 1.25 !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* The featured programme uses the same procession language as its detail page. */
+html body #root .public-home.archive-home .featured-copy > .featured-journey-sequence {
+  grid-column: 1 / -1 !important;
+  clear: both !important;
+  width: 100% !important;
+  margin: clamp(1.1rem, 2vw, 2rem) 0 0 !important;
+  border-block: 2px solid var(--ink) !important;
+  padding: 0.9rem 0 1.5rem !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > header {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) !important;
+  gap: 0.65rem !important;
+  align-items: baseline !important;
+  padding: 0 0.25rem 0.9rem !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > header > span {
+  font-family: var(--font-display) !important;
+  font-size: 1rem !important;
+  font-style: italic !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > header > h2 {
+  margin: 0 !important;
+  font: 900 1rem/1.25 var(--font-ko) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > header > small {
+  justify-self: end !important;
+  font: 700 0.78rem/1.3 var(--font-ko) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)) !important;
+  gap: 0.85rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol > li {
+  position: relative !important;
+  display: grid !important;
+  min-width: 0 !important;
+  min-height: 6.5rem !important;
+  grid-template-rows: auto 1fr !important;
+  gap: 0.7rem !important;
+  align-content: space-between !important;
+  border: 1.5px solid var(--ink) !important;
+  padding: 0.75rem !important;
+  background: var(--signal-cream) !important;
+  color: var(--ink) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol > li:nth-child(4n + 1) {
+  background: var(--memory) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol > li:nth-child(4n + 2) {
+  margin-top: 1rem !important;
+  background: var(--signal-blue) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol > li:nth-child(4n) {
+  margin-top: 1rem !important;
+  background: var(--signal-gold) !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence > ol > li:not(:last-child)::after {
+  content: "↘" !important;
+  position: absolute !important;
+  z-index: 2 !important;
+  top: 50% !important;
+  right: -0.82rem !important;
+  width: 0.8rem !important;
+  transform: translateY(-50%) !important;
+  background: var(--signal-cream) !important;
+  font: 900 1rem/1 var(--font-ko) !important;
+  text-align: center !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence .programme-journey-index {
+  font: 800 0.78rem/1 var(--font-body) !important;
+  letter-spacing: 0.08em !important;
+}
+
+html body #root .public-home.archive-home .featured-journey-sequence strong {
+  align-self: end !important;
+  font-family: var(--font-ko) !important;
+  font-size: clamp(1rem, 1.1vw, 1.2rem) !important;
   line-height: 1.25 !important;
   overflow-wrap: anywhere !important;
 }
@@ -784,6 +881,135 @@ html body #root .public-home.keeper-home .keeper-inline-collection-actions > but
   background: var(--memory) !important;
 }
 
+html body #root .public-home.keeper-home .keeper-journey-editor {
+  display: grid !important;
+  gap: 0.75rem !important;
+  margin: 0.35rem 0 !important;
+  border-block: 2px solid var(--ink) !important;
+  padding: 0.9rem 0 1.1rem !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header {
+  display: flex !important;
+  gap: 1rem !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header > div {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) !important;
+  gap: 0.35rem 0.65rem !important;
+  align-items: baseline !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header :is(h4, small) {
+  margin: 0 !important;
+  font-family: var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header > div > span {
+  font-family: var(--font-display) !important;
+  font-style: italic !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header h4 {
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header small {
+  color: var(--ink) !important;
+  opacity: 0.72 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > header > button {
+  flex: 0 0 auto !important;
+  min-width: 8rem !important;
+  min-height: 48px !important;
+  border: 1.5px solid var(--ink) !important;
+  padding: 0.65rem 0.85rem !important;
+  background: var(--memory) !important;
+  font: 800 0.86rem/1.25 var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > ol {
+  display: grid !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1.5px solid var(--ink) !important;
+  list-style: none !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > ol > li {
+  display: grid !important;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto !important;
+  min-width: 0 !important;
+  align-items: stretch !important;
+  border-bottom: 1px solid var(--ink) !important;
+  background: var(--signal-cream) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > ol > li:last-child {
+  border-bottom: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > ol > li:nth-child(4n + 1) {
+  background: var(--memory) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor > ol > li:nth-child(4n + 2) {
+  background: var(--signal-blue) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-index {
+  display: grid !important;
+  place-items: center !important;
+  border-right: 1px solid var(--ink) !important;
+  font: 800 0.78rem/1 var(--font-body) !important;
+  letter-spacing: 0.08em !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor label {
+  display: grid !important;
+  min-width: 0 !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-editor input {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  border: 0 !important;
+  padding: 0.72rem 0.85rem !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  font: 750 1rem/1.3 var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, 44px) !important;
+  border-left: 1px solid var(--ink) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-actions > button {
+  width: 44px !important;
+  min-width: 44px !important;
+  min-height: 52px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--ink) !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+  font: 900 1rem/1 var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-journey-actions > button:last-child {
+  border-right: 0 !important;
+  background: color-mix(in srgb, var(--signal) 35%, transparent) !important;
+}
+
 html body #root .public-home.keeper-home .keeper-access-form {
   width: min(100%, 48rem) !important;
   padding: clamp(2rem, 4vw, 3.5rem) !important;
@@ -1040,6 +1266,34 @@ html body #root .public-home.keeper-home .keeper-access-form button {
     transform: translateX(50%) !important;
   }
 
+  html body #root .public-home.archive-home .featured-journey-sequence > header {
+    grid-template-columns: auto auto !important;
+  }
+
+  html body #root .public-home.archive-home .featured-journey-sequence > header > small {
+    grid-column: 1 / -1 !important;
+    justify-self: start !important;
+  }
+
+  html body #root .public-home.archive-home .featured-journey-sequence > ol {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1.25rem !important;
+  }
+
+  html body #root .public-home.archive-home .featured-journey-sequence > ol > li {
+    min-height: 6rem !important;
+    margin-top: 0 !important;
+  }
+
+  html body #root .public-home.archive-home .featured-journey-sequence > ol > li:not(:last-child)::after {
+    content: "↓" !important;
+    top: auto !important;
+    right: 50% !important;
+    bottom: -1.15rem !important;
+    width: 1rem !important;
+    transform: translateX(50%) !important;
+  }
+
   html body #root .public-home.catalogue-home .catalogue-room {
     padding-inline: 1rem !important;
   }
@@ -1092,6 +1346,40 @@ html body #root .public-home.keeper-home .keeper-access-form button {
 
   html body #root .public-home.keeper-home .keeper-inline-collection > * {
     grid-column: 1 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-editor > header {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-editor > header > div {
+    grid-template-columns: auto auto !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-editor > header small {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-editor > header > button {
+    width: 100% !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-editor > ol > li {
+    grid-template-columns: 3.25rem minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-actions {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    border-top: 1px solid var(--ink) !important;
+    border-left: 0 !important;
+  }
+
+  html body #root .public-home.keeper-home .keeper-journey-actions > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
   }
 }
 

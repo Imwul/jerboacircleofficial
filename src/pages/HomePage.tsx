@@ -33,6 +33,7 @@ import {
   type ArchiveReferenceDraftMap,
 } from '../utils/archiveReferenceDrafts';
 import ArchiveConstellation from '../components/archive/ArchiveConstellation';
+import ProgrammeJourney from '../components/archive/ProgrammeJourney';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -172,19 +173,6 @@ function statusLabel(status: ArchiveEvent['status'], siteText: SiteText) {
   return siteText.statusPast;
 }
 
-function TextIndex({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="text-index">
-      <span className="text-index-title"><span lang={textLang(title)}>{title}</span></span>
-      <ol>
-        {items.map((item) => (
-          <li key={item}><span lang={textLang(item)}>{item}</span></li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
 function ProgrammeThemes({ primaryThemes, themes }: { primaryThemes: string[]; themes: string[] }) {
   const primarySet = new Set(primaryThemes.map((theme) => theme.toLocaleLowerCase('en-US')));
   const secondaryThemes = themes.filter((theme) => !primarySet.has(theme.toLocaleLowerCase('en-US')));
@@ -222,10 +210,10 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
           asset={editorialPlates.featured}
         />
         <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
-        <div className="constellation-grid" aria-label="Programme constellation">
-          <TextIndex title={siteText.journeyLabel} items={featuredEvent.passage} />
-          <TextIndex title={siteText.materialsLabel} items={featuredEvent.materials} />
-        </div>
+        <ProgrammeJourney
+          className="featured-journey-sequence"
+          passage={featuredEvent.passage}
+        />
         <a className="archive-cta" href={featuredEvent.ctaHref}>
           <span className="archive-cta-label" lang={textLang(featuredEvent.ctaLabel)}>{featuredEvent.ctaLabel}</span>
         </a>

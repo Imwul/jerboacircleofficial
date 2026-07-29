@@ -81,7 +81,7 @@ export function toArchiveRecordForm(event: ArchiveEvent): ArchiveRecordFormState
     detailImageAlt: event.detailImageAlt ?? '',
     shortDescription: event.shortDescription,
     longDescription: event.longDescription,
-    passageText: event.passage.join(' / '),
+    passageText: event.passage.join('\n'),
     materialsText: event.materials.join(' / '),
     primaryThemesText: event.primaryThemes.join(' / '),
     themesText: event.themes.filter((theme) => !primaryThemeSet.has(theme.toLocaleLowerCase('en-US'))).join(' / '),
@@ -184,7 +184,6 @@ export function validateArchiveRecordForm(
   const missingCollection = collectionIds.find((id) => !collections.some((collection) => collection.id === id));
   if (missingCollection) return `없는 컬렉션 ID입니다: ${missingCollection}`;
   if (splitArchiveFormList(form.passageText).length === 0) return '여정 단계를 하나 이상 입력하세요';
-  if (splitArchiveFormList(form.materialsText).length === 0) return '자료 묶음을 하나 이상 입력하세요';
   if (splitArchiveFormList(form.primaryThemesText).length === 0) return '메인 주제를 하나 이상 선택하세요';
   if (form.publishAt && Number.isNaN(new Date(form.publishAt).getTime())) return '공개 시작 시각을 확인하세요';
   if (form.unpublishAt && Number.isNaN(new Date(form.unpublishAt).getTime())) return '공개 종료 시각을 확인하세요';

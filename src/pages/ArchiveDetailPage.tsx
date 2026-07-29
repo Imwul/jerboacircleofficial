@@ -47,6 +47,7 @@ import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from 
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import { trackProductEvent } from '../utils/productAnalytics';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
+import ProgrammeJourney from '../components/archive/ProgrammeJourney';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
 import {
   splitArchiveFormList as splitDetailList,
@@ -528,21 +529,10 @@ function EventDetail({
             />
           </figure>
           <p className="detail-long" lang="ko">{event.longDescription}</p>
-          <section className="detail-journey-sequence" aria-labelledby="detail-journey-title">
-            <header>
-              <span lang="en">Procession</span>
-              <h2 id="detail-journey-title" lang="ko">여정</h2>
-              <small lang="ko">{event.passage.length}개의 통과 지점</small>
-            </header>
-            <ol>
-              {event.passage.map((item, index) => (
-                <li key={`${index}-${item}`}>
-                  <span className="detail-journey-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-                  <strong lang={/[가-힣]/.test(item) ? 'ko' : 'en'}>{item}</strong>
-                </li>
-              ))}
-            </ol>
-          </section>
+          <ProgrammeJourney
+            className="detail-journey-sequence"
+            passage={event.passage}
+          />
           {(references.length > 0 || connections.length > 0) && (
             <section className="detail-archive-context" aria-labelledby="archive-relations-title">
               <p className="section-kicker" id="archive-relations-title">
