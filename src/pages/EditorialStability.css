@@ -1609,3 +1609,31 @@ html body .public-home .editorial-plate img {
     height: clamp(12rem, 38vw, 21rem) !important;
   }
 }
+html body #root .detail-keeper-handoff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid var(--ink);
+  padding: 0.85rem clamp(1rem, 3vw, 2rem);
+  background: var(--signal-cream);
+  color: var(--ink);
+  font-family: var(--font-ko);
+}
+
+html body #root .detail-keeper-handoff p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+html body #root .detail-keeper-handoff a {
+  min-height: 44px;
+  border: 1.5px solid var(--ink);
+  padding: 0.65rem 0.85rem;
+  background: var(--memory);
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: none;
+}

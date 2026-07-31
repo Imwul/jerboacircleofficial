@@ -6793,7 +6793,7 @@ html body #root .public-home.keeper-home :is(
 
   html body #root .public-home.keeper-home .keeper-mobile-actions[data-mode="references"],
   html body #root .public-home.keeper-home .keeper-mobile-actions[data-mode="text"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
   html body #root .public-home.keeper-home .keeper-mobile-save-state {

@@ -219,7 +219,17 @@ function publicArchiveSnapshot(saved: any) {
           ...(typeof value.updatedAt === 'string' ? { updatedAt: value.updatedAt } : {}),
         }]];
       }
-      return scheduledDraftIsPublic(value) ? [[id, value]] : [];
+      if (scheduledDraftIsPublic(value)) return [[id, value]];
+
+      // A private or withdrawn override must still suppress a bundled public
+      // record. Return only a non-sensitive tombstone so the public client can
+      // hide the base record without exposing the unpublished draft contents.
+      return [[id, {
+        visibility: 'private',
+        workflowStatus: 'draft',
+        ...(typeof value.updatedAt === 'string' ? { updatedAt: value.updatedAt } : {}),
+        ...(typeof value.unpublishAt === 'string' ? { unpublishAt: value.unpublishAt } : {}),
+      }]];
     }),
   );
 

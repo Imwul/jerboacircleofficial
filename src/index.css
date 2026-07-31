@@ -94,6 +94,28 @@ body {
   font-family: var(--font-sans);
 }
 
+.resilient-image-fallback {
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  min-height: 10rem;
+  place-items: center;
+  border: 1px solid currentColor;
+  padding: 1rem;
+  background: var(--paper, #f4eddc);
+  color: var(--ink, #15120f);
+  font-family: var(--font-ko);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #080706 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px #f4eddc !important;
+}
+
 [lang="ko"]:not(html):not(body),
 .ko-copy {
   display: inline-block;

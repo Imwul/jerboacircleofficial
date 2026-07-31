@@ -214,6 +214,7 @@ type KeeperPendingAction =
   | { kind: 'restore'; revisionId: string; title: string }
   | { kind: 'restore-publication'; publicationId: string; title: string; contentHash: string }
   | { kind: 'publish'; title: string; warningCount: number }
+  | { kind: 'unpublish'; title: string }
   | { kind: 'delete-record'; id: string; title: string; impactSummary: string }
   | { kind: 'delete-records'; ids: string[]; titles: string[]; impactSummary: string }
   | { kind: 'delete-reference'; id: string; title: string; impactSummary: string }
@@ -427,7 +428,10 @@ export default function KeeperPage() {
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
   const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
-  const [selectedId, setSelectedId] = useState(archiveEvents[0].id);
+  const [selectedId, setSelectedId] = useState(() => {
+    const requestedId = new URLSearchParams(window.location.search).get('record');
+    return archiveEvents.some((event) => event.id === requestedId) ? requestedId as string : archiveEvents[0].id;
+  });
   const selectedEvent = archiveEvents.find((event) => event.id === selectedId) ?? archiveEvents[0];
   const [form, setForm] = useState(() => toFormState(selectedEvent));
   const [selectedReferenceId, setSelectedReferenceId] = useState(referenceRecords[0].id);
@@ -683,6 +687,13 @@ export default function KeeperPage() {
   useEffect(() => {
     writeKeeperPreferences(preferences);
   }, [preferences]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (mode === 'events') url.searchParams.set('record', selectedId);
+    else url.searchParams.delete('record');
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  }, [mode, selectedId]);
 
   useEffect(() => {
     setPosterUploadStatus({ state: 'idle', message: '' });
@@ -1248,11 +1259,6 @@ export default function KeeperPage() {
     try {
       await Promise.resolve();
       if (mode === 'events') {
-        const validation = validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords);
-        if (validation) {
-          reportOperationError(`임시 저장 실패 / ${validation}`);
-          return false;
-        }
         writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
         removeKeeperProgrammeWorkingCopy(selectedEvent.id);
         setWorkingCopyVersion((current) => current + 1);
@@ -1916,7 +1922,10 @@ export default function KeeperPage() {
   async function saveArchiveToServer() {
     if (!beginOperation('syncing')) return;
     try {
-      const archiveValidation = mode === 'events' || isDirty ? validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords) : '';
+      const currentRecordWouldBePublic = form.visibility === 'public' && form.workflowStatus === 'published';
+      const archiveValidation = (mode === 'events' || isDirty) && currentRecordWouldBePublic
+        ? validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords)
+        : '';
       if (archiveValidation) {
         reportOperationError(`공동 장부 반영 실패 / ${archiveValidation}`);
         return;
@@ -2205,6 +2214,10 @@ export default function KeeperPage() {
     setPendingAction({ kind: 'publish', title: publicationCandidate.title, warningCount: publicationWarningCount });
   }
 
+  function requestUnpublication() {
+    setPendingAction({ kind: 'unpublish', title: form.title || selectedEvent.title });
+  }
+
   async function performPublication() {
     if (!beginOperation('publishing')) return;
     try {
@@ -2277,6 +2290,69 @@ export default function KeeperPage() {
     }
   }
 
+  async function performUnpublication() {
+    if (!beginOperation('unpublishing')) return;
+    try {
+      const auth = await resolveArchiveAuth();
+      if (!auth.syncKey && !auth.authSession) {
+        reportOperationError('게시 취소 실패 / 공동 장부 또는 아카이브 편집자 열쇠가 필요합니다');
+        return;
+      }
+
+      const now = new Date();
+      const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+      const nextForm: KeeperFormState = {
+        ...form,
+        visibility: 'private',
+        workflowStatus: 'archived',
+        unpublishAt: localNow,
+      };
+      const unpublishedDraft: ArchiveEventDraft = {
+        ...toDraft(nextForm),
+        updatedAt: now.toISOString(),
+      };
+      const nextDrafts = { ...readArchiveDrafts(), [selectedEvent.id]: unpublishedDraft };
+      recordArchiveAudit({
+        action: 'unpublish',
+        targetType: 'programme',
+        targetId: selectedEvent.id,
+        title: nextForm.title,
+        detail: '공개 목록과 상세 주소에서 게시 취소',
+      });
+      const payload = createArchiveSyncPayload({ drafts: nextDrafts });
+      setSyncStatus('공개 목록과 상세 주소에서 게시를 내리는 중');
+      const result = await saveServerSync<ArchiveSyncPayload>('archive', payload, auth.syncKey, {
+        baseSavedAt: archiveSavedAt,
+        authSession: auth.authSession,
+      });
+
+      writeArchiveDraft(selectedEvent.id, unpublishedDraft, { label: 'unpublished' });
+      removeKeeperProgrammeWorkingCopy(selectedEvent.id);
+      setWorkingCopyVersion((current) => current + 1);
+      setArchiveSavedAt(result.savedAt || archiveSavedAt);
+      setSharedSnapshot(payload);
+      setLastLocalSavedAt(now.toISOString());
+      setHasArchiveConflict(false);
+      setConflictState(null);
+      setForm(nextForm);
+      setVersion((current) => current + 1);
+      setSyncStatus(`게시 취소 완료 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : now)}`);
+    } catch (error) {
+      if (error instanceof ServerSyncError && error.message === 'sync_conflict') {
+        const local = createArchiveSyncPayload();
+        captureArchiveRecovery('unpublication_conflict', error.savedAt, local);
+        setArchiveSavedAt(error.savedAt || archiveSavedAt);
+        setHasArchiveConflict(true);
+        void prepareArchiveConflict(local, error.savedAt);
+        return;
+      }
+      console.error('Archive unpublication failed:', error);
+      reportOperationError('게시 취소 실패 / 입장 상태와 연결을 확인하고 다시 시도하세요');
+    } finally {
+      endOperation();
+    }
+  }
+
   async function confirmPendingAction() {
     if (!pendingAction) return;
     if (pendingAction.kind === 'import') {
@@ -2303,6 +2379,8 @@ export default function KeeperPage() {
       performClearEveryDraft();
     } else if (pendingAction.kind === 'publish') {
       await performPublication();
+    } else if (pendingAction.kind === 'unpublish') {
+      await performUnpublication();
     } else if (pendingAction.kind === 'delete-record') {
       performDeleteRecord(pendingAction.id);
     } else if (pendingAction.kind === 'delete-records') {
@@ -2997,6 +3075,7 @@ export default function KeeperPage() {
               remoteKnown={Boolean(sharedSnapshot)}
               hasRemoteDifference={unsyncedChangeCount > 0}
               onSave={() => { void saveCurrentDraft(); }}
+              onSync={() => { void saveArchiveToServer(); }}
               onDiscard={discardSiteTextChanges}
             />
             <div className="keeper-preview godmode-preview">
@@ -3055,6 +3134,7 @@ export default function KeeperPage() {
               remoteKnown={Boolean(sharedSnapshot)}
               hasRemoteDifference={unsyncedChangeCount > 0}
               onSave={() => { void saveCurrentDraft(); }}
+              onSync={() => { void saveArchiveToServer(); }}
               onDiscard={discardReferenceChanges}
             />
             <div className="keeper-preview godmode-preview">
@@ -3285,7 +3365,9 @@ export default function KeeperPage() {
             publicationBlocked={publicationErrorCount > 0}
             hasPublication={selectedPublications.length > 0 || selectedEvent.workflowStatus === 'published'}
             onSave={() => { void saveCurrentDraft(); }}
+            onSync={() => { void saveArchiveToServer(); }}
             onPublish={requestPublication}
+            onUnpublish={form.workflowStatus === 'published' && form.visibility === 'public' ? requestUnpublication : undefined}
             onDiscard={discardProgrammeChanges}
           />
           <div className="keeper-preview">
@@ -3867,8 +3949,8 @@ export default function KeeperPage() {
                 : lastLocalSavedAt ? `저장됨 ${timeLabel(new Date(lastLocalSavedAt))}` : '편집 준비됨'}
           </span>
           <button type="button" disabled={activeOperation !== 'idle' || !(mode === 'events' ? isDirty : mode === 'references' ? isReferenceDirty : isTextDirty)} onClick={() => { void saveCurrentDraft(); }}><span lang="ko">임시 저장</span></button>
+          <button type="button" disabled={activeOperation !== 'idle' || (!isDirty && !isReferenceDirty && !isTextDirty && unsyncedChangeCount === 0)} onClick={() => { void saveArchiveToServer(); }}><span lang="ko">변경 저장</span></button>
           {mode === 'events' && <button className="keeper-mobile-publish" type="button" disabled={activeOperation !== 'idle' || publicationErrorCount > 0} onClick={requestPublication}><span lang="ko">{selectedPublications.length > 0 || selectedEvent.workflowStatus === 'published' ? '변경 게시' : '게시하기'}</span></button>}
-          {mode === 'events' && <button type="button" disabled={activeOperation !== 'idle'} onClick={() => setLivePreviewOpen((current) => !current)}><span lang="ko">미리보기</span></button>}
           <button type="button" onClick={() => setCommandOpen(true)}><span lang="ko">찾기</span></button>
         </nav>
       </main>
@@ -3880,6 +3962,8 @@ export default function KeeperPage() {
             ? '이 기기의 임시 저장을 모두 지울까요?'
             : pendingAction?.kind === 'publish'
               ? '이 프로그램을 공개할까요?'
+              : pendingAction?.kind === 'unpublish'
+                ? '이 프로그램의 게시를 취소할까요?'
               : pendingAction?.kind === 'delete-record'
                 ? '이 프로그램을 삭제할까요?'
               : pendingAction?.kind === 'delete-records'
@@ -3899,6 +3983,8 @@ export default function KeeperPage() {
             ? '현재 공개본은 유지되지만, 이 기기에 임시 저장한 모든 수정이 사라집니다. 먼저 파일 백업을 받는 것이 안전합니다.'
           : pendingAction?.kind === 'publish'
               ? `“${pendingAction.title}”의 현재 내용을 공개하고 변경 이력을 보존합니다.${pendingAction.warningCount > 0 ? ` 권장 확인 ${pendingAction.warningCount}건이 남아 있습니다.` : ''}`
+              : pendingAction?.kind === 'unpublish'
+                ? `“${pendingAction.title}”을 공개 목록과 상세 주소에서 내립니다. 발행 이력과 임시 저장 내용은 보존됩니다.`
               : pendingAction?.kind === 'delete-record'
                 ? `“${pendingAction.title}”을 삭제 보관함으로 옮깁니다. ${pendingAction.impactSummary}. 삭제 보관함에서 복원할 수 있습니다.`
                 : pendingAction?.kind === 'delete-records'
@@ -3918,6 +4004,8 @@ export default function KeeperPage() {
             ? '기기 임시 저장 삭제'
             : pendingAction?.kind === 'publish'
               ? '게시하기'
+              : pendingAction?.kind === 'unpublish'
+                ? '게시 취소'
               : pendingAction?.kind === 'delete-record'
                 ? '프로그램 삭제'
                 : pendingAction?.kind === 'delete-records'
@@ -3932,6 +4020,7 @@ export default function KeeperPage() {
                     ? '복구 초안 만들기'
                     : '이 버전 복원'}
         tone={pendingAction?.kind === 'clear'
+          || pendingAction?.kind === 'unpublish'
           || pendingAction?.kind === 'delete-record'
           || pendingAction?.kind === 'delete-records'
           || pendingAction?.kind === 'delete-reference'

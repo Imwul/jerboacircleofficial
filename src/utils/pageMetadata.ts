@@ -40,7 +40,7 @@ export function usePageMetadata({
   title,
   description,
   canonicalPath,
-  image,
+  image = '/og.png',
   noIndex = false,
   type = 'website',
 }: PageMetadata) {
@@ -66,6 +66,16 @@ export function usePageMetadata({
       meta.setAttribute('property', 'og:type');
       return meta;
     }, type);
+    upsertMeta('meta[property="og:site_name"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('property', 'og:site_name');
+      return meta;
+    }, 'Jerboa Circle');
+    upsertMeta('meta[property="og:locale"]', () => {
+      const meta = document.createElement('meta');
+      meta.setAttribute('property', 'og:locale');
+      return meta;
+    }, 'ko_KR');
     upsertMeta('meta[name="twitter:card"]', () => {
       const meta = document.createElement('meta');
       meta.setAttribute('name', 'twitter:card');

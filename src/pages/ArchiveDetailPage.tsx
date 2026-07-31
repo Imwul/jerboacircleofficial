@@ -49,6 +49,7 @@ import { trackProductEvent } from '../utils/productAnalytics';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
 import ProgrammeJourney from '../components/archive/ProgrammeJourney';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
+import ResilientImage from '../components/ui/ResilientImage';
 import {
   splitArchiveFormList as splitDetailList,
   toArchiveEventDraft as toDetailDraft,
@@ -451,9 +452,6 @@ function EventDetail({
   collectionRecords,
   referenceRecords,
   siteText,
-  onSaved,
-  serverSavedAt,
-  onServerSavedAt,
   isPreview,
 }: {
   event: ArchiveEvent;
@@ -461,9 +459,6 @@ function EventDetail({
   collectionRecords: ArchiveCollection[];
   referenceRecords: ArchiveReference[];
   siteText: SiteText;
-  onSaved: () => void;
-  serverSavedAt: string | null;
-  onServerSavedAt: (savedAt: string | null) => void;
   isPreview: boolean;
 }) {
   const season = getSeasonById(event.seasonId);
@@ -499,7 +494,7 @@ function EventDetail({
       )}
       <main className="detail-record section-reveal">
         <aside className="detail-poster">
-          <img src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
+          <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
         </aside>
         <article className="detail-copy">
           <p className="section-kicker">
@@ -520,7 +515,7 @@ function EventDetail({
           <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
           <p className="marginal-note" lang="ko">{event.marginalia}</p>
           <figure className="detail-manuscript-plate">
-            <img
+            <ResilientImage
               src={event.detailImage || editorialPlates.detail.src}
               alt={event.detailImageAlt || ''}
               aria-hidden={event.detailImageAlt ? undefined : true}
@@ -588,15 +583,10 @@ function EventDetail({
         </article>
       </main>
       {roleSessionToken('archive-editor') && (
-        <DetailKeeperPanel
-          event={event}
-          archiveEvents={archiveEvents}
-          collectionRecords={collectionRecords}
-          referenceRecords={referenceRecords}
-          onSaved={onSaved}
-          onServerSavedAt={onServerSavedAt}
-          serverSavedAt={serverSavedAt}
-        />
+        <aside className="detail-keeper-handoff" aria-label="이 기록의 관리자 편집">
+          <p lang="ko">저장·게시·게시 취소는 하나의 편집 흐름에서 관리합니다.</p>
+          <a href={`/keeper/?record=${encodeURIComponent(event.id)}`} lang="ko">Keeper Desk에서 이 기록 편집</a>
+        </aside>
       )}
     </div>
   );
@@ -605,7 +595,6 @@ function EventDetail({
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
   const [version, setVersion] = useState(0);
   const [siteText, setSiteText] = useState(() => getSiteText());
-  const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
   const [archiveSyncState, setArchiveSyncState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
   const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
   const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
@@ -661,7 +650,6 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           writeArchiveReferenceDrafts(result.saved.data.references);
         }
 
-        setServerSavedAt(result.saved.savedAt);
         setVersion((current) => current + 1);
         setArchiveSyncState('ready');
       } catch (error) {
@@ -743,9 +731,6 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
       collectionRecords={collectionRecords}
       referenceRecords={referenceRecords}
       event={event}
-      onSaved={() => setVersion((current) => current + 1)}
-      onServerSavedAt={setServerSavedAt}
-      serverSavedAt={serverSavedAt}
       isPreview={isPreview}
       siteText={siteText}
     />

@@ -201,6 +201,34 @@ html body #root div.public-home .archive-tools .archive-discovery :is(
   height: auto !important;
 }
 
+html body #root .public-home .archive-discovery {
+  grid-template-columns: repeat(6, minmax(8.5rem, 1fr)) !important;
+}
+
+html body #root .public-home .archive-discovery :is(.archive-search, .archive-filter-set) {
+  grid-column: span 2 !important;
+}
+
+@media (max-width: 1180px) {
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body #root .public-home .archive-discovery :is(.archive-search, .archive-filter-set) {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body #root .public-home .archive-discovery {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html body #root .public-home .archive-discovery > * {
+    grid-column: 1 !important;
+  }
+}
+
 html body #root .public-home .poster-caption :is(small, p),
 html body #root .public-home .catalogue-index small,
 html body #root .public-home .catalogue-index em,
@@ -795,8 +823,9 @@ html body #root .public-home.keeper-home .keeper-editor-action-meta > span {
 
 html body #root .public-home.keeper-home .keeper-editor-action-buttons {
   width: 100% !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(8.25rem, 1fr)) !important;
   grid-auto-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
   gap: 0.5rem !important;
 }
 
@@ -807,6 +836,10 @@ html body #root .public-home.keeper-home .keeper-editor-action-buttons > button 
   min-height: 52px !important;
   padding: 0.68rem 0.75rem !important;
   font: 800 0.84rem/1.3 var(--font-ko) !important;
+}
+
+html body #root .public-home.keeper-home .keeper-editor-action-buttons > .keeper-editor-unpublish {
+  background: var(--signal-pink) !important;
 }
 
 html body #root .public-home.keeper-home .relationship-picker-action {
@@ -1389,4 +1422,9 @@ html body #root .public-home.keeper-home .keeper-access-form button {
   html body #root *::after {
     scroll-behavior: auto !important;
   }
+}
+html body #root :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--ink, #080706) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px var(--paper, #f4eddc) !important;
 }

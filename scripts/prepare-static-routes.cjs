@@ -4,6 +4,9 @@ const path = require('node:path');
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
 const indexPath = path.join(distDir, 'index.html');
+const siteOrigin = (process.env.PUBLIC_SITE_URL
+  || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
+  || 'https://jerboa-circle.vercel.app').replace(/\/$/, '');
 
 function escapeHtml(value) {
   return String(value)
@@ -19,7 +22,20 @@ function replaceMeta(html, attribute, key, value) {
   return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `    ${tag}\n  </head>`);
 }
 
-function withMetadata(html, { title, description, robots = 'index, follow' }) {
+function replaceLink(html, rel, href) {
+  const pattern = new RegExp(`<link\\s+rel="${rel}"[\\s\\S]*?>`, 'i');
+  const tag = `<link rel="${rel}" href="${escapeHtml(href)}" />`;
+  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `    ${tag}\n  </head>`);
+}
+
+function withMetadata(html, {
+  title,
+  description,
+  robots = 'index, follow',
+  canonicalPath,
+  type = 'website',
+  image = '/og.png',
+}) {
   let next = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
   next = replaceMeta(next, 'name', 'description', description);
   next = replaceMeta(next, 'property', 'og:title', title);
@@ -27,7 +43,28 @@ function withMetadata(html, { title, description, robots = 'index, follow' }) {
   next = replaceMeta(next, 'name', 'twitter:title', title);
   next = replaceMeta(next, 'name', 'twitter:description', description);
   next = replaceMeta(next, 'name', 'robots', robots);
+  next = replaceMeta(next, 'property', 'og:type', type);
+  next = replaceMeta(next, 'name', 'twitter:card', image ? 'summary_large_image' : 'summary');
+  if (canonicalPath) {
+    const canonicalUrl = `${siteOrigin}${canonicalPath}`;
+    next = replaceLink(next, 'canonical', canonicalUrl);
+    next = replaceMeta(next, 'property', 'og:url', canonicalUrl);
+  }
+  if (image) {
+    const imageUrl = new URL(image, `${siteOrigin}/`).href;
+    next = replaceMeta(next, 'property', 'og:image', imageUrl);
+    next = replaceMeta(next, 'name', 'twitter:image', imageUrl);
+  }
   return next;
+}
+
+function isPublicRecord(record) {
+  if (record.visibility !== 'public' || record.workflowStatus !== 'published') return false;
+  const now = Date.now();
+  const publishAt = record.publishAt ? Date.parse(record.publishAt) : null;
+  const unpublishAt = record.unpublishAt ? Date.parse(record.unpublishAt) : null;
+  return (publishAt === null || (Number.isFinite(publishAt) && publishAt <= now))
+    && (unpublishAt === null || (Number.isFinite(unpublishAt) && unpublishAt > now));
 }
 
 function writeRoute(route, html) {
@@ -58,33 +95,49 @@ async function main() {
   }
 
   const rootIndex = fs.readFileSync(indexPath, 'utf8');
-  const publicRecords = records.filter((record) => record.visibility === 'public' && record.workflowStatus === 'published');
+  const publicRecords = records.filter(isPublicRecord);
+
+  fs.writeFileSync(indexPath, withMetadata(rootIndex, {
+    title: 'Jerboa Circle Official Archive',
+    description: '문헌, 이미지, 장소와 프로그램이 서로 이어지는 저보아 서클의 공식 아카이브.',
+    canonicalPath: '/',
+  }));
 
   writeRoute('members', withMetadata(rootIndex, {
     title: 'Private Room | Jerboa Circle',
     description: 'Jerboa Circle member programme and personal record room.',
     robots: 'noindex, nofollow',
+    canonicalPath: '/members/',
   }));
   writeRoute('keeper', withMetadata(rootIndex, {
     title: 'Keeper Desk | Jerboa Circle',
     description: 'Jerboa Circle archive maintenance desk.',
     robots: 'noindex, nofollow',
+    canonicalPath: '/keeper/',
   }));
   writeRoute('godmode', withMetadata(rootIndex, {
     title: 'Text Register | Jerboa Circle',
     description: 'Jerboa Circle publication text register.',
     robots: 'noindex, nofollow',
+    canonicalPath: '/godmode/',
   }));
-  writeRoute('archive', rootIndex);
+  writeRoute('archive', withMetadata(rootIndex, {
+    title: 'Archive | Jerboa Circle',
+    description: '저보아 서클의 현재 프로그램과 지난 기록을 검색하고 분류해 살펴봅니다.',
+    canonicalPath: '/archive/',
+  }));
   writeRoute('catalogue', withMetadata(rootIndex, {
     title: 'Reference Catalogue | Jerboa Circle',
     description: 'Books, artworks, quotations, images, places, and themes connected across Jerboa Circle programmes.',
+    canonicalPath: '/catalogue/',
   }));
 
   for (const record of publicRecords) {
     writeRoute(path.join('archive', record.id), withMetadata(rootIndex, {
       title: `${record.title} | Jerboa Circle`,
       description: record.shortDescription,
+      canonicalPath: `/archive/${record.id}/`,
+      type: 'article',
     }));
   }
 
@@ -92,12 +145,11 @@ async function main() {
     writeRoute(path.join('catalogue', reference.id), withMetadata(rootIndex, {
       title: `${reference.title} | Jerboa Circle Catalogue`,
       description: reference.description,
+      canonicalPath: `/catalogue/${reference.id}/`,
+      type: 'article',
     }));
   }
 
-  const siteOrigin = (process.env.PUBLIC_SITE_URL
-    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
-    || 'https://jerboa-circle.vercel.app').replace(/\/$/, '');
   const xmlEscape = (value) => escapeHtml(value).replaceAll('&#39;', '&apos;');
   const sitemapPaths = [
     '/',

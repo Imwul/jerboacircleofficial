@@ -34,6 +34,7 @@ import {
 } from '../utils/archiveReferenceDrafts';
 import ArchiveConstellation from '../components/archive/ArchiveConstellation';
 import ProgrammeJourney from '../components/archive/ProgrammeJourney';
+import ResilientImage from '../components/ui/ResilientImage';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -48,6 +49,7 @@ interface ArchiveSyncPayload {
 
 type ArchiveStatusFilter = ArchiveEvent['status'] | 'all';
 type ArchiveTaxonomyFilter = string | 'all';
+type ArchiveSortOrder = 'latest' | 'oldest';
 
 function readArchiveQueryState() {
   const params = new URLSearchParams(window.location.search);
@@ -57,9 +59,20 @@ function readArchiveQueryState() {
     status: status === 'current' || status === 'upcoming' || status === 'past' ? status : 'all',
     season: params.get('season') ?? 'all',
     collection: params.get('collection') ?? 'all',
+    kind: params.get('kind') ?? 'all',
+    theme: params.get('theme') ?? 'all',
+    order: params.get('order') === 'oldest' ? 'oldest' : 'latest',
     filed: params.get('filed') === '1',
     view: params.get('view') === 'constellation' ? 'constellation' : 'chronology',
   } as const;
+}
+
+function archiveSortTime(event: ArchiveEvent) {
+  for (const value of [event.publishedAt, event.updatedAt, event.publishAt]) {
+    const parsed = value ? Date.parse(value) : Number.NaN;
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
 }
 
 function textLang(text: string) {
@@ -196,7 +209,7 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
-        <img src={featuredEvent.posterImage} alt={featuredEvent.posterAlt ?? `${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
+        <ResilientImage src={featuredEvent.posterImage} alt={featuredEvent.posterAlt ?? `${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
@@ -270,7 +283,7 @@ function PosterTile({
       <div className="poster-visual">
         <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`}>
           <div className="poster-frame">
-            <img src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
+            <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
           </div>
         </a>
         <button
@@ -314,6 +327,9 @@ function PosterArchive({
   const [statusFilter, setStatusFilter] = useState<ArchiveStatusFilter>(initialQueryState.status);
   const [seasonFilter, setSeasonFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.season);
   const [collectionFilter, setCollectionFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.collection);
+  const [kindFilter, setKindFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.kind);
+  const [themeFilter, setThemeFilter] = useState<ArchiveTaxonomyFilter>(initialQueryState.theme);
+  const [sortOrder, setSortOrder] = useState<ArchiveSortOrder>(initialQueryState.order);
   const [filedOnly, setFiledOnly] = useState(initialQueryState.filed);
   const [archiveView, setArchiveView] = useState<'chronology' | 'constellation'>(initialQueryState.view);
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
@@ -323,6 +339,8 @@ function PosterArchive({
     collection.visibility === 'public'
     && archiveEvents.some((event) => event.collectionIds.includes(collection.id) || collection.eventIds.includes(event.id))
   ));
+  const kindOptions = Array.from(new Set(archiveEvents.map((event) => event.kind))).sort((a, b) => a.localeCompare(b, 'ko'));
+  const themeOptions = Array.from(new Set(archiveEvents.flatMap((event) => event.themes))).sort((a, b) => a.localeCompare(b, 'ko'));
   const visibleEvents = archiveEvents.filter((event) => {
     const statusMatches = statusFilter === 'all' || event.status === statusFilter;
     const seasonMatches = seasonFilter === 'all' || event.seasonId === seasonFilter;
@@ -330,12 +348,16 @@ function PosterArchive({
       || event.collectionIds.includes(collectionFilter)
       || collections.find((collection) => collection.id === collectionFilter)?.eventIds.includes(event.id);
     const filedMatches = !filedOnly || bookmarkedIds.includes(event.id);
+    const kindMatches = kindFilter === 'all' || event.kind === kindFilter;
+    const themeMatches = themeFilter === 'all' || event.themes.includes(themeFilter);
     return statusMatches && seasonMatches && collectionMatches && filedMatches
+      && kindMatches && themeMatches
       && matchesArchiveQuery(event, query, archiveEvents, references, collections);
+  }).sort((left, right) => {
+    const direction = sortOrder === 'latest' ? -1 : 1;
+    return (archiveSortTime(left) - archiveSortTime(right)) * direction || left.title.localeCompare(right.title, 'ko');
   });
-  const bookmarkedEvents = visibleEvents.filter((event) => bookmarkedIds.includes(event.id));
-  const unbookmarkedEvents = visibleEvents.filter((event) => !bookmarkedIds.includes(event.id));
-  const orderedVisibleEvents = [...bookmarkedEvents, ...unbookmarkedEvents];
+  const orderedVisibleEvents = visibleEvents;
 
   function toggleBookmark(id: string) {
     setBookmarkedIds((current) => {
@@ -357,12 +379,15 @@ function PosterArchive({
     if (statusFilter !== 'all') params.set('status', statusFilter);
     if (seasonFilter !== 'all') params.set('season', seasonFilter);
     if (collectionFilter !== 'all') params.set('collection', collectionFilter);
+    if (kindFilter !== 'all') params.set('kind', kindFilter);
+    if (themeFilter !== 'all') params.set('theme', themeFilter);
+    if (sortOrder === 'oldest') params.set('order', sortOrder);
     if (filedOnly) params.set('filed', '1');
     if (archiveView === 'constellation') params.set('view', 'constellation');
     const archiveHash = params.size > 0 || window.location.hash === '#archive' ? '#archive' : '';
     const nextUrl = `${window.location.pathname}${params.size ? `?${params}` : ''}${archiveHash}`;
     window.history.replaceState(window.history.state, '', nextUrl);
-  }, [query, statusFilter, seasonFilter, collectionFilter, filedOnly, archiveView]);
+  }, [query, statusFilter, seasonFilter, collectionFilter, kindFilter, themeFilter, sortOrder, filedOnly, archiveView]);
 
   useEffect(() => {
     const term = normalizeSearchTerm(query);
@@ -375,21 +400,27 @@ function PosterArchive({
         statusFilter,
         seasonFilter,
         collectionFilter,
+        kindFilter,
+        themeFilter,
+        sortOrder,
       });
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [query, visibleEvents.length, statusFilter, seasonFilter, collectionFilter]);
+  }, [query, visibleEvents.length, statusFilter, seasonFilter, collectionFilter, kindFilter, themeFilter, sortOrder]);
 
   useEffect(() => {
     trackProductEvent('archive_filter_change', {
       statusFilter,
       seasonFilter,
       collectionFilter,
+      kindFilter,
+      themeFilter,
+      sortOrder,
       archiveView,
       resultCount: visibleEvents.length,
     });
-  }, [statusFilter, seasonFilter, collectionFilter, archiveView, visibleEvents.length]);
+  }, [statusFilter, seasonFilter, collectionFilter, kindFilter, themeFilter, sortOrder, archiveView, visibleEvents.length]);
 
   return (
     <section className="poster-archive" data-empty-results={orderedVisibleEvents.length === 0 ? 'true' : undefined} id="archive">
@@ -474,12 +505,33 @@ function PosterArchive({
               ))}
             </select>
           </label>
-          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || filedOnly) && (
+          <label className="archive-select">
+            <span lang="ko">유형</span>
+            <select value={kindFilter} onChange={(event) => setKindFilter(event.target.value)} aria-label="유형으로 기록 필터링">
+              <option value="all">All types</option>
+              {kindOptions.map((kind) => <option value={kind} key={kind}>{kind}</option>)}
+            </select>
+          </label>
+          <label className="archive-select">
+            <span lang="ko">주제</span>
+            <select value={themeFilter} onChange={(event) => setThemeFilter(event.target.value)} aria-label="주제로 기록 필터링">
+              <option value="all">All themes</option>
+              {themeOptions.map((theme) => <option value={theme} key={theme}>{theme}</option>)}
+            </select>
+          </label>
+          <label className="archive-select">
+            <span lang="ko">정렬</span>
+            <select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as ArchiveSortOrder)} aria-label="기록 정렬">
+              <option value="latest">최신순</option>
+              <option value="oldest">오래된 순</option>
+            </select>
+          </label>
+          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || kindFilter !== 'all' || themeFilter !== 'all' || sortOrder !== 'latest' || filedOnly) && (
             <p className="archive-results-count">
               <span lang="ko">기록 {visibleEvents.length}개</span>
             </p>
           )}
-          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || filedOnly) && (
+          {(query || statusFilter !== 'all' || seasonFilter !== 'all' || collectionFilter !== 'all' || kindFilter !== 'all' || themeFilter !== 'all' || sortOrder !== 'latest' || filedOnly) && (
             <button
               className="archive-filter-reset"
               type="button"
@@ -488,6 +540,9 @@ function PosterArchive({
                 setStatusFilter('all');
                 setSeasonFilter('all');
                 setCollectionFilter('all');
+                setKindFilter('all');
+                setThemeFilter('all');
+                setSortOrder('latest');
                 setFiledOnly(false);
               }}
             >

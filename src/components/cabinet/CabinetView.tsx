@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { Curiosity, User } from '../../types';
 import { resizeImage } from '../../utils/imageUtils';
 import { uploadCabinetImage } from '../../utils/cabinetMedia';
 import { useDialogFocus } from '../../utils/useDialogFocus';
 import { readArchiveBookmarks } from '../../utils/readingMarks';
+import RelationshipPicker from '../archive/RelationshipPicker';
+import ResilientImage from '../ui/ResilientImage';
 
 type CabinetScope = 'mine' | 'circle';
 type CabinetShelf = 'all' | 'bookmarked' | 'private' | 'public' | 'recent' | 'rediscovered';
+type CabinetSortOrder = 'latest' | 'oldest';
 
 interface CabinetViewProps {
   user: User;
@@ -30,6 +33,7 @@ interface CuriosityFormState {
   century: string;
   region: string;
   tags: string;
+  relatedEntryIds: string;
   sourceInstitution: string;
   sourceReference: string;
   sourceUrl: string;
@@ -57,6 +61,7 @@ function emptyForm(): CuriosityFormState {
     century: '',
     region: '',
     tags: '',
+    relatedEntryIds: '',
     sourceInstitution: '',
     sourceReference: '',
     sourceUrl: '',
@@ -81,6 +86,7 @@ function formFrom(item: Curiosity): CuriosityFormState {
     century: item.century,
     region: item.region,
     tags: item.tags.join(', '),
+    relatedEntryIds: (item.relatedEntryIds ?? []).join(' / '),
     sourceInstitution: item.source.institution,
     sourceReference: item.source.reference || '',
     sourceUrl: item.source.url || '',
@@ -94,6 +100,27 @@ function formFrom(item: Curiosity): CuriosityFormState {
 
 function unique(values: string[]) {
   return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function splitRelatedIds(value: string) {
+  return Array.from(new Set(value.split(/\n|\/|,/).map((item) => item.trim()).filter(Boolean)));
+}
+
+function readCabinetQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const shelf = params.get('cabinetShelf');
+  return {
+    scope: params.get('cabinetScope') === 'circle' ? 'circle' : 'mine',
+    shelf: ['all', 'bookmarked', 'private', 'public', 'recent', 'rediscovered'].includes(shelf ?? '')
+      ? shelf as CabinetShelf
+      : 'all',
+    query: params.get('cabinetQ') ?? '',
+    theme: params.get('cabinetTheme') ?? '',
+    medium: params.get('cabinetMedium') ?? '',
+    century: params.get('cabinetCentury') ?? '',
+    region: params.get('cabinetRegion') ?? '',
+    order: params.get('cabinetOrder') === 'oldest' ? 'oldest' : 'latest',
+  } as const;
 }
 
 function contentLanguage(value: string): 'ko' | 'en' {
@@ -193,22 +220,9 @@ function shelfLabel(shelf: CabinetShelf) {
 }
 
 function connectionLabel(item: Curiosity, pool: Curiosity[]) {
-  const candidate = pool
-    .filter((entry) => entry.id !== item.id)
-    .map((entry) => {
-      const sharedTags = item.tags.filter((tag) => entry.tags.includes(tag));
-      return {
-        entry,
-        sharedTags,
-        affinity: (entry.theme === item.theme ? 3 : 0) + sharedTags.length,
-      };
-    })
-    .filter(({ affinity }) => affinity > 0)
-    .sort((a, b) => b.affinity - a.affinity)[0];
-
-  if (!candidate) return '';
-  const sharedMark = candidate.sharedTags[0] || (candidate.entry.theme === item.theme ? item.theme : '닮은 긴장');
-  return `${displayTerm(sharedMark)} 표식으로 이어짐`;
+  const relatedIds = new Set(item.relatedEntryIds ?? []);
+  const candidate = pool.find((entry) => relatedIds.has(entry.id) || (entry.relatedEntryIds ?? []).includes(item.id));
+  return candidate ? `${candidate.title}와 직접 이어짐` : '';
 }
 
 function CuriosityMeta({ item, compact = false }: { item: Curiosity; compact?: boolean }) {
@@ -256,7 +270,7 @@ function CabinetCard({
   return (
     <article className="cabinet-card">
       <button className="cabinet-card-image" type="button" onClick={onOpen} aria-label={`${item.title} 표본 열기`}>
-        <img src={item.image} alt={item.imageAlt} loading="lazy" decoding="async" />
+        <ResilientImage src={item.image} alt={item.imageAlt} loading="lazy" decoding="async" />
       </button>
       <div className="cabinet-card-copy">
         <div className="cabinet-card-heading">
@@ -291,13 +305,15 @@ function CabinetCard({
 }
 
 export function CabinetView({ user, users, curiosities, onChange, onNotice, syncKey, authSession }: CabinetViewProps) {
-  const [scope, setScope] = useState<CabinetScope>('mine');
-  const [shelf, setShelf] = useState<CabinetShelf>('all');
-  const [query, setQuery] = useState('');
-  const [theme, setTheme] = useState('');
-  const [medium, setMedium] = useState('');
-  const [century, setCentury] = useState('');
-  const [region, setRegion] = useState('');
+  const initialQueryState = useMemo(readCabinetQueryState, []);
+  const [scope, setScope] = useState<CabinetScope>(initialQueryState.scope);
+  const [shelf, setShelf] = useState<CabinetShelf>(initialQueryState.shelf);
+  const [query, setQuery] = useState(initialQueryState.query);
+  const [theme, setTheme] = useState(initialQueryState.theme);
+  const [medium, setMedium] = useState(initialQueryState.medium);
+  const [century, setCentury] = useState(initialQueryState.century);
+  const [region, setRegion] = useState(initialQueryState.region);
+  const [sortOrder, setSortOrder] = useState<CabinetSortOrder>(initialQueryState.order);
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('curiosity'));
   const [editor, setEditor] = useState<{ mode: 'new' | 'edit'; itemId?: string } | null>(null);
@@ -306,6 +322,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
   const [imageStorageNote, setImageStorageNote] = useState('긴 변 1800px로 조용히 정돈해 보관합니다.');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const editorRef = useDialogFocus<HTMLDivElement>(Boolean(editor), () => setEditor(null));
+  const listScrollPosition = useRef(0);
 
   const names = useMemo(() => new Map(users.map((member) => [member.id, member.name])), [users]);
   const mine = useMemo(() => curiosities.filter((item) => item.ownerId === user.id), [curiosities, user.id]);
@@ -368,11 +385,28 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
 
     if (shelf === 'recent') result = [...result].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     else if (shelf === 'rediscovered') result = [...result].sort((a, b) => (a.lastViewedAt || a.createdAt).localeCompare(b.lastViewedAt || b.createdAt));
-    else result = [...result].sort((a, b) => b.collectedAt.localeCompare(a.collectedAt));
+    else result = [...result].sort((a, b) => (
+      sortOrder === 'latest'
+        ? b.collectedAt.localeCompare(a.collectedAt)
+        : a.collectedAt.localeCompare(b.collectedAt)
+    ));
     return result;
-  }, [visiblePool, theme, medium, century, region, shelf, query, user.id]);
+  }, [visiblePool, theme, medium, century, region, shelf, query, sortOrder, user.id]);
 
-  useEffect(() => setPage(1), [scope, shelf, query, theme, medium, century, region]);
+  useEffect(() => setPage(1), [scope, shelf, query, theme, medium, century, region, sortOrder]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (scope === 'circle') url.searchParams.set('cabinetScope', scope); else url.searchParams.delete('cabinetScope');
+    if (shelf !== 'all') url.searchParams.set('cabinetShelf', shelf); else url.searchParams.delete('cabinetShelf');
+    if (query.trim()) url.searchParams.set('cabinetQ', query.trim()); else url.searchParams.delete('cabinetQ');
+    if (theme) url.searchParams.set('cabinetTheme', theme); else url.searchParams.delete('cabinetTheme');
+    if (medium) url.searchParams.set('cabinetMedium', medium); else url.searchParams.delete('cabinetMedium');
+    if (century) url.searchParams.set('cabinetCentury', century); else url.searchParams.delete('cabinetCentury');
+    if (region) url.searchParams.set('cabinetRegion', region); else url.searchParams.delete('cabinetRegion');
+    if (sortOrder === 'oldest') url.searchParams.set('cabinetOrder', sortOrder); else url.searchParams.delete('cabinetOrder');
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  }, [century, medium, query, region, scope, shelf, sortOrder, theme]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -380,16 +414,12 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
 
   const related = useMemo(() => {
     if (!detail) return [];
-    return curiosities
-      .filter((item) => item.id !== detail.id && (item.visibility === 'public' || item.ownerId === user.id))
-      .map((item) => ({
-        item,
-        affinity: (item.theme === detail.theme ? 3 : 0) + item.tags.filter((tag) => detail.tags.includes(tag)).length,
-      }))
-      .filter(({ affinity }) => affinity > 0)
-      .sort((a, b) => b.affinity - a.affinity)
-      .slice(0, 3)
-      .map(({ item }) => item);
+    const relatedIds = new Set(detail.relatedEntryIds ?? []);
+    return curiosities.filter((item) => (
+      item.id !== detail.id
+      && (item.visibility === 'public' || item.ownerId === user.id)
+      && (relatedIds.has(item.id) || (item.relatedEntryIds ?? []).includes(detail.id))
+    )).slice(0, 6);
   }, [curiosities, detail, user.id]);
 
   const clearFilters = () => {
@@ -399,6 +429,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
     setMedium('');
     setCentury('');
     setRegion('');
+    setSortOrder('latest');
   };
 
   const setDetailRoute = (itemId: string | null) => {
@@ -410,10 +441,17 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
   };
 
   const openDetail = (item: Curiosity) => {
+    listScrollPosition.current = window.scrollY;
     setDetailId(item.id);
     setDetailRoute(item.id);
     onChange(curiosities.map((entry) => entry.id === item.id ? { ...entry, lastViewedAt: new Date().toISOString() } : entry));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
+
+  const closeDetail = () => {
+    setDetailId(null);
+    setDetailRoute(null);
+    window.requestAnimationFrame(() => window.scrollTo({ top: listScrollPosition.current, behavior: 'auto' }));
   };
 
   const toggleBookmark = (item: Curiosity) => {
@@ -501,6 +539,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
       century: form.century.trim(),
       region: form.region.trim(),
       tags: unique(form.tags.split(',').map((tag) => tag.trim())),
+      relatedEntryIds: splitRelatedIds(form.relatedEntryIds).filter((id) => id !== previous?.id),
       source: {
         institution: form.sourceInstitution.trim(),
         reference: form.sourceReference.trim() || undefined,
@@ -541,13 +580,13 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
     const collector = names.get(detail.ownerId) || '이름 없는 수집자';
     const canEdit = detail.ownerId === user.id;
     const librarianLine = related[0]
-      ? `이 표본은 ${related[0].title}와 ${displayTerm(detail.theme)}의 표식 및 ${detail.tags.filter((tag) => related[0].tags.includes(tag)).join(', ') || '닮은 긴장'}을 함께 품고 있습니다.`
-      : `당신의 수장고에서 아직 홀로 놓인 ${displayTerm(detail.theme)}의 표본입니다. 다음에 닮은 흔적이 들어오면 곁에 놓일 것입니다.`;
+      ? `이 표본은 편집자가 확인한 관계를 따라 ${related[0].title}와 직접 이어집니다.`
+      : `아직 편집자가 직접 연결한 표본이 없습니다. 관계를 확인한 뒤 기록 다듬기에서 곁에 놓을 수 있습니다.`;
 
     return (
       <section className="cabinet-detail" aria-labelledby="cabinet-detail-title">
         <div className="cabinet-detail-nav">
-          <button type="button" onClick={() => { setDetailId(null); setDetailRoute(null); }}><span aria-hidden="true">←</span> 수장고로</button>
+          <button type="button" onClick={closeDetail}><span aria-hidden="true">←</span> 수장고로</button>
           <button
             className="cabinet-bookmark"
             type="button"
@@ -558,7 +597,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
           </button>
         </div>
         <figure className="cabinet-detail-image">
-          <img src={detail.image} alt={detail.imageAlt} />
+          <ResilientImage src={detail.image} alt={detail.imageAlt} />
         </figure>
         <header className="cabinet-detail-header">
           <p className="cabinet-detail-index" lang="ko">표본 {String(curiosities.indexOf(detail) + 1).padStart(3, '0')}</p>
@@ -587,7 +626,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
           </aside>
         </div>
         <aside className="cabinet-librarian-note" aria-label="옛 사서의 메모">
-          <p lang="ko">옛 사서의 메모</p>
+          <p lang="ko">관계 장부의 메모</p>
           <strong lang="ko">{librarianLine}</strong>
         </aside>
         <section className="cabinet-related" aria-labelledby="cabinet-related-title">
@@ -598,7 +637,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
             <div>
               {related.map((item) => (
                 <button type="button" key={item.id} onClick={() => openDetail(item)}>
-                  <img src={item.image} alt="" loading="lazy" />
+                  <ResilientImage src={item.image} alt="" loading="lazy" />
                   <span lang="en">{item.title}</span>
                   <small>{item.theme} · {item.medium}</small>
                 </button>
@@ -663,7 +702,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
       {rediscovery && (
         <section className="cabinet-rediscovery" aria-labelledby="cabinet-rediscovery-title">
           <figure>
-            <img src={rediscovery.image} alt={rediscovery.imageAlt} loading="eager" decoding="async" />
+            <ResilientImage src={rediscovery.image} alt={rediscovery.imageAlt} loading="eager" decoding="async" />
           </figure>
           <div>
             <p lang="ko">다시 펼친 표본</p>
@@ -709,12 +748,13 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
             <label><span>형식</span><select value={medium} onChange={(event) => setMedium(event.target.value)}><option value="">전체 형식</option>{media.map((value) => <option key={value} value={value}>{displayTerm(value)}</option>)}</select></label>
             <label><span>시대</span><select value={century} onChange={(event) => setCentury(event.target.value)}><option value="">전체 시대</option>{centuries.map((value) => <option key={value} value={value}>{displayTerm(value)}</option>)}</select></label>
             <label><span>지역</span><select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">전체 지역</option>{regions.map((value) => <option key={value} value={value}>{displayTerm(value)}</option>)}</select></label>
+            <label><span>정렬</span><select value={sortOrder} onChange={(event) => setSortOrder(event.target.value as CabinetSortOrder)}><option value="latest">최신순</option><option value="oldest">오래된 순</option></select></label>
           </div>
         </div>
 
         <div className="cabinet-result-line">
           <p lang="ko"><strong>{filtered.length}</strong>점 · {shelfLabel(shelf)}</p>
-          {(query || theme || medium || century || region || shelf !== 'all') && <button type="button" onClick={clearFilters}>분류 지우기</button>}
+          {(query || theme || medium || century || region || shelf !== 'all' || sortOrder !== 'latest') && <button type="button" onClick={clearFilters}>분류 지우기</button>}
         </div>
 
         {pageItems.length > 0 ? (
@@ -811,6 +851,18 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
                 <legend>장부</legend>
                 <label><span>수집한 날</span><input required type="date" value={form.collectedAt} onChange={(event) => updateForm('collectedAt', event.target.value)} /></label>
                 <label><span>공개 범위</span><select value={form.visibility} onChange={(event) => updateForm('visibility', event.target.value)}><option value="private">나만 열람</option><option value="public">회원 열람실에 공개</option></select></label>
+              </fieldset>
+              <fieldset>
+                <legend>직접 연결</legend>
+                <RelationshipPicker
+                  label="관련 표본"
+                  description="편집자가 실제 관계를 확인한 표본만 직접 연결합니다. 같은 표식이라는 이유만으로 자동 연결하지 않습니다."
+                  options={curiosities
+                    .filter((item) => item.id !== editor.itemId && (item.ownerId === user.id || item.visibility === 'public'))
+                    .map((item) => ({ id: item.id, title: item.title, meta: `${displayTerm(item.theme)} · ${displayTerm(item.medium)}` }))}
+                  selectedIds={splitRelatedIds(form.relatedEntryIds)}
+                  onChange={(ids) => updateForm('relatedEntryIds', ids.join(' / '))}
+                />
               </fieldset>
               <footer>
                 {editor.mode === 'edit' && (

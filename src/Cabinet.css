@@ -372,7 +372,7 @@ html body #root .members-archive .archive-topbar.is-cabinet .archive-sync-ledger
 
 .members-archive .cabinet-facets {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -1985,6 +1985,20 @@ html body #root .members-archive .cabinet-provenance dd .cabinet-encounter-conte
   font-size: 0.78rem !important;
   font-weight: 450 !important;
   line-height: 1.42 !important;
+}
+
+/* Text links keep the editorial underline while offering a reliable touch area. */
+html body #root .members-archive :is(button, a).cabinet-owner-link,
+html body #root .members-archive .cabinet-provenance a {
+  align-items: center !important;
+  display: inline-flex !important;
+  min-height: 44px !important;
+}
+
+html body #root .members-archive .cabinet-owner button.cabinet-owner-link {
+  align-items: center !important;
+  display: inline-flex !important;
+  min-height: 44px !important;
 }
 
 /* Keep the object's attribution and the collector's comment as two distinct

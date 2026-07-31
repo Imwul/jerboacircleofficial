@@ -141,6 +141,7 @@ export default function CataloguePage({ id }: { id?: string }) {
     title: selected ? `${selected.title} | Jerboa Circle Catalogue` : 'Reference Catalogue | Jerboa Circle',
     description: selected?.description ?? 'Books, artworks, quotations, images, places, and themes connected across Jerboa Circle programmes.',
     canonicalPath: selected ? `/catalogue/${selected.id}/` : '/catalogue/',
+    image: selectedImage?.src,
     type: selected ? 'article' : 'website',
     noIndex: Boolean(id && !selected),
   });

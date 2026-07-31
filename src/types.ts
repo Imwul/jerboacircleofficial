@@ -109,6 +109,7 @@ export interface Curiosity {
   century: string;
   region: string;
   tags: string[];
+  relatedEntryIds?: string[];
   source: CuriositySource;
   encountered: CuriosityEncounter;
   collectedAt: string;

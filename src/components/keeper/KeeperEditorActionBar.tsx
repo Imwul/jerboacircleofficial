@@ -1,6 +1,6 @@
 import type { ArchiveVisibility, ArchiveWorkflowStatus } from '../../data/events';
 
-export type KeeperOperation = 'idle' | 'saving' | 'syncing' | 'loading' | 'publishing';
+export type KeeperOperation = 'idle' | 'saving' | 'syncing' | 'loading' | 'publishing' | 'unpublishing';
 
 interface KeeperEditorActionBarProps {
   mode: 'events' | 'references' | 'text';
@@ -16,7 +16,9 @@ interface KeeperEditorActionBarProps {
   publicationBlocked?: boolean;
   hasPublication?: boolean;
   onSave: () => void;
+  onSync: () => void;
   onPublish?: () => void;
+  onUnpublish?: () => void;
   onDiscard: () => void;
 }
 
@@ -39,6 +41,7 @@ const operationLabels: Record<KeeperOperation, string> = {
   syncing: '공동 장부에 반영 중...',
   loading: '공동 장부를 불러오는 중...',
   publishing: '게시 중...',
+  unpublishing: '게시를 취소하는 중...',
 };
 
 function savedTimeLabel(value: string | null) {
@@ -64,7 +67,9 @@ export default function KeeperEditorActionBar({
   publicationBlocked = false,
   hasPublication = false,
   onSave,
+  onSync,
   onPublish,
+  onUnpublish,
   onDiscard,
 }: KeeperEditorActionBarProps) {
   const recordLabel = mode === 'events' ? '프로그램' : mode === 'references' ? '자료' : '문구';
@@ -101,6 +106,9 @@ export default function KeeperEditorActionBar({
         <button type="button" disabled={!dirty || busy} onClick={onSave}>
           <span lang="ko">{operation === 'saving' ? '저장 중...' : '임시 저장'}</span>
         </button>
+        <button type="button" disabled={busy || (!dirty && !hasRemoteDifference)} onClick={onSync}>
+          <span lang="ko">{operation === 'syncing' ? '저장 중...' : '변경사항 저장'}</span>
+        </button>
         <button type="button" disabled={!dirty || busy} onClick={onDiscard}>
           <span lang="ko">저장 전으로 되돌리기</span>
         </button>
@@ -114,6 +122,16 @@ export default function KeeperEditorActionBar({
             <span lang="ko">
               {operation === 'publishing' ? '게시 중...' : hasPublication ? '변경사항 게시' : '게시하기'}
             </span>
+          </button>
+        )}
+        {mode === 'events' && onUnpublish && (
+          <button
+            className="keeper-editor-unpublish"
+            type="button"
+            disabled={busy}
+            onClick={onUnpublish}
+          >
+            <span lang="ko">{operation === 'unpublishing' ? '취소 중...' : '게시 취소'}</span>
           </button>
         )}
       </div>

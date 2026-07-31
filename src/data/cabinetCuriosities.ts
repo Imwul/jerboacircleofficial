@@ -39,6 +39,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     century: '20th century',
     region: 'Britain',
     tags: ['peacock', 'alchemy', 'transformation', 'colour'],
+    relatedEntryIds: ['cabinet-flowering-tree', 'cabinet-hermetic-androgyne'],
     encountered: {
       place: 'Jerboa Circle',
       dateLabel: 'July 2026',
@@ -63,6 +64,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     century: '17th century',
     region: 'France',
     tags: ['tree', 'dragon', 'opposites', 'flamel'],
+    relatedEntryIds: ['cabinet-golden-prince'],
     encountered: {
       place: 'Seoul',
       dateLabel: 'Summer 2026',
@@ -86,6 +88,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     century: '18th century',
     region: 'France',
     tags: ['sigil', 'sun', 'manuscript', 'red ink'],
+    relatedEntryIds: ['cabinet-rose-caduceus'],
     encountered: {
       place: 'Online archive',
       dateLabel: 'March 2025',
@@ -156,6 +159,7 @@ export const INITIAL_CURIOSITIES: Curiosity[] = [
     century: '17th century',
     region: 'Britain',
     tags: ['bird', 'hermes', 'rain', 'alchemy'],
+    relatedEntryIds: ['cabinet-three-headed-eagle'],
     encountered: {
       place: 'London',
       dateLabel: 'October 2024',

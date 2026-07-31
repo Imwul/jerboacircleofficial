@@ -6,6 +6,7 @@ export type ArchiveAuditAction =
   | 'restore'
   | 'import'
   | 'publish'
+  | 'unpublish'
   | 'sync'
   | 'conflict-resolved'
   | 'backup-restored';
