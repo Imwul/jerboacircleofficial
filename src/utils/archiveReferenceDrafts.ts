@@ -75,8 +75,7 @@ export function clearAllArchiveReferenceDrafts() {
   window.localStorage.removeItem(referenceDraftStorageKey);
 }
 
-export function applyArchiveReferenceDrafts(base: ArchiveReference[] = archiveReferences) {
-  const drafts = readArchiveReferenceDrafts();
+export function applyArchiveReferenceDraftMap(base: ArchiveReference[], drafts: ArchiveReferenceDraftMap) {
   const baseIds = new Set(base.map((reference) => reference.id));
   const edited = base
     .filter((reference) => !drafts[reference.id]?.deletedAt)
@@ -89,4 +88,8 @@ export function applyArchiveReferenceDrafts(base: ArchiveReference[] = archiveRe
     if (b.updatedAt) return 1;
     return 0;
   });
+}
+
+export function applyArchiveReferenceDrafts(base: ArchiveReference[] = archiveReferences) {
+  return applyArchiveReferenceDraftMap(base, readArchiveReferenceDrafts());
 }

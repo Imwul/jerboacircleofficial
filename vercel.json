@@ -1,5 +1,11 @@
 {
   "rewrites": [
+    { "source": "/archive-base.json", "destination": "/api/public?format=removed" },
+    { "source": "/sitemap.xml", "destination": "/api/public?format=sitemap" },
+    { "source": "/feed.xml", "destination": "/api/public?format=feed" },
+    { "source": "/archive.json", "destination": "/api/public?format=archive" },
+    { "source": "/archive/manifest.json", "destination": "/api/public?format=manifest" },
+    { "source": "/archive/:id/", "destination": "/api/public?format=page&id=:id" },
     {
       "source": "/((?!api/.*).*)",
       "destination": "/index.html"

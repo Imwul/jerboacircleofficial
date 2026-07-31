@@ -9,14 +9,11 @@ import {
   type ArchiveEvent,
 } from '../data/events';
 import type { SiteText } from '../data/siteText';
-import { applyArchiveDrafts, archiveDraftStorageKey } from '../utils/archiveDrafts';
+import { applyArchiveDraftMap, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import { loadServerSync } from '../utils/serverSync';
-import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
-import { writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import { mergeSiteText } from '../utils/siteTextDrafts';
 import {
   applyArchiveCollectionDrafts,
-  archiveCollectionStorageKey,
-  writeArchiveCollectionDrafts,
   type ArchiveCollectionDraftMap,
 } from '../utils/archiveCollectionDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
@@ -28,8 +25,7 @@ import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
 import {
-  applyArchiveReferenceDrafts,
-  writeArchiveReferenceDrafts,
+  applyArchiveReferenceDraftMap,
   type ArchiveReferenceDraftMap,
 } from '../utils/archiveReferenceDrafts';
 import ArchiveConstellation from '../components/archive/ArchiveConstellation';
@@ -621,11 +617,13 @@ function SiteFooter({ siteText }: { siteText: SiteText }) {
 }
 
 export default function HomePage() {
-  const [version, setVersion] = useState(0);
-  const [siteText, setSiteText] = useState(() => getSiteText());
-  const archiveEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
-  const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
-  const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
+  const [publicDrafts, setPublicDrafts] = useState<ArchiveDraftMap>({});
+  const [publicCollections, setPublicCollections] = useState<ArchiveCollectionDraftMap>({});
+  const [publicReferences, setPublicReferences] = useState<ArchiveReferenceDraftMap>({});
+  const [siteText, setSiteText] = useState(() => mergeSiteText());
+  const archiveEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDraftMap(events, publicDrafts)), [publicDrafts]);
+  const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections, publicCollections), [publicCollections]);
+  const references = useMemo(() => applyArchiveReferenceDraftMap(archiveReferences, publicReferences), [publicReferences]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0] ?? events[0];
 
   usePageMetadata({
@@ -643,24 +641,10 @@ export default function HomePage() {
         const result = await loadServerSync<ArchiveSyncPayload>('archive');
         if (ignore || !result.exists || !result.saved?.data) return;
 
-        if (result.saved.data.drafts) {
-          writeArchiveDrafts(result.saved.data.drafts);
-        }
-
-        if (result.saved.data.collections) {
-          writeArchiveCollectionDrafts(result.saved.data.collections);
-        }
-
-        if (result.saved.data.siteText) {
-          writeSiteTextDraft(result.saved.data.siteText);
-          setSiteText(getSiteText());
-        }
-
-        if (result.saved.data.references) {
-          writeArchiveReferenceDrafts(result.saved.data.references);
-        }
-
-        setVersion((current) => current + 1);
+        setPublicDrafts(result.saved.data.drafts ?? {});
+        setPublicCollections(result.saved.data.collections ?? {});
+        setPublicReferences(result.saved.data.references ?? {});
+        setSiteText(mergeSiteText(result.saved.data.siteText));
       } catch (error) {
         if (!(error instanceof Error) || error.message !== 'sync_unavailable') {
           console.warn('Public archive sync skipped:', error);
@@ -673,16 +657,6 @@ export default function HomePage() {
     return () => {
       ignore = true;
     };
-  }, []);
-
-  useEffect(() => {
-    function refreshFromAnotherTab(event: StorageEvent) {
-      if (event.key !== archiveDraftStorageKey && event.key !== archiveCollectionStorageKey) return;
-      setVersion((current) => current + 1);
-    }
-
-    window.addEventListener('storage', refreshFromAnotherTab);
-    return () => window.removeEventListener('storage', refreshFromAnotherTab);
   }, []);
 
   return (

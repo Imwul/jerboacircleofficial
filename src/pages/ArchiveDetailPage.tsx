@@ -16,6 +16,7 @@ import {
 import type { SiteText } from '../data/siteText';
 import {
   applyArchiveDrafts,
+  applyArchiveDraftMap,
   readArchiveDrafts,
   writeArchiveDraft,
   writeArchiveDrafts,
@@ -29,7 +30,7 @@ import {
   type ArchiveCollectionDraftMap,
 } from '../utils/archiveCollectionDrafts';
 import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
-import { getSiteText, writeSiteTextDraft } from '../utils/siteTextDrafts';
+import { getSiteText, mergeSiteText } from '../utils/siteTextDrafts';
 import { editorialPlates } from '../data/manuscriptPlates';
 import {
   archiveConnectionDirectionLabel,
@@ -59,6 +60,7 @@ import {
 } from '../utils/archiveRecordForm';
 import {
   applyArchiveReferenceDrafts,
+  applyArchiveReferenceDraftMap,
   readArchiveReferenceDrafts,
   writeArchiveReferenceDrafts,
   type ArchiveReferenceDraftMap,
@@ -593,15 +595,26 @@ function EventDetail({
 }
 
 export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
-  const [version, setVersion] = useState(0);
-  const [siteText, setSiteText] = useState(() => getSiteText());
-  const [archiveSyncState, setArchiveSyncState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
-  const archiveEvents = useMemo(() => applyArchiveDrafts(events), [version]);
-  const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections), [version]);
-  const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
-  const knownRecord = useMemo(() => archiveEvents.find((archiveEvent) => archiveEvent.id === id), [archiveEvents, id]);
   const isPreview = new URLSearchParams(window.location.search).get('preview') === '1'
     && (import.meta.env.DEV || Boolean(roleSessionToken('archive-editor')));
+  const [publicDrafts, setPublicDrafts] = useState<ArchiveDraftMap>({});
+  const [publicCollections, setPublicCollections] = useState<ArchiveCollectionDraftMap>({});
+  const [publicReferences, setPublicReferences] = useState<ArchiveReferenceDraftMap>({});
+  const [siteText, setSiteText] = useState(() => isPreview ? getSiteText() : mergeSiteText());
+  const [archiveSyncState, setArchiveSyncState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
+  const archiveEvents = useMemo(
+    () => isPreview ? applyArchiveDrafts(events) : applyArchiveDraftMap(events, publicDrafts),
+    [isPreview, publicDrafts],
+  );
+  const collectionRecords = useMemo(
+    () => applyArchiveCollectionDrafts(archiveCollections, isPreview ? readArchiveCollectionDrafts() : publicCollections),
+    [isPreview, publicCollections],
+  );
+  const referenceRecords = useMemo(
+    () => isPreview ? applyArchiveReferenceDrafts(archiveReferences) : applyArchiveReferenceDraftMap(archiveReferences, publicReferences),
+    [isPreview, publicReferences],
+  );
+  const knownRecord = useMemo(() => archiveEvents.find((archiveEvent) => archiveEvent.id === id), [archiveEvents, id]);
   const event = useMemo(
     () => archiveEvents.find((archiveEvent) => (
       archiveEvent.id === id
@@ -633,24 +646,12 @@ export default function ArchiveDetailPage({ id }: { id: string | undefined }) {
           return;
         }
 
-        if (!isPreview && result.saved.data.drafts) {
-          writeArchiveDrafts(result.saved.data.drafts);
+        if (!isPreview) {
+          setPublicDrafts(result.saved.data.drafts ?? {});
+          setPublicCollections(result.saved.data.collections ?? {});
+          setPublicReferences(result.saved.data.references ?? {});
+          setSiteText(mergeSiteText(result.saved.data.siteText));
         }
-
-        if (!isPreview && result.saved.data.collections) {
-          writeArchiveCollectionDrafts(result.saved.data.collections);
-        }
-
-        if (!isPreview && result.saved.data.siteText) {
-          writeSiteTextDraft(result.saved.data.siteText);
-          setSiteText(getSiteText());
-        }
-
-        if (!isPreview && result.saved.data.references) {
-          writeArchiveReferenceDrafts(result.saved.data.references);
-        }
-
-        setVersion((current) => current + 1);
         setArchiveSyncState('ready');
       } catch (error) {
         if (!ignore) setArchiveSyncState('unavailable');

@@ -6,7 +6,7 @@ const distDir = path.join(rootDir, 'dist');
 const indexPath = path.join(distDir, 'index.html');
 const siteOrigin = (process.env.PUBLIC_SITE_URL
   || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
-  || 'https://jerboa-circle.vercel.app').replace(/\/$/, '');
+  || 'https://jerboacircleofficial.vercel.app').replace(/\/$/, '');
 
 function escapeHtml(value) {
   return String(value)
@@ -58,15 +58,6 @@ function withMetadata(html, {
   return next;
 }
 
-function isPublicRecord(record) {
-  if (record.visibility !== 'public' || record.workflowStatus !== 'published') return false;
-  const now = Date.now();
-  const publishAt = record.publishAt ? Date.parse(record.publishAt) : null;
-  const unpublishAt = record.unpublishAt ? Date.parse(record.unpublishAt) : null;
-  return (publishAt === null || (Number.isFinite(publishAt) && publishAt <= now))
-    && (unpublishAt === null || (Number.isFinite(unpublishAt) && unpublishAt > now));
-}
-
 function writeRoute(route, html) {
   const directory = path.join(distDir, route);
   fs.mkdirSync(directory, { recursive: true });
@@ -95,8 +86,6 @@ async function main() {
   }
 
   const rootIndex = fs.readFileSync(indexPath, 'utf8');
-  const publicRecords = records.filter(isPublicRecord);
-
   fs.writeFileSync(indexPath, withMetadata(rootIndex, {
     title: 'Jerboa Circle Official Archive',
     description: '문헌, 이미지, 장소와 프로그램이 서로 이어지는 저보아 서클의 공식 아카이브.',
@@ -132,15 +121,6 @@ async function main() {
     canonicalPath: '/catalogue/',
   }));
 
-  for (const record of publicRecords) {
-    writeRoute(path.join('archive', record.id), withMetadata(rootIndex, {
-      title: `${record.title} | Jerboa Circle`,
-      description: record.shortDescription,
-      canonicalPath: `/archive/${record.id}/`,
-      type: 'article',
-    }));
-  }
-
   for (const reference of references) {
     writeRoute(path.join('catalogue', reference.id), withMetadata(rootIndex, {
       title: `${reference.title} | Jerboa Circle Catalogue`,
@@ -150,20 +130,6 @@ async function main() {
     }));
   }
 
-  const xmlEscape = (value) => escapeHtml(value).replaceAll('&#39;', '&apos;');
-  const sitemapPaths = [
-    '/',
-    '/archive/',
-    '/catalogue/',
-    ...publicRecords.map((record) => `/archive/${record.id}/`),
-    ...references.map((reference) => `/catalogue/${reference.id}/`),
-  ];
-  fs.writeFileSync(path.join(distDir, 'sitemap.xml'), [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...sitemapPaths.map((pathname) => `  <url><loc>${xmlEscape(`${siteOrigin}${pathname}`)}</loc></url>`),
-    '</urlset>',
-  ].join('\n'));
   fs.writeFileSync(path.join(distDir, 'robots.txt'), [
     'User-agent: *',
     'Allow: /',
@@ -173,41 +139,14 @@ async function main() {
     `Sitemap: ${siteOrigin}/sitemap.xml`,
   ].join('\n'));
 
-  const feedRecords = [...publicRecords].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  fs.writeFileSync(path.join(distDir, 'feed.xml'), [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<feed xmlns="http://www.w3.org/2005/Atom">',
-    '  <title>Jerboa Circle Archive</title>',
-    `  <id>${xmlEscape(siteOrigin)}</id>`,
-    `  <link href="${xmlEscape(`${siteOrigin}/feed.xml`)}" rel="self" />`,
-    `  <updated>${new Date().toISOString()}</updated>`,
-    ...feedRecords.map((record) => [
-      '  <entry>',
-      `    <title>${xmlEscape(record.title)}</title>`,
-      `    <id>${xmlEscape(`${siteOrigin}/archive/${record.id}/`)}</id>`,
-      `    <link href="${xmlEscape(`${siteOrigin}/archive/${record.id}/`)}" />`,
-      `    <updated>${record.updatedAt}T00:00:00Z</updated>`,
-      `    <summary>${xmlEscape(record.shortDescription)}</summary>`,
-      '  </entry>',
-    ].join('\n')),
-    '</feed>',
-  ].join('\n'));
-
-  fs.writeFileSync(path.join(distDir, 'archive.json'), JSON.stringify({
-    schemaVersion: 2,
-    generatedAt: new Date().toISOString(),
-    programmes: publicRecords.map(({ posterImage, ...record }) => ({
-      ...record,
-      url: `${siteOrigin}/archive/${record.id}/`,
-    })),
+  // Runtime publication state is materialized by /api/public. Keep the full
+  // bundled base server-side so hidden records cannot bypass tombstones.
+  const archiveBase = JSON.stringify({
+    schemaVersion: 1,
+    records: records.map(({ posterImage: _posterImage, ...record }) => record),
     references,
-  }, null, 2));
-
-  fs.writeFileSync(path.join(distDir, 'archive', 'manifest.json'), JSON.stringify({
-    generatedAt: new Date().toISOString(),
-    recordIds: publicRecords.map((record) => record.id),
-    referenceIds: references.map((reference) => reference.id),
-  }, null, 2));
+  }, null, 2);
+  fs.writeFileSync(path.join(rootDir, 'shared', 'archiveBase.json'), archiveBase);
   fs.writeFileSync(path.join(distDir, '404.html'), withMetadata(rootIndex, {
     title: '없는 길 | Jerboa Circle',
     description: '이 주소에는 아직 열린 Jerboa Circle 기록이 없습니다.',

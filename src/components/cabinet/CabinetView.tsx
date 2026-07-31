@@ -6,6 +6,7 @@ import { useDialogFocus } from '../../utils/useDialogFocus';
 import { readArchiveBookmarks } from '../../utils/readingMarks';
 import RelationshipPicker from '../archive/RelationshipPicker';
 import ResilientImage from '../ui/ResilientImage';
+import { canReadCabinetItem, normalizeCabinetRelatedIds } from '../../../shared/cabinetRelations.mjs';
 
 type CabinetScope = 'mine' | 'circle';
 type CabinetShelf = 'all' | 'bookmarked' | 'private' | 'public' | 'recent' | 'rediscovered';
@@ -410,7 +411,9 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const detail = detailId ? curiosities.find((item) => item.id === detailId) || null : null;
+  const detail = detailId
+    ? curiosities.find((item) => item.id === detailId && canReadCabinetItem(item, user.id)) || null
+    : null;
 
   const related = useMemo(() => {
     if (!detail) return [];
@@ -525,8 +528,9 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
       return;
     }
     const previous = editor?.itemId ? curiosities.find((item) => item.id === editor.itemId) : undefined;
+    const itemId = previous?.id || `curiosity-${Date.now().toString(36)}`;
     const item: Curiosity = {
-      id: previous?.id || `curiosity-${Date.now().toString(36)}`,
+      id: itemId,
       ownerId: previous?.ownerId || user.id,
       title: form.title.trim(),
       maker: form.maker.trim() || undefined,
@@ -539,7 +543,12 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
       century: form.century.trim(),
       region: form.region.trim(),
       tags: unique(form.tags.split(',').map((tag) => tag.trim())),
-      relatedEntryIds: splitRelatedIds(form.relatedEntryIds).filter((id) => id !== previous?.id),
+      relatedEntryIds: normalizeCabinetRelatedIds({
+        itemId,
+        ownerId: previous?.ownerId || user.id,
+        relatedIds: splitRelatedIds(form.relatedEntryIds),
+        items: curiosities,
+      }),
       source: {
         institution: form.sourceInstitution.trim(),
         reference: form.sourceReference.trim() || undefined,

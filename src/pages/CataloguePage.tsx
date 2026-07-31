@@ -7,10 +7,9 @@ import {
   getArchiveReference,
   type ArchiveReferenceKind,
 } from '../data/archiveKnowledge';
-import { applyArchiveDrafts, writeArchiveDrafts, type ArchiveDraftMap } from '../utils/archiveDrafts';
+import { applyArchiveDraftMap, type ArchiveDraftMap } from '../utils/archiveDrafts';
 import {
-  applyArchiveReferenceDrafts,
-  writeArchiveReferenceDrafts,
+  applyArchiveReferenceDraftMap,
   type ArchiveReferenceDraftMap,
 } from '../utils/archiveReferenceDrafts';
 import { usePageMetadata } from '../utils/pageMetadata';
@@ -81,13 +80,14 @@ function CatalogueHeader() {
 }
 
 export default function CataloguePage({ id }: { id?: string }) {
-  const [version, setVersion] = useState(0);
+  const [publicDrafts, setPublicDrafts] = useState<ArchiveDraftMap>({});
+  const [publicReferenceDrafts, setPublicReferenceDrafts] = useState<ArchiveReferenceDraftMap>({});
   const initialQuery = useMemo(readCatalogueQueryState, []);
   const [query, setQuery] = useState(initialQuery.query);
   const [kind, setKind] = useState<ArchiveReferenceKind | 'all'>(initialQuery.kind);
   const [copyStatus, setCopyStatus] = useState('');
-  const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDrafts(events)), [version]);
-  const references = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
+  const publicEvents = useMemo(() => getPublicArchiveEvents(applyArchiveDraftMap(events, publicDrafts)), [publicDrafts]);
+  const references = useMemo(() => applyArchiveReferenceDraftMap(archiveReferences, publicReferenceDrafts), [publicReferenceDrafts]);
   const kinds = useMemo<Array<ArchiveReferenceKind | 'all'>>(() => ['all', ...Array.from(new Set([
     ...defaultArchiveReferenceKinds,
     ...references.map((reference) => reference.kind),
@@ -150,9 +150,8 @@ export default function CataloguePage({ id }: { id?: string }) {
     let ignore = false;
     void loadServerSync<{ drafts?: ArchiveDraftMap; references?: ArchiveReferenceDraftMap }>('archive').then((result) => {
       if (ignore || !result.exists || !result.saved?.data) return;
-      if (result.saved.data.drafts) writeArchiveDrafts(result.saved.data.drafts);
-      if (result.saved.data.references) writeArchiveReferenceDrafts(result.saved.data.references);
-      setVersion((current) => current + 1);
+      setPublicDrafts(result.saved.data.drafts ?? {});
+      setPublicReferenceDrafts(result.saved.data.references ?? {});
     }).catch((error) => {
       if (!(error instanceof Error) || error.message !== 'sync_unavailable') console.warn('Catalogue sync skipped:', error);
     });

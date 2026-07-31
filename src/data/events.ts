@@ -2,6 +2,7 @@ import scintillaPoster from '../assets/posters/scintilla-animae.svg';
 import readingPoster from '../assets/posters/reading-edge-room.svg';
 import lettersPoster from '../assets/posters/letters-unmade-places.svg';
 import museumPoster from '../assets/posters/museum-after-hours.svg';
+import { isPublicationPublic } from '../../shared/publicationState.mjs';
 
 export type EventStatus = 'upcoming' | 'past' | 'current';
 export const defaultArchiveContentKinds = ['Lecture', 'Reading', 'Colloquy', 'Practice', 'Contemplation'] as const;
@@ -259,13 +260,7 @@ export const events: ArchiveEvent[] = [
 ];
 
 export function isPublicArchiveEvent(event: ArchiveEvent) {
-  const now = Date.now();
-  const publishAt = event.publishAt ? new Date(event.publishAt).getTime() : null;
-  const unpublishAt = event.unpublishAt ? new Date(event.unpublishAt).getTime() : null;
-  return event.visibility === 'public'
-    && event.workflowStatus === 'published'
-    && (publishAt === null || (Number.isFinite(publishAt) && publishAt <= now))
-    && (unpublishAt === null || (Number.isFinite(unpublishAt) && unpublishAt > now));
+  return isPublicationPublic(event);
 }
 
 export function getPublicArchiveEvents(records: ArchiveEvent[] = events) {

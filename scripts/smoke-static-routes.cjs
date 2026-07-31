@@ -47,9 +47,8 @@ function assertHtmlAssets(htmlPath) {
   }
 }
 
-const archiveManifest = JSON.parse(read(path.join(distDir, 'archive', 'manifest.json')));
-const eventIds = archiveManifest.recordIds;
-const referenceIds = archiveManifest.referenceIds;
+const archiveBase = JSON.parse(read(path.join(rootDir, 'shared', 'archiveBase.json')));
+const referenceIds = archiveBase.references.map((reference) => reference.id);
 const routeFiles = [
   path.join(distDir, 'index.html'),
   path.join(distDir, '404.html'),
@@ -58,20 +57,30 @@ const routeFiles = [
   path.join(distDir, 'godmode', 'index.html'),
   path.join(distDir, 'archive', 'index.html'),
   path.join(distDir, 'catalogue', 'index.html'),
-  ...eventIds.map((id) => path.join(distDir, 'archive', id, 'index.html')),
   ...referenceIds.map((id) => path.join(distDir, 'catalogue', id, 'index.html')),
 ];
 
 assert(fs.existsSync(distDir), 'Missing dist directory. Run the build first.');
-assert(eventIds.length > 0, 'No archive event ids found for static route smoke test.');
+assert(!fs.existsSync(path.join(rootDir, 'public', 'archive-base.json')),
+  'The runtime archive base must not be present in public/.');
+assert(!fs.existsSync(path.join(distDir, 'archive-base.json')),
+  'The runtime archive base must not be present in dist/.');
+assert(archiveBase.records.length > 0, 'No archive event ids found in runtime archive base.');
 assert(referenceIds.length > 0, 'No archive reference ids found for static route smoke test.');
-assertFile(path.join(distDir, 'sitemap.xml'));
-assertFile(path.join(distDir, 'feed.xml'));
-assertFile(path.join(distDir, 'archive.json'));
 assertFile(path.join(distDir, 'robots.txt'));
 
 for (const routeFile of routeFiles) {
   assertHtmlAssets(routeFile);
+}
+
+for (const protectedFile of [
+  path.join(distDir, '404.html'),
+  path.join(distDir, 'members', 'index.html'),
+  path.join(distDir, 'keeper', 'index.html'),
+  path.join(distDir, 'godmode', 'index.html'),
+]) {
+  assert(read(protectedFile).includes('<meta name="robots" content="noindex, nofollow" />'),
+    `${path.relative(rootDir, protectedFile)} must remain noindex`);
 }
 
 console.log(`Static route smoke check passed for ${routeFiles.length} routes.`);

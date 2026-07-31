@@ -1,6 +1,7 @@
 import { get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
 import { verifyRoleSession } from '../server/authCore.js';
+import { validateImageBuffer } from '../shared/imageValidation.mjs';
 
 const maxBodyBytes = 4_200_000;
 const allowedTypes = new Map([
@@ -116,6 +117,10 @@ export default async function handler(request: any, response: any) {
     }
 
     const contentType = match[1];
+    const imageValidation = validateImageBuffer(image, contentType);
+    if (!imageValidation.ok) {
+      return sendJson(response, 400, { ok: false, error: imageValidation.error });
+    }
     const extension = allowedTypes.get(contentType) || 'jpg';
     const folder = body?.scope === 'archive' ? 'archive' : 'cabinet';
     const pathname = `${folder}/${new Date().toISOString().slice(0, 10)}/${safeName(body?.fileName)}.${extension}`;

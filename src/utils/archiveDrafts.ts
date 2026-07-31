@@ -44,6 +44,7 @@ export type ArchiveEventDraft = Partial<
   createdAt?: string;
   isCustom?: boolean;
   deletedAt?: string;
+  tombstone?: boolean;
 };
 
 export type ArchiveDraftMap = Record<string, ArchiveEventDraft>;
@@ -238,7 +239,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
   const baseIds = new Set(baseEvents.map((event) => event.id));
   const fallback = baseEvents[0];
 
-  const editedBaseEvents = baseEvents.filter((event) => !drafts[event.id]?.deletedAt).map((event) => {
+  const editedBaseEvents = baseEvents.filter((event) => !drafts[event.id]?.deletedAt && !drafts[event.id]?.tombstone).map((event) => {
     const draft = drafts[event.id];
     if (!draft) return event;
 
@@ -255,7 +256,7 @@ export function applyArchiveDraftMap(baseEvents: ArchiveEvent[], drafts: Archive
   });
 
   const customEvents = Object.entries(drafts)
-    .filter(([id, draft]) => !baseIds.has(id) && !draft.deletedAt)
+    .filter(([id, draft]) => !baseIds.has(id) && !draft.deletedAt && !draft.tombstone)
     .map(([id, draft]) => eventFromDraft(id, draft, fallback))
     .sort((a, b) => (a.edition < b.edition ? 1 : -1));
 

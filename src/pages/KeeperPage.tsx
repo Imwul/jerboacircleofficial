@@ -430,7 +430,7 @@ export default function KeeperPage() {
   const referenceRecords = useMemo(() => applyArchiveReferenceDrafts(archiveReferences), [version]);
   const [selectedId, setSelectedId] = useState(() => {
     const requestedId = new URLSearchParams(window.location.search).get('record');
-    return archiveEvents.some((event) => event.id === requestedId) ? requestedId as string : archiveEvents[0].id;
+    return requestedId || archiveEvents[0].id;
   });
   const selectedEvent = archiveEvents.find((event) => event.id === selectedId) ?? archiveEvents[0];
   const [form, setForm] = useState(() => toFormState(selectedEvent));
@@ -1812,7 +1812,7 @@ export default function KeeperPage() {
   function createArchiveSyncPayload(overrides: Partial<ArchiveSyncPayload> = {}): ArchiveSyncPayload {
     const drafts = overrides.drafts ?? {
       ...readArchiveDrafts(),
-      ...(isDirty ? { [selectedEvent.id]: toDraft(form) } : {}),
+      ...(mode === 'events' ? { [selectedEvent.id]: toDraft(formRef.current) } : {}),
     };
     return {
       schemaVersion: 3 as const,
@@ -1841,7 +1841,10 @@ export default function KeeperPage() {
     if (payload.auditLog) writeArchiveAuditLog(payload.auditLog);
 
     const nextEvents = applyArchiveDrafts(events);
-    const nextSelected = nextEvents.find((event) => event.id === selectedId) ?? nextEvents[0];
+    const requestedRecordId = new URLSearchParams(window.location.search).get('record');
+    const nextSelected = nextEvents.find((event) => event.id === requestedRecordId)
+      ?? nextEvents.find((event) => event.id === selectedId)
+      ?? nextEvents[0];
     if (nextSelected) {
       setSelectedId(nextSelected.id);
       setForm(toFormState(nextSelected));
@@ -1922,9 +1925,10 @@ export default function KeeperPage() {
   async function saveArchiveToServer() {
     if (!beginOperation('syncing')) return;
     try {
-      const currentRecordWouldBePublic = form.visibility === 'public' && form.workflowStatus === 'published';
+      const activeForm = formRef.current;
+      const currentRecordWouldBePublic = activeForm.visibility === 'public' && activeForm.workflowStatus === 'published';
       const archiveValidation = (mode === 'events' || isDirty) && currentRecordWouldBePublic
-        ? validateKeeperForm(form, archiveEvents, referenceRecords, collectionRecords)
+        ? validateKeeperForm(activeForm, archiveEvents, referenceRecords, collectionRecords)
         : '';
       if (archiveValidation) {
         reportOperationError(`공동 장부 반영 실패 / ${archiveValidation}`);
@@ -1942,8 +1946,8 @@ export default function KeeperPage() {
         reportOperationError(`공동 장부 반영 실패 / ${referenceValidation}`);
         return;
       }
-      if (isDirty) {
-        writeArchiveDraft(selectedEvent.id, toDraft(form), { label: form.workflowStatus });
+      if (mode === 'events') {
+        writeArchiveDraft(selectedEvent.id, toDraft(activeForm), { label: activeForm.workflowStatus });
       }
       setSyncStatus('모든 기기 저장본을 공동 장부에 반영하는 중');
       if (mode === 'text' || isTextDirty) {
@@ -2000,10 +2004,29 @@ export default function KeeperPage() {
       });
       setHasArchiveConflict(false);
       if (result.exists && result.saved?.data) {
-        applyArchivePayload(result.saved.data, result.saved.savedAt);
+        const localDrafts = readArchiveDrafts();
+        const localReferences = readArchiveReferenceDrafts();
+        const localCollections = readArchiveCollectionDrafts();
+        const remoteDrafts = result.saved.data.drafts ?? {};
+        const remoteReferences = result.saved.data.references ?? {};
+        const remoteCollections = result.saved.data.collections ?? {};
+        const localOnlyDrafts = Object.fromEntries(Object.entries(localDrafts).filter(([id]) => !remoteDrafts[id]));
+        const localOnlyReferences = Object.fromEntries(Object.entries(localReferences).filter(([id]) => !remoteReferences[id]));
+        const localOnlyCollections = Object.fromEntries(Object.entries(localCollections).filter(([id]) => !remoteCollections[id]));
+        const preservedLocalCount = Object.keys(localOnlyDrafts).length
+          + Object.keys(localOnlyReferences).length
+          + Object.keys(localOnlyCollections).length;
+        applyArchivePayload({
+          ...result.saved.data,
+          drafts: { ...remoteDrafts, ...localOnlyDrafts },
+          references: { ...remoteReferences, ...localOnlyReferences },
+          collections: { ...remoteCollections, ...localOnlyCollections },
+        }, result.saved.savedAt);
         setSharedSnapshot(result.saved.data);
         setConflictState(null);
-        setSyncStatus(`공동 장부 다시 불러오기 완료 / ${timeLabel(new Date(result.saved.savedAt))}`);
+        setSyncStatus(preservedLocalCount > 0
+          ? `공동 장부 다시 불러오기 완료 / 이 기기의 미공유 기록 ${preservedLocalCount}개 유지됨`
+          : `공동 장부 다시 불러오기 완료 / ${timeLabel(new Date(result.saved.savedAt))}`);
       } else {
         setArchiveSavedAt(null);
         setSyncStatus('불러올 공동 장부가 없습니다');
