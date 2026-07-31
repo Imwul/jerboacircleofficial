@@ -80,6 +80,11 @@ export default function KeeperEditorActionBar({
       : dirty
         ? '저장되지 않은 변경 사항이 있습니다.'
         : savedTimeLabel(lastSavedAt);
+  const publicationPolicyLabel = mode !== 'events'
+    ? ''
+    : workflowStatus === 'published' && visibility === 'public'
+      ? '공개 중인 기록은 변경사항 저장 시 즉시 공개됩니다. 게시 버튼은 검증된 발행 이력을 남깁니다.'
+      : '임시 저장과 공동 장부 저장만으로는 공개되지 않습니다. 게시해야 공개됩니다.';
 
   return (
     <section
@@ -94,6 +99,7 @@ export default function KeeperEditorActionBar({
         <span role={error ? 'alert' : 'status'} aria-live={error ? 'assertive' : 'polite'} lang="ko">
           {statusLabel}
         </span>
+        {publicationPolicyLabel && <small className="keeper-editor-publication-policy" lang="ko">{publicationPolicyLabel}</small>}
       </div>
       <div className="keeper-editor-action-meta" aria-label="현재 기록 상태">
         {workflowStatus && <span lang="ko">단계: {workflowLabels[workflowStatus]}</span>}

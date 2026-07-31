@@ -809,6 +809,13 @@ html body #root .public-home.keeper-home .keeper-editor-action-state > span {
   line-height: 1.4 !important;
 }
 
+html body #root .public-home.keeper-home .keeper-editor-publication-policy {
+  max-width: 42rem !important;
+  color: color-mix(in srgb, var(--ink) 74%, transparent) !important;
+  font-size: 0.74rem !important;
+  line-height: 1.42 !important;
+}
+
 html body #root .public-home.keeper-home .keeper-editor-action-meta {
   gap: 0.4rem !important;
 }
