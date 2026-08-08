@@ -42,7 +42,7 @@ import {
   writeSiteTextDraft,
 } from '../utils/siteTextDrafts';
 import { resizeImage } from '../utils/imageUtils';
-import { uploadArchiveImage } from '../utils/cabinetMedia';
+import { discardUploadedMedia, uploadArchiveImage } from '../utils/cabinetMedia';
 import { editorialPlates } from '../data/manuscriptPlates';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
@@ -517,6 +517,9 @@ export default function KeeperPage() {
   const commandDialogRef = useDialogFocus<HTMLElement>(commandOpen, () => setCommandOpen(false));
   const detailImageInputRef = useRef<HTMLInputElement>(null);
   const referenceImageInputRef = useRef<HTMLInputElement>(null);
+  const pendingPosterUploadRef = useRef<string | null>(null);
+  const pendingDetailUploadRef = useRef<string | null>(null);
+  const pendingReferenceUploadRef = useRef<string | null>(null);
   const formRef = useRef(form);
   formRef.current = form;
   const programmeUndo = useRef<KeeperFormState[]>([]);
@@ -1133,6 +1136,36 @@ export default function KeeperPage() {
     setSyncStatus(localPreview
       ? `${label} 로컬 미리보기와 프로그램 임시 저장 완료`
       : `${label} 업로드와 프로그램 임시 저장 완료 / 변경 게시하면 공개됩니다`);
+  }
+
+  async function replacePendingUpload(
+    pendingRef: { current: string | null },
+    nextUrl: string | null,
+  ) {
+    const previousUrl = pendingRef.current;
+    pendingRef.current = nextUrl;
+    if (!previousUrl || previousUrl === nextUrl) return;
+    const authSession = roleSessionToken('archive-editor');
+    if (!authSession) return;
+    try {
+      await discardUploadedMedia(previousUrl, '', authSession);
+    } catch (error) {
+      console.warn('Unshared archive image cleanup deferred:', error);
+    }
+  }
+
+  async function settlePendingUploads(payload: ArchiveSyncPayload) {
+    const draftRecords = Object.values(payload.drafts ?? {});
+    const referenceRecords = Object.values(payload.references ?? {});
+    const payloadUses = (url: string) => (
+      draftRecords.some((draft) => draft.posterImage === url || draft.detailImage === url)
+      || referenceRecords.some((reference) => reference.imageUrl === url)
+    );
+    for (const pendingRef of [pendingPosterUploadRef, pendingDetailUploadRef, pendingReferenceUploadRef]) {
+      if (!pendingRef.current) continue;
+      if (payloadUses(pendingRef.current)) pendingRef.current = null;
+      else await replacePendingUpload(pendingRef, null);
+    }
   }
 
   function togglePrimaryTheme(theme: string) {
@@ -1916,6 +1949,7 @@ export default function KeeperPage() {
       });
       applyArchivePayload(merged, result.savedAt);
       setSharedSnapshot(merged);
+      await settlePendingUploads(merged);
       setConflictState(null);
       setHasArchiveConflict(false);
       setSyncStatus(`충돌 해결 후 공개 반영 완료 / ${timeLabel(result.savedAt ? new Date(result.savedAt) : new Date())}`);
@@ -1983,6 +2017,7 @@ export default function KeeperPage() {
       });
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
       setSharedSnapshot(payload);
+      await settlePendingUploads(payload);
       setLastLocalSavedAt(new Date().toISOString());
       setHasArchiveConflict(false);
       setConflictState(null);
@@ -2303,6 +2338,7 @@ export default function KeeperPage() {
       setWorkingCopyVersion((current) => current + 1);
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
       setSharedSnapshot(payload);
+      await settlePendingUploads(payload);
       setLastLocalSavedAt(new Date().toISOString());
       setHasArchiveConflict(false);
       setConflictState(null);
@@ -2366,6 +2402,7 @@ export default function KeeperPage() {
       setWorkingCopyVersion((current) => current + 1);
       setArchiveSavedAt(result.savedAt || archiveSavedAt);
       setSharedSnapshot(payload);
+      await settlePendingUploads(payload);
       setLastLocalSavedAt(now.toISOString());
       setHasArchiveConflict(false);
       setConflictState(null);
@@ -2453,6 +2490,7 @@ export default function KeeperPage() {
         setPosterUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
         setSyncStatus('포스터를 공동 이미지 저장소에 붙이는 중');
         posterImage = await uploadArchiveImage(resizedPoster, file.name, authSession);
+        await replacePendingUpload(pendingPosterUploadRef, posterImage);
         setPosterUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
       const current = formRef.current;
@@ -2493,6 +2531,7 @@ export default function KeeperPage() {
       } else {
         setDetailImageUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
         detailImage = await uploadArchiveImage(resizedImage, `${selectedEvent.id}-detail-${file.name}`, authSession);
+        await replacePendingUpload(pendingDetailUploadRef, detailImage);
         setSyncStatus('프로그램 상세 이미지가 공동 저장소에 보존됨 / 프로그램을 저장하거나 게시하세요');
         setDetailImageUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
@@ -2515,6 +2554,7 @@ export default function KeeperPage() {
   }
 
   function removeProgrammeDetailImage() {
+    void replacePendingUpload(pendingDetailUploadRef, null);
     updateField('detailImage', '');
     setDetailImageUploadStatus({ state: 'idle', message: '프로그램별 상세 이미지를 제거하고 기본 이미지로 되돌렸습니다' });
     setSyncStatus('상세 이미지를 기본 이미지로 되돌렸습니다 / 프로그램을 저장하면 반영됩니다');
@@ -2541,6 +2581,7 @@ export default function KeeperPage() {
       } else {
         setReferenceImageUploadStatus({ state: 'busy', message: `${file.name} 공동 저장소에 보존 중` });
         imageUrl = await uploadArchiveImage(resizedImage, file.name, authSession);
+        await replacePendingUpload(pendingReferenceUploadRef, imageUrl);
         setSyncStatus('자료 이미지가 공동 이미지 저장소에 보존됨 / 자료를 임시 저장하거나 공개 반영하세요');
         setReferenceImageUploadStatus({ state: 'success', message: `${file.name} 보존 완료` });
       }
@@ -2564,6 +2605,7 @@ export default function KeeperPage() {
   }
 
   function removeReferenceImage() {
+    void replacePendingUpload(pendingReferenceUploadRef, null);
     setReferenceForm((current) => {
       referenceUndo.current = [...referenceUndo.current.slice(-49), current];
       referenceRedo.current = [];
@@ -2588,6 +2630,7 @@ export default function KeeperPage() {
       const embeddedFile = new File([embeddedBlob], `${selectedEvent.id}-poster`, { type: embeddedBlob.type || 'image/png' });
       const rasterPoster = await resizeImage(embeddedFile, 1600, 2200);
       const posterUrl = await uploadArchiveImage(rasterPoster, `${selectedEvent.id}-poster`, authSession);
+      await replacePendingUpload(pendingPosterUploadRef, posterUrl);
       updateField('posterImage', posterUrl);
       if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
       setSyncStatus('기존 포스터 이전 완료 / 이 프로그램을 임시 저장하세요');
