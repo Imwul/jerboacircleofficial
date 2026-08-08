@@ -99,7 +99,7 @@ function validateSiteText(candidate: Record<string, unknown>) {
 }
 
 const auditActions = new Set<ArchiveAuditAction>([
-  'create', 'duplicate', 'edit', 'delete', 'restore', 'import', 'publish', 'sync', 'conflict-resolved', 'backup-restored',
+  'create', 'duplicate', 'edit', 'delete', 'restore', 'import', 'publish', 'unpublish', 'sync', 'conflict-resolved', 'backup-restored',
 ]);
 
 function validateAuditLog(candidate: unknown[]) {
@@ -113,6 +113,9 @@ function validateAuditLog(candidate: unknown[]) {
     assert(typeof entry.createdAt === 'string' && !Number.isNaN(new Date(entry.createdAt).getTime()), `운영 기록 ${index + 1}의 시각이 올바르지 않습니다.`);
     assert(entry.targetId === undefined || (typeof entry.targetId === 'string' && entry.targetId.length <= 120), `운영 기록 ${index + 1}의 대상 ID가 올바르지 않습니다.`);
     assert(entry.detail === undefined || (typeof entry.detail === 'string' && entry.detail.length <= 25_000), `운영 기록 ${index + 1}의 설명이 올바르지 않습니다.`);
+    assert(entry.actor === undefined || (typeof entry.actor === 'string' && entry.actor.length <= 120), `운영 기록 ${index + 1}의 작업자 정보가 올바르지 않습니다.`);
+    assert(entry.previousRevision === undefined || entry.previousRevision === null || (typeof entry.previousRevision === 'string' && entry.previousRevision.length <= 120), `운영 기록 ${index + 1}의 이전 판본 정보가 올바르지 않습니다.`);
+    assert(entry.newRevision === undefined || entry.newRevision === null || (typeof entry.newRevision === 'string' && entry.newRevision.length <= 120), `운영 기록 ${index + 1}의 새 판본 정보가 올바르지 않습니다.`);
     return entry as unknown as ArchiveAuditEntry;
   });
 }

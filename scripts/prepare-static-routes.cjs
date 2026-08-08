@@ -78,8 +78,12 @@ async function main() {
 
   let records;
   let references;
+  let collections;
   try {
-    ({ events: records } = await server.ssrLoadModule('/src/data/events.ts'));
+    ({
+      events: records,
+      archiveCollections: collections,
+    } = await server.ssrLoadModule('/src/data/events.ts'));
     ({ archiveReferences: references } = await server.ssrLoadModule('/src/data/archiveKnowledge.ts'));
   } finally {
     await server.close();
@@ -145,6 +149,7 @@ async function main() {
     schemaVersion: 1,
     records: records.map(({ posterImage: _posterImage, ...record }) => record),
     references,
+    collections,
   }, null, 2);
   fs.writeFileSync(path.join(rootDir, 'shared', 'archiveBase.json'), archiveBase);
   fs.writeFileSync(path.join(distDir, '404.html'), withMetadata(rootIndex, {

@@ -1,4 +1,9 @@
 import { mergePublicArchiveRecords } from '../shared/publicationState.mjs';
+import {
+  mergePublicArchiveCollections,
+  mergePublicArchiveReferences,
+} from '../shared/publicArchiveMaterial.mjs';
+import { renderPublicPageMetadata } from '../shared/publicPageMetadata.mjs';
 import archiveBase from '../shared/archiveBase.json' with { type: 'json' };
 
 function escapeXml(value: unknown) {
@@ -8,10 +13,6 @@ function escapeXml(value: unknown) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
-}
-
-function escapeHtml(value: unknown) {
-  return escapeXml(value);
 }
 
 function send(response: any, status: number, type: string, body: string) {
@@ -30,42 +31,6 @@ function requestOrigin(request: any) {
   return `${/^(?:localhost|127\.0\.0\.1)(?::|$)/.test(host) ? 'http' : 'https'}://${host}`;
 }
 
-function replaceMeta(html: string, attribute: string, key: string, value: string) {
-  const pattern = new RegExp(`<meta\\s+${attribute}="${key}"[\\s\\S]*?\\/>`, 'i');
-  const tag = `<meta ${attribute}="${key}" content="${escapeHtml(value)}" />`;
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `    ${tag}\n  </head>`);
-}
-
-function replaceLink(html: string, rel: string, href: string) {
-  const pattern = new RegExp(`<link\\s+rel="${rel}"[\\s\\S]*?>`, 'i');
-  const tag = `<link rel="${rel}" href="${escapeHtml(href)}" />`;
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `    ${tag}\n  </head>`);
-}
-
-function pageMetadata(html: string, record: any, origin: string) {
-  const title = record ? `${record.title} | Jerboa Circle` : '없는 길 | Jerboa Circle';
-  const description = record?.shortDescription || '이 주소에는 현재 공개된 Jerboa Circle 기록이 없습니다.';
-  const canonical = record ? `${origin}/archive/${record.id}/` : '';
-  let next = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
-  next = replaceMeta(next, 'name', 'description', description);
-  next = replaceMeta(next, 'name', 'robots', record ? 'index, follow' : 'noindex, nofollow');
-  next = replaceMeta(next, 'property', 'og:title', title);
-  next = replaceMeta(next, 'property', 'og:description', description);
-  next = replaceMeta(next, 'property', 'og:type', record ? 'article' : 'website');
-  next = replaceMeta(next, 'name', 'twitter:title', title);
-  next = replaceMeta(next, 'name', 'twitter:description', description);
-  if (canonical) {
-    next = replaceLink(next, 'canonical', canonical);
-    next = replaceMeta(next, 'property', 'og:url', canonical);
-  }
-  if (record?.posterImage) {
-    const image = new URL(record.posterImage, `${origin}/`).href;
-    next = replaceMeta(next, 'property', 'og:image', image);
-    next = replaceMeta(next, 'name', 'twitter:image', image);
-  }
-  return next;
-}
-
 async function publicMaterial(request: any) {
   const origin = requestOrigin(request);
   const internalHost = String(request.headers['x-forwarded-host'] || request.headers.host).split(',')[0].trim();
@@ -81,17 +46,19 @@ async function publicMaterial(request: any) {
   ]);
   if (!syncResponse.ok || !indexResponse.ok) throw new Error('public_material_unavailable');
   const sync = await syncResponse.json();
-  const drafts = sync?.saved?.data?.drafts ?? {};
+  const data = sync?.saved?.data ?? {};
+  const drafts = data.drafts ?? {};
   return {
     origin,
     records: mergePublicArchiveRecords(archiveBase.records, drafts, Date.now()),
-    references: Array.isArray(archiveBase.references) ? archiveBase.references : [],
+    references: mergePublicArchiveReferences(archiveBase.references, data.references),
+    collections: mergePublicArchiveCollections((archiveBase as any).collections, data.collections),
     html: await indexResponse.text(),
   };
 }
 
 function publicProgramme(record: any, origin: string) {
-  const { posterImage: _posterImage, visibility: _visibility, workflowStatus: _workflowStatus,
+  const { visibility: _visibility, workflowStatus: _workflowStatus,
     publishAt: _publishAt, unpublishAt: _unpublishAt, ...publicRecord } = record;
   return { ...publicRecord, url: `${origin}/archive/${record.id}/` };
 }
@@ -106,11 +73,56 @@ export default async function handler(request: any, response: any) {
     return send(response, 404, 'application/json; charset=utf-8', JSON.stringify({ ok: false, error: 'not_found' }));
   }
   try {
-    const { origin, records, references, html } = await publicMaterial(request);
+    const { origin, records, references, collections, html } = await publicMaterial(request);
     if (format === 'page') {
       const id = String(request.query?.id || '');
       const record = records.find((item: any) => item.id === id);
-      return send(response, record ? 200 : 404, 'text/html; charset=utf-8', pageMetadata(html, record, origin));
+      return send(response, record ? 200 : 404, 'text/html; charset=utf-8', renderPublicPageMetadata(html, record ? {
+        title: `${record.title} | Jerboa Circle`,
+        description: record.shortDescription,
+        origin,
+        canonicalPath: `/archive/${record.id}/`,
+        image: record.posterImage || '/og.png',
+        type: 'article',
+        indexable: true,
+      } : {
+        title: '없는 길 | Jerboa Circle',
+        description: '이 주소에는 현재 공개된 Jerboa Circle 기록이 없습니다.',
+        origin,
+        canonicalPath: '',
+        image: '/og.png',
+        indexable: false,
+      }));
+    }
+    if (format === 'catalogue-page') {
+      const id = String(request.query?.id || '');
+      const reference = references.find((item: any) => item.id === id);
+      return send(response, reference ? 200 : 404, 'text/html; charset=utf-8', renderPublicPageMetadata(html, reference ? {
+        title: `${reference.title} | Jerboa Circle Catalogue`,
+        description: reference.description,
+        origin,
+        canonicalPath: `/catalogue/${reference.id}/`,
+        image: reference.imageUrl || '/og.png',
+        type: 'article',
+        indexable: true,
+      } : {
+        title: '미필사 자료 | Jerboa Circle',
+        description: '이 주소에는 현재 공개된 Jerboa Circle 자료가 없습니다.',
+        origin,
+        canonicalPath: '',
+        image: '/og.png',
+        indexable: false,
+      }));
+    }
+    if (format === 'not-found') {
+      return send(response, 404, 'text/html; charset=utf-8', renderPublicPageMetadata(html, {
+        title: '없는 길 | Jerboa Circle',
+        description: '이 주소에는 현재 공개된 Jerboa Circle 기록이 없습니다.',
+        origin,
+        canonicalPath: '',
+        image: '/og.png',
+        indexable: false,
+      }));
     }
     if (format === 'sitemap') {
       const paths = ['/', '/archive/', '/catalogue/', ...records.map((record: any) => `/archive/${record.id}/`),
@@ -149,6 +161,7 @@ export default async function handler(request: any, response: any) {
       generatedAt: new Date().toISOString(),
       programmes: records.map((record: any) => publicProgramme(record, origin)),
       references,
+      collections,
     }, null, 2));
   } catch (error) {
     console.error('Public materialization failed:', error);

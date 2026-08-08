@@ -1,4 +1,4 @@
-import { get, put } from '@vercel/blob';
+import { del, get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
 import { verifyRoleSession } from '../server/authCore.js';
 import { validateImageBuffer } from '../shared/imageValidation.mjs';
@@ -26,8 +26,14 @@ function hasSyncKey(request: any) {
   return serverBuffer.length === requestBuffer.length && crypto.timingSafeEqual(serverBuffer, requestBuffer);
 }
 
-function hasMediaSession(request: any) {
-  return Boolean(verifyRoleSession(String(request.headers['x-jerboa-session'] || ''), ['member-admin', 'archive-editor']));
+function mediaRole(request: any) {
+  return verifyRoleSession(String(request.headers['x-jerboa-session'] || ''), ['member-admin', 'archive-editor']);
+}
+
+function canManageMedia(request: any, scope: 'archive' | 'cabinet') {
+  if (hasSyncKey(request)) return true;
+  const role = mediaRole(request);
+  return scope === 'archive' ? role === 'archive-editor' : role === 'member-admin';
 }
 
 async function readJsonBody(request: any) {
@@ -87,6 +93,60 @@ async function deliverPrivateMedia(request: any, response: any) {
   return response.end();
 }
 
+async function readPrivateJson(pathname: string) {
+  try {
+    const result = await get(pathname, { access: 'private' });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
+    return JSON.parse(await new Response(result.stream).text());
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    if (message.includes('not found') || message.includes('blob_not_found')) return null;
+    throw error;
+  }
+}
+
+function mediaPathFromUrl(value: unknown) {
+  if (typeof value !== 'string' || !value.includes('/api/media')) return null;
+  try {
+    return safeMediaPathname(new URL(value, 'https://jerboacircleofficial.vercel.app').searchParams.get('pathname'));
+  } catch {
+    return null;
+  }
+}
+
+function archiveReferencesPath(data: any, pathname: string) {
+  const drafts = data?.drafts && typeof data.drafts === 'object' ? Object.values(data.drafts) as any[] : [];
+  const references = data?.references && typeof data.references === 'object' ? Object.values(data.references) as any[] : [];
+  return drafts.some((draft) => [draft?.posterImage, draft?.detailImage].some((value) => mediaPathFromUrl(value) === pathname))
+    || references.some((reference) => mediaPathFromUrl(reference?.imageUrl) === pathname);
+}
+
+function membersReferencePath(data: any, pathname: string) {
+  const curiosities = Array.isArray(data?.curiosities) ? data.curiosities : [];
+  return mediaPathFromUrl(data?.mainImage) === pathname
+    || curiosities.some((item: any) => mediaPathFromUrl(item?.image) === pathname);
+}
+
+async function deleteAbandonedMedia(request: any, response: any) {
+  const body = await readJsonBody(request);
+  const pathname = safeMediaPathname(body?.pathname);
+  if (!pathname) return sendJson(response, 400, { ok: false, error: 'invalid_media_path' });
+  const scope = pathname.startsWith('archive/') ? 'archive' : 'cabinet';
+  if (!canManageMedia(request, scope)) return sendJson(response, 401, { ok: false, error: 'media_auth_required' });
+
+  const saved = await readPrivateJson(`jerboa-sync/${scope === 'archive' ? 'archive' : 'members'}.json`);
+  const inUse = scope === 'archive'
+    ? archiveReferencesPath(saved?.data, pathname)
+    : membersReferencePath(saved?.data, pathname);
+  if (inUse) return sendJson(response, 409, { ok: false, error: 'media_in_use' });
+
+  await del(pathname).catch((error) => {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    if (!message.includes('not found') && !message.includes('blob_not_found')) throw error;
+  });
+  return sendJson(response, 200, { ok: true, deleted: true, pathname });
+}
+
 export default async function handler(request: any, response: any) {
   if (request.method === 'GET') {
     try {
@@ -96,12 +156,17 @@ export default async function handler(request: any, response: any) {
       return sendJson(response, 500, { ok: false, error: 'media_delivery_failed' });
     }
   }
-  if (request.method !== 'POST') {
-    response.setHeader('allow', 'GET, POST');
-    return sendJson(response, 405, { ok: false, error: 'method_not_allowed' });
+  if (request.method === 'DELETE') {
+    try {
+      return await deleteAbandonedMedia(request, response);
+    } catch (error) {
+      console.error('Media cleanup failed:', error);
+      return sendJson(response, 500, { ok: false, error: 'media_cleanup_failed' });
+    }
   }
-  if (!hasSyncKey(request) && !hasMediaSession(request)) {
-    return sendJson(response, 401, { ok: false, error: 'media_auth_required' });
+  if (request.method !== 'POST') {
+    response.setHeader('allow', 'GET, POST, DELETE');
+    return sendJson(response, 405, { ok: false, error: 'method_not_allowed' });
   }
 
   try {
@@ -123,18 +188,29 @@ export default async function handler(request: any, response: any) {
     }
     const extension = allowedTypes.get(contentType) || 'jpg';
     const folder = body?.scope === 'archive' ? 'archive' : 'cabinet';
-    const pathname = `${folder}/${new Date().toISOString().slice(0, 10)}/${safeName(body?.fileName)}.${extension}`;
-    const uploaded = await put(pathname, image, {
-      access: 'private',
-      addRandomSuffix: true,
-      contentType,
-      cacheControlMaxAge: 31_536_000,
-    });
+    if (!canManageMedia(request, folder)) {
+      return sendJson(response, 401, { ok: false, error: 'media_auth_required' });
+    }
+    const digest = crypto.createHash('sha256').update(image).digest('hex').slice(0, 24);
+    const pathname = `${folder}/${new Date().toISOString().slice(0, 10)}/${digest}-${safeName(body?.fileName)}.${extension}`;
+    try {
+      await put(pathname, image, {
+        access: 'private',
+        addRandomSuffix: false,
+        allowOverwrite: false,
+        contentType,
+        cacheControlMaxAge: 31_536_000,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message.toLowerCase() : '';
+      const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code).toLowerCase() : '';
+      if (!message.includes('already') && !message.includes('exist') && !code.includes('already') && !code.includes('exist')) throw error;
+    }
 
     return sendJson(response, 200, {
       ok: true,
-      url: `/api/media?pathname=${encodeURIComponent(uploaded.pathname)}`,
-      pathname: uploaded.pathname,
+      url: `/api/media?pathname=${encodeURIComponent(pathname)}`,
+      pathname,
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : 'media_upload_failed';

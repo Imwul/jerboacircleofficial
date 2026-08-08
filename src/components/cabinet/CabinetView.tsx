@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { Curiosity, User } from '../../types';
 import { resizeImage } from '../../utils/imageUtils';
-import { uploadCabinetImage } from '../../utils/cabinetMedia';
+import { discardUploadedMedia, uploadCabinetImage } from '../../utils/cabinetMedia';
 import { useDialogFocus } from '../../utils/useDialogFocus';
 import { readArchiveBookmarks } from '../../utils/readingMarks';
 import RelationshipPicker from '../archive/RelationshipPicker';
@@ -121,6 +121,7 @@ function readCabinetQueryState() {
     century: params.get('cabinetCentury') ?? '',
     region: params.get('cabinetRegion') ?? '',
     order: params.get('cabinetOrder') === 'oldest' ? 'oldest' : 'latest',
+    page: Math.max(1, Number.parseInt(params.get('cabinetPage') ?? '1', 10) || 1),
   } as const;
 }
 
@@ -315,15 +316,32 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
   const [century, setCentury] = useState(initialQueryState.century);
   const [region, setRegion] = useState(initialQueryState.region);
   const [sortOrder, setSortOrder] = useState<CabinetSortOrder>(initialQueryState.order);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialQueryState.page);
   const [detailId, setDetailId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('curiosity'));
   const [editor, setEditor] = useState<{ mode: 'new' | 'edit'; itemId?: string } | null>(null);
   const [form, setForm] = useState<CuriosityFormState>(emptyForm);
   const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [imageStorageNote, setImageStorageNote] = useState('긴 변 1800px로 조용히 정돈해 보관합니다.');
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const editorRef = useDialogFocus<HTMLDivElement>(Boolean(editor), () => setEditor(null));
-  const listScrollPosition = useRef(0);
+  const pendingUploadedImage = useRef<string | null>(null);
+  const handlingPopstate = useRef(false);
+  const listScrollPosition = useRef(Number(window.history.state?.cabinetScrollY) || 0);
+
+  const discardPendingUpload = () => {
+    const url = pendingUploadedImage.current;
+    pendingUploadedImage.current = null;
+    if (!url) return;
+    void discardUploadedMedia(url, syncKey, authSession).catch((error) => {
+      console.warn('Cabinet abandoned image cleanup deferred:', error);
+    });
+  };
+
+  const closeEditor = () => {
+    discardPendingUpload();
+    setEditor(null);
+  };
+
+  const editorRef = useDialogFocus<HTMLDivElement>(Boolean(editor), closeEditor);
 
   const names = useMemo(() => new Map(users.map((member) => [member.id, member.name])), [users]);
   const mine = useMemo(() => curiosities.filter((item) => item.ownerId === user.id), [curiosities, user.id]);
@@ -394,9 +412,18 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
     return result;
   }, [visiblePool, theme, medium, century, region, shelf, query, sortOrder, user.id]);
 
-  useEffect(() => setPage(1), [scope, shelf, query, theme, medium, century, region, sortOrder]);
+  const filterSignature = `${scope}|${shelf}|${query}|${theme}|${medium}|${century}|${region}|${sortOrder}`;
+  const previousFilterSignature = useRef(filterSignature);
+  useEffect(() => {
+    if (previousFilterSignature.current !== filterSignature) setPage(1);
+    previousFilterSignature.current = filterSignature;
+  }, [filterSignature]);
 
   useEffect(() => {
+    if (handlingPopstate.current) {
+      handlingPopstate.current = false;
+      return;
+    }
     const url = new URL(window.location.href);
     if (scope === 'circle') url.searchParams.set('cabinetScope', scope); else url.searchParams.delete('cabinetScope');
     if (shelf !== 'all') url.searchParams.set('cabinetShelf', shelf); else url.searchParams.delete('cabinetShelf');
@@ -406,11 +433,39 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
     if (century) url.searchParams.set('cabinetCentury', century); else url.searchParams.delete('cabinetCentury');
     if (region) url.searchParams.set('cabinetRegion', region); else url.searchParams.delete('cabinetRegion');
     if (sortOrder === 'oldest') url.searchParams.set('cabinetOrder', sortOrder); else url.searchParams.delete('cabinetOrder');
+    if (page > 1) url.searchParams.set('cabinetPage', String(page)); else url.searchParams.delete('cabinetPage');
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [century, medium, query, region, scope, shelf, sortOrder, theme]);
+  }, [century, medium, page, query, region, scope, shelf, sortOrder, theme]);
+
+  useEffect(() => {
+    const restoreFromLocation = () => {
+      const state = readCabinetQueryState();
+      handlingPopstate.current = true;
+      setScope(state.scope);
+      setShelf(state.shelf);
+      setQuery(state.query);
+      setTheme(state.theme);
+      setMedium(state.medium);
+      setCentury(state.century);
+      setRegion(state.region);
+      setSortOrder(state.order);
+      setPage(state.page);
+      const nextDetailId = new URLSearchParams(window.location.search).get('curiosity');
+      setDetailId(nextDetailId);
+      if (!nextDetailId) {
+        const restoreY = Number(window.history.state?.cabinetScrollY) || listScrollPosition.current;
+        window.requestAnimationFrame(() => window.scrollTo({ top: restoreY, behavior: 'auto' }));
+      }
+    };
+    window.addEventListener('popstate', restoreFromLocation);
+    return () => window.removeEventListener('popstate', restoreFromLocation);
+  }, []);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
   const detail = detailId
     ? curiosities.find((item) => item.id === detailId && canReadCabinetItem(item, user.id)) || null
     : null;
@@ -435,25 +490,31 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
     setSortOrder('latest');
   };
 
-  const setDetailRoute = (itemId: string | null) => {
+  const setDetailRoute = (itemId: string | null, method: 'push' | 'replace' = 'replace') => {
     const url = new URL(window.location.href);
     url.searchParams.set('room', 'cabinet');
     if (itemId) url.searchParams.set('curiosity', itemId);
     else url.searchParams.delete('curiosity');
-    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    const nextState = { ...window.history.state, cabinetDetail: Boolean(itemId) };
+    window.history[method === 'push' ? 'pushState' : 'replaceState'](nextState, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
   const openDetail = (item: Curiosity) => {
     listScrollPosition.current = window.scrollY;
+    window.history.replaceState({ ...window.history.state, cabinetScrollY: window.scrollY }, '', window.location.href);
     setDetailId(item.id);
-    setDetailRoute(item.id);
+    setDetailRoute(item.id, 'push');
     onChange(curiosities.map((entry) => entry.id === item.id ? { ...entry, lastViewedAt: new Date().toISOString() } : entry));
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
   const closeDetail = () => {
+    if (window.history.state?.cabinetDetail) {
+      window.history.back();
+      return;
+    }
     setDetailId(null);
-    setDetailRoute(null);
+    setDetailRoute(null, 'replace');
     window.requestAnimationFrame(() => window.scrollTo({ top: listScrollPosition.current, behavior: 'auto' }));
   };
 
@@ -465,6 +526,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
   };
 
   const openNew = () => {
+    discardPendingUpload();
     setForm(emptyForm());
     setImageStorageNote('긴 변 1800px로 조용히 정돈해 보관합니다.');
     setConfirmDelete(false);
@@ -472,6 +534,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
   };
 
   const openEdit = (item: Curiosity) => {
+    discardPendingUpload();
     setForm(formFrom(item));
     setImageStorageNote(item.image.startsWith('data:') ? '이 기기에 보관된 도판입니다.' : '별도 이미지 보관소에 연결된 도판입니다.');
     setConfirmDelete(false);
@@ -501,6 +564,8 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
         setImageStorageNote('공동 이미지 보관소에 봉인하는 중…');
         try {
           const uploadedUrl = await uploadCabinetImage(resized, file.name, syncKey, authSession);
+          discardPendingUpload();
+          pendingUploadedImage.current = uploadedUrl;
           setForm((current) => ({ ...current, image: uploadedUrl }));
           setImageStorageNote('공동 이미지 보관소에 연결되었습니다.');
         } catch (uploadError) {
@@ -570,9 +635,11 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
       ? curiosities.map((entry) => entry.id === item.id ? item : entry)
       : [item, ...curiosities];
     onChange(next);
+    if (pendingUploadedImage.current === item.image) pendingUploadedImage.current = null;
+    else discardPendingUpload();
     setEditor(null);
     setDetailId(item.id);
-    setDetailRoute(item.id);
+    setDetailRoute(item.id, 'push');
     onNotice?.(previous ? '수장고 표본의 새 판본을 봉인했습니다.' : '새 표본을 수장고에 들였습니다.');
   };
 
@@ -814,7 +881,7 @@ export function CabinetView({ user, users, curiosities, onChange, onNotice, sync
               <div>
                 <h2 id="cabinet-editor-title" lang="ko">{editor.mode === 'new' ? '새 표본 들이기' : '표본 기록 다듬기'}</h2>
               </div>
-              <button type="button" onClick={() => setEditor(null)} aria-label="수장고 기록창 닫기">×</button>
+              <button type="button" onClick={closeEditor} aria-label="수장고 기록창 닫기">×</button>
             </header>
             <form onSubmit={saveCuriosity}>
               <fieldset>

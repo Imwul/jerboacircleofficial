@@ -5,6 +5,7 @@ const dynamicPublicRoutes = new Map([
   ['/archive.json', 'archive'],
   ['/archive/manifest.json', 'manifest'],
 ]);
+const applicationRoutes = new Set(['/', '/archive/', '/catalogue/', '/members/', '/keeper/', '/godmode/']);
 
 function isDocumentRequest(request) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return false;
@@ -35,10 +36,12 @@ const worker = {
 
     const publicFormat = dynamicPublicRoutes.get(url.pathname);
     const archiveDetail = url.pathname.match(/^\/archive\/([^/]+)\/$/);
-    if (publicFormat || archiveDetail) {
+    const catalogueDetail = url.pathname.match(/^\/catalogue\/([^/]+)\/$/);
+    if (publicFormat || archiveDetail || catalogueDetail) {
       const upstreamUrl = new URL('/api/public', apiOrigin);
-      upstreamUrl.searchParams.set('format', publicFormat || 'page');
+      upstreamUrl.searchParams.set('format', publicFormat || (catalogueDetail ? 'catalogue-page' : 'page'));
       if (archiveDetail) upstreamUrl.searchParams.set('id', decodeURIComponent(archiveDetail[1]));
+      if (catalogueDetail) upstreamUrl.searchParams.set('id', decodeURIComponent(catalogueDetail[1]));
       const headers = new Headers(request.headers);
       headers.set('x-jerboa-public-origin', url.origin);
       return fetch(new Request(upstreamUrl, { method: request.method, headers }));
@@ -49,9 +52,16 @@ const worker = {
       return assetResponse;
     }
 
-    // React owns the public, catalogue, member, and Keeper routes.
-    const indexUrl = new URL('/index.html', request.url);
-    return env.ASSETS.fetch(new Request(indexUrl, request));
+    if (applicationRoutes.has(url.pathname)) {
+      const indexUrl = new URL('/index.html', request.url);
+      return env.ASSETS.fetch(new Request(indexUrl, request));
+    }
+
+    const missingUrl = new URL('/api/public', apiOrigin);
+    missingUrl.searchParams.set('format', 'not-found');
+    const headers = new Headers(request.headers);
+    headers.set('x-jerboa-public-origin', url.origin);
+    return fetch(new Request(missingUrl, { method: request.method, headers }));
   },
 };
 

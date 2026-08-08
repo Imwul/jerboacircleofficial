@@ -320,6 +320,18 @@ function changedMapCount(left: Record<string, unknown> = {}, right: Record<strin
   return [...keys].filter((key) => JSON.stringify(left[key]) !== JSON.stringify(right[key])).length;
 }
 
+function changedMapEntries(left: Record<string, any> = {}, right: Record<string, any> = {}) {
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return [...keys]
+    .filter((key) => JSON.stringify(left[key]) !== JSON.stringify(right[key]))
+    .slice(0, 30)
+    .map((key) => ({
+      key,
+      local: left[key]?.title ?? left[key]?.label ?? (left[key] === undefined ? '없음' : '수정됨'),
+      remote: right[key]?.title ?? right[key]?.label ?? (right[key] === undefined ? '없음' : '수정됨'),
+    }));
+}
+
 function archivePayloadChangeCount(left: ArchiveSyncPayload | null, right: ArchiveSyncPayload) {
   if (!left) return 0;
   return changedMapCount(left.drafts, right.drafts)
@@ -2786,6 +2798,32 @@ export default function KeeperPage() {
               </select>
               <small lang="ko">차이 {changedMapCount(conflictState.local.siteText as Record<string, unknown>, conflictState.remote.siteText as Record<string, unknown>)}개</small>
             </label>
+            <details className="keeper-conflict-comparison">
+              <summary lang="ko">차이 목록 나란히 보기</summary>
+              {([
+                ['프로그램', conflictState.local.drafts, conflictState.remote.drafts],
+                ['컬렉션', conflictState.local.collections, conflictState.remote.collections],
+                ['자료', conflictState.local.references, conflictState.remote.references],
+                ['공개 문구', conflictState.local.siteText as Record<string, unknown>, conflictState.remote.siteText as Record<string, unknown>],
+              ] as const).map(([label, local, remote]) => {
+                const entries = changedMapEntries(local, remote);
+                return entries.length > 0 ? (
+                  <section key={label}>
+                    <h3 lang="ko">{label}</h3>
+                    <div className="keeper-conflict-comparison-head"><span lang="ko">이 기기</span><span lang="ko">현재 공개본</span></div>
+                    {entries.map((entry) => (
+                      <div className="keeper-conflict-comparison-row" key={entry.key}>
+                        <span><small>{entry.key}</small>{String(entry.local)}</span>
+                        <span><small>{entry.key}</small>{String(entry.remote)}</span>
+                      </div>
+                    ))}
+                  </section>
+                ) : null;
+              })}
+            </details>
+            {hasArchiveRecovery && (
+              <button type="button" onClick={() => downloadLatestSyncRecovery('archive')}><span lang="ko">내 변경사항을 복구 파일로 보존</span></button>
+            )}
             <button type="button" onClick={() => { void resolveArchiveConflict(); }}><span lang="ko">선택 내용으로 병합 후 공개 반영</span></button>
           </section>
         )}

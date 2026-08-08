@@ -1193,7 +1193,7 @@ html body #root .public-home.keeper-home :is(.keeper-conflict-panel, .keeper-ope
 
 html body #root .public-home.keeper-home .keeper-conflict-panel {
   display: grid;
-  grid-template-columns: minmax(15rem, 1.35fr) repeat(3, minmax(10rem, 0.7fr)) auto;
+  grid-template-columns: minmax(15rem, 1.35fr) repeat(4, minmax(9rem, 0.7fr));
   gap: 0.65rem;
   align-items: end;
   background: var(--signal-gold);
@@ -1238,6 +1238,57 @@ html body #root .public-home.keeper-home .keeper-poster-upload > button {
 
 html body #root .public-home.keeper-home .keeper-conflict-panel > button {
   background: var(--signal-blue);
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison {
+  grid-column: 1 / -1;
+  border: 1.5px solid var(--ink);
+  background: var(--signal-cream);
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison > summary {
+  min-height: 2.65rem;
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison > section {
+  border-top: 1.5px solid var(--ink);
+  padding: 0.7rem;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison-head,
+html body #root .public-home.keeper-home .keeper-conflict-comparison-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison-head {
+  border: 1px solid var(--ink);
+  background: var(--signal-gold);
+  font-weight: 800;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison :is(.keeper-conflict-comparison-head, .keeper-conflict-comparison-row) > span {
+  min-width: 0;
+  border-right: 1px solid var(--ink);
+  padding: 0.45rem;
+  overflow-wrap: anywhere;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison :is(.keeper-conflict-comparison-head, .keeper-conflict-comparison-row) > span:last-child {
+  border-right: 0;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison-row {
+  border: 1px solid var(--ink);
+  border-top: 0;
+}
+
+html body #root .public-home.keeper-home .keeper-conflict-comparison-row small {
+  display: block;
+  opacity: 0.62;
 }
 
 html body #root .public-home.keeper-home .keeper-operations {

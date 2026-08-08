@@ -6,9 +6,13 @@
     { "source": "/archive.json", "destination": "/api/public?format=archive" },
     { "source": "/archive/manifest.json", "destination": "/api/public?format=manifest" },
     { "source": "/archive/:id/", "destination": "/api/public?format=page&id=:id" },
-    {
-      "source": "/((?!api/.*).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/catalogue/:id/", "destination": "/api/public?format=catalogue-page&id=:id" },
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/archive/", "destination": "/index.html" },
+    { "source": "/catalogue/", "destination": "/index.html" },
+    { "source": "/members/", "destination": "/index.html" },
+    { "source": "/keeper/", "destination": "/index.html" },
+    { "source": "/godmode/", "destination": "/index.html" },
+    { "source": "/((?!api/.*).*)", "destination": "/api/public?format=not-found" }
   ]
 }

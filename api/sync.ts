@@ -2,6 +2,11 @@ import { del, get, list, put } from '@vercel/blob';
 import crypto from 'node:crypto';
 import { roleCanSync, verifyRoleSession, type AccessRole } from '../server/authCore.js';
 import { createPublicDraftMap } from '../shared/publicationState.mjs';
+import {
+  createPublicCollectionDraftMap,
+  createPublicReferenceDraftMap,
+} from '../shared/publicArchiveMaterial.mjs';
+import archiveBase from '../shared/archiveBase.json' with { type: 'json' };
 
 type SyncScope = 'members' | 'archive';
 
@@ -207,6 +212,116 @@ function validateArchiveDrafts(value: unknown) {
   });
 }
 
+function validMapId(id: string, maxLength = 120) {
+  return Boolean(id)
+    && id.length <= maxLength
+    && !['__proto__', 'prototype', 'constructor'].includes(id);
+}
+
+function validateArchiveCollections(value: unknown) {
+  if (value === undefined) return;
+  if (!isPlainObject(value) || Object.keys(value).length > 1_000) {
+    throw new SyncError(400, 'invalid_archive_collections');
+  }
+  Object.entries(value).forEach(([id, collection]) => {
+    if (!validMapId(id) || !isPlainObject(collection) || collection.id !== id) {
+      throw new SyncError(400, 'invalid_archive_collections');
+    }
+    if (collection.deletedAt !== undefined && typeof collection.deletedAt !== 'string') {
+      throw new SyncError(400, 'invalid_archive_collections');
+    }
+    if (
+      typeof collection.title !== 'string' || !collection.title.trim() || collection.title.length > 5_000
+      || typeof collection.description !== 'string' || collection.description.length > 25_000
+      || !Array.isArray(collection.eventIds) || collection.eventIds.length > 1_000
+      || !collection.eventIds.every((entry) => typeof entry === 'string' && entry.length <= 120)
+      || !Array.isArray(collection.themeIds) || collection.themeIds.length > 1_000
+      || !collection.themeIds.every((entry) => typeof entry === 'string' && entry.length <= 120)
+      || !['public', 'unlisted', 'private'].includes(String(collection.visibility))
+    ) {
+      throw new SyncError(400, 'invalid_archive_collections');
+    }
+  });
+}
+
+function validateArchiveReferences(value: unknown) {
+  if (value === undefined) return;
+  if (!isPlainObject(value) || Object.keys(value).length > 5_000) {
+    throw new SyncError(400, 'invalid_archive_references');
+  }
+  Object.entries(value).forEach(([id, reference]) => {
+    if (!validMapId(id) || !isPlainObject(reference) || reference.id !== id) {
+      throw new SyncError(400, 'invalid_archive_references');
+    }
+    if (reference.deletedAt !== undefined && typeof reference.deletedAt !== 'string') {
+      throw new SyncError(400, 'invalid_archive_references');
+    }
+    if (
+      typeof reference.kind !== 'string' || !reference.kind.trim() || reference.kind.length > 120
+      || typeof reference.title !== 'string' || !reference.title.trim() || reference.title.length > 5_000
+      || typeof reference.description !== 'string' || !reference.description.trim() || reference.description.length > 25_000
+    ) {
+      throw new SyncError(400, 'invalid_archive_references');
+    }
+    Object.entries(reference).forEach(([field, fieldValue]) => {
+      if (field === 'imageUrl') {
+        if (fieldValue !== undefined && (
+          typeof fieldValue !== 'string'
+          || fieldValue.length > 2_500_000
+          || !/^(https?:\/\/|data:image\/(?:png|jpeg|webp);base64,)/i.test(fieldValue)
+        )) throw new SyncError(400, 'invalid_archive_references');
+        return;
+      }
+      if (field === 'id') return;
+      if (fieldValue !== undefined && typeof fieldValue !== 'string') {
+        throw new SyncError(400, 'invalid_archive_references');
+      }
+      if (typeof fieldValue === 'string' && fieldValue.length > 25_000) {
+        throw new SyncError(400, 'invalid_archive_references');
+      }
+    });
+  });
+}
+
+function validateArchiveSiteText(value: unknown) {
+  if (value === undefined) return;
+  if (!isPlainObject(value) || Object.keys(value).length > 500) {
+    throw new SyncError(400, 'invalid_site_text');
+  }
+  if (Object.values(value).some((entry) => typeof entry !== 'string' || entry.length > 25_000)) {
+    throw new SyncError(400, 'invalid_site_text');
+  }
+}
+
+const archiveAuditActions = new Set([
+  'create', 'duplicate', 'edit', 'delete', 'restore', 'import', 'publish',
+  'unpublish', 'sync', 'conflict-resolved', 'backup-restored',
+]);
+
+function validateArchiveAuditLog(value: unknown) {
+  if (value === undefined) return;
+  if (!Array.isArray(value) || value.length > 500) throw new SyncError(400, 'invalid_audit_log');
+  value.forEach((entry) => {
+    if (
+      !isPlainObject(entry)
+      || typeof entry.id !== 'string' || !entry.id || entry.id.length > 120
+      || typeof entry.action !== 'string' || !archiveAuditActions.has(entry.action)
+      || !['programme', 'reference', 'site-text', 'archive'].includes(String(entry.targetType))
+      || typeof entry.title !== 'string' || entry.title.length > 5_000
+      || typeof entry.createdAt !== 'string' || Number.isNaN(new Date(entry.createdAt).getTime())
+      || (entry.targetId !== undefined && (typeof entry.targetId !== 'string' || entry.targetId.length > 120))
+      || (entry.detail !== undefined && (typeof entry.detail !== 'string' || entry.detail.length > 25_000))
+      || (entry.actor !== undefined && (typeof entry.actor !== 'string' || entry.actor.length > 120))
+      || (entry.previousRevision !== undefined && entry.previousRevision !== null
+        && (typeof entry.previousRevision !== 'string' || entry.previousRevision.length > 120))
+      || (entry.newRevision !== undefined && entry.newRevision !== null
+        && (typeof entry.newRevision !== 'string' || entry.newRevision.length > 120))
+    ) {
+      throw new SyncError(400, 'invalid_audit_log');
+    }
+  });
+}
+
 function validateSyncData(scope: SyncScope, data: unknown): asserts data is Record<string, unknown> {
   if (!isPlainObject(data)) {
     throw new SyncError(400, 'invalid_payload');
@@ -223,12 +338,14 @@ function validateSyncData(scope: SyncScope, data: unknown): asserts data is Reco
   const hasDrafts = data.drafts === undefined || isPlainObject(data.drafts);
   const hasSiteText = data.siteText === undefined || isPlainObject(data.siteText);
   const hasReferences = data.references === undefined || isPlainObject(data.references);
+  const hasCollections = data.collections === undefined || isPlainObject(data.collections);
   const hasPublications = data.publications === undefined || isPlainObject(data.publications);
   const hasAuditLog = data.auditLog === undefined || Array.isArray(data.auditLog);
   if (
     !hasDrafts
     || !hasSiteText
     || !hasReferences
+    || !hasCollections
     || !hasPublications
     || !hasAuditLog
     || (data.drafts === undefined && data.siteText === undefined && data.references === undefined)
@@ -236,6 +353,10 @@ function validateSyncData(scope: SyncScope, data: unknown): asserts data is Reco
     throw new SyncError(400, 'invalid_archive_payload');
   }
   validateArchiveDrafts(data.drafts);
+  validateArchiveCollections(data.collections);
+  validateArchiveReferences(data.references);
+  validateArchiveSiteText(data.siteText);
+  validateArchiveAuditLog(data.auditLog);
 
   if (isPlainObject(data.publications)) {
     const publicationGroups = Object.entries(data.publications);
@@ -301,6 +422,10 @@ function publicArchiveSnapshot(saved: any) {
 
   const drafts = isPlainObject(saved.data.drafts) ? saved.data.drafts : {};
   const publicDrafts = createPublicDraftMap(drafts);
+  const bundledCollections = (archiveBase as any).collections;
+  const bundledCollectionIds = Array.isArray(bundledCollections)
+    ? bundledCollections.map((collection: any) => collection?.id).filter(Boolean)
+    : [];
 
   return {
     ...saved,
@@ -310,9 +435,40 @@ function publicArchiveSnapshot(saved: any) {
         : {}),
       drafts: publicDrafts,
       ...(isPlainObject(saved.data.siteText) ? { siteText: saved.data.siteText } : {}),
-      ...(isPlainObject(saved.data.references) ? { references: saved.data.references } : {}),
+      ...(isPlainObject(saved.data.collections)
+        ? { collections: createPublicCollectionDraftMap(saved.data.collections, bundledCollectionIds) }
+        : {}),
+      ...(isPlainObject(saved.data.references)
+        ? { references: createPublicReferenceDraftMap(saved.data.references) }
+        : {}),
     },
   };
+}
+
+function stampNewAuditEntries(existing: any, data: Record<string, unknown>, savedAt: string, actor: string) {
+  if (!Array.isArray(data.auditLog)) return data;
+  const previousIds = new Set(Array.isArray(existing?.data?.auditLog)
+    ? existing.data.auditLog.map((entry: any) => entry?.id).filter(Boolean)
+    : []);
+  return {
+    ...data,
+    auditLog: data.auditLog.map((entry: any) => (
+      isPlainObject(entry) && typeof entry.id === 'string' && !previousIds.has(entry.id)
+        ? {
+          ...entry,
+          actor,
+          previousRevision: existing?.savedAt ?? null,
+          newRevision: savedAt,
+        }
+        : entry
+    )),
+  };
+}
+
+function writeActor(request: any) {
+  if (assertSyncKey(request)) return 'keeper-key';
+  const session = String(request.headers['x-jerboa-session'] || '');
+  return verifyRoleSession(session, ['member-admin', 'archive-editor']) || 'keeper';
 }
 
 export default async function handler(request: any, response: any) {
@@ -372,10 +528,11 @@ export default async function handler(request: any, response: any) {
 
       const lockPath = await acquireWriteLock(scope, baseSavedAt);
 
+      const savedAt = new Date().toISOString();
       const saved = {
         scope,
-        savedAt: new Date().toISOString(),
-        data,
+        savedAt,
+        data: scope === 'archive' ? stampNewAuditEntries(existing, data, savedAt, writeActor(request)) : data,
       };
 
       const versionPath = `jerboa-sync-versions/${scope}/${Date.now().toString().padStart(13, '0')}-${crypto.randomUUID()}.json`;

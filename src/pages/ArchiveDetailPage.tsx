@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   archiveCollections,
   archiveSeasons,
@@ -42,7 +42,7 @@ import {
   type ArchiveReference,
 } from '../data/archiveKnowledge';
 import { resizeImage } from '../utils/imageUtils';
-import { uploadArchiveImage } from '../utils/cabinetMedia';
+import { discardUploadedMedia, uploadArchiveImage } from '../utils/cabinetMedia';
 import { usePageMetadata } from '../utils/pageMetadata';
 import { downloadLatestSyncRecovery, readSyncRecovery, writeSyncRecovery } from '../utils/syncRecovery';
 import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
@@ -114,6 +114,16 @@ function DetailKeeperPanel({
   ));
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [hasArchiveRecovery, setHasArchiveRecovery] = useState(() => Boolean(readSyncRecovery<ArchiveSyncPayload>('archive')));
+  const pendingPosterUpload = useRef<string | null>(null);
+
+  function discardPendingPoster() {
+    const url = pendingPosterUpload.current;
+    pendingPosterUpload.current = null;
+    if (!url) return;
+    void discardUploadedMedia(url, '', roleSessionToken('archive-editor')).catch((error) => {
+      console.warn('Archive abandoned image cleanup deferred:', error);
+    });
+  }
 
   const statusTone = status.includes('실패') || status.includes('닫혔') || status.includes('없음') || status.includes('먼저') || status.includes('보류')
     ? 'warning'
@@ -180,6 +190,8 @@ function DetailKeeperPanel({
       const authSession = roleSessionToken('archive-editor');
       if (!authSession) throw new Error('archive_media_session_required');
       const posterUrl = await uploadArchiveImage(resizedPoster, file.name, authSession);
+      discardPendingPoster();
+      pendingPosterUpload.current = posterUrl;
       updateField('posterImage', posterUrl);
       if (!form.posterAlt.trim()) updateField('posterAlt', `${form.title} 프로그램 포스터`);
       setStatus('새 도판이 공동 이미지 저장소에 붙었습니다');
@@ -199,6 +211,7 @@ function DetailKeeperPanel({
       return;
     }
     writeArchiveDraft(event.id, toDetailDraft(form, event), { label: form.workflowStatus });
+    pendingPosterUpload.current = null;
     recordArchiveAudit({ action: 'edit', targetType: 'programme', targetId: event.id, title: form.title, detail: '상세 미리보기 편집층' });
     setStatus('이 기기에 임시 저장됨');
     onSaved();
@@ -213,6 +226,7 @@ function DetailKeeperPanel({
       }
       const nextDraft = toDetailDraft(form, event);
       writeArchiveDraft(event.id, nextDraft, { label: form.workflowStatus });
+      pendingPosterUpload.current = null;
       recordArchiveAudit({ action: 'sync', targetType: 'programme', targetId: event.id, title: form.title, detail: '상세 미리보기 편집층' });
       const authSession = roleSessionToken('archive-editor');
       if (!authSession) {
@@ -239,7 +253,13 @@ function DetailKeeperPanel({
   }
 
   return (
-    <details className="detail-keeper-panel" aria-label="Archive record editor">
+    <details
+      className="detail-keeper-panel"
+      aria-label="Archive record editor"
+      onToggle={(toggleEvent) => {
+        if (!toggleEvent.currentTarget.open) discardPendingPoster();
+      }}
+    >
       <summary>
         <span lang="en">Keeper seal</span>
         <small lang="ko">숨은 초안층 열기</small>

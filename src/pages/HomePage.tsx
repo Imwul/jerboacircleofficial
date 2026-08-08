@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   archiveCollections,
   archiveSeasons,
@@ -268,16 +268,18 @@ function matchesArchiveQuery(
 function PosterTile({
   event,
   isBookmarked,
+  onRememberPosition,
   onToggleBookmark,
 }: {
   event: ArchiveEvent;
   isBookmarked: boolean;
+  onRememberPosition: (link: HTMLAnchorElement) => void;
   onToggleBookmark: (id: string) => void;
 }) {
   return (
     <article className="poster-tile section-reveal">
       <div className="poster-visual">
-        <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`}>
+        <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
           <div className="poster-frame">
             <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
           </div>
@@ -293,7 +295,7 @@ function PosterTile({
           <span aria-hidden="true">{isBookmarked ? '✦' : '✧'}</span>
         </button>
       </div>
-      <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`}>
+      <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
         <div className="poster-caption">
           <ProgrammeThemes primaryThemes={event.primaryThemes} themes={event.themes} />
           <span>{event.edition}</span>
@@ -329,6 +331,7 @@ function PosterArchive({
   const [filedOnly, setFiledOnly] = useState(initialQueryState.filed);
   const [archiveView, setArchiveView] = useState<'chronology' | 'constellation'>(initialQueryState.view);
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readArchiveBookmarks());
+  const restoredScroll = useRef(false);
   const statusFilters: ArchiveStatusFilter[] = ['all', 'current', 'upcoming', 'past'];
   const seasonOptions = archiveSeasons.filter((season) => archiveEvents.some((event) => event.seasonId === season.id));
   const collectionOptions = collections.filter((collection) => (
@@ -417,6 +420,47 @@ function PosterArchive({
       resultCount: visibleEvents.length,
     });
   }, [statusFilter, seasonFilter, collectionFilter, kindFilter, themeFilter, sortOrder, archiveView, visibleEvents.length]);
+
+  useEffect(() => {
+    let settleTimer: number | undefined;
+    const restoreSavedPosition = () => {
+      if (restoredScroll.current || window.location.hash !== '#archive') return;
+      const savedPosition = Number(
+        new URLSearchParams(window.location.search).get('archiveY')
+        ?? window.history.state?.archiveScrollY,
+      );
+      if (!Number.isFinite(savedPosition) || savedPosition <= 0) return;
+      restoredScroll.current = true;
+      const restore = () => window.scrollTo({ top: savedPosition, behavior: 'auto' });
+      window.requestAnimationFrame(restore);
+      settleTimer = window.setTimeout(() => {
+        restore();
+        const { archiveScrollY: _archiveScrollY, ...restoredState } = window.history.state ?? {};
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('archiveY');
+        window.history.replaceState(restoredState, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+      }, 350);
+    };
+    restoreSavedPosition();
+    window.addEventListener('pageshow', restoreSavedPosition);
+    window.addEventListener('popstate', restoreSavedPosition);
+    return () => {
+      if (settleTimer) window.clearTimeout(settleTimer);
+      window.removeEventListener('pageshow', restoreSavedPosition);
+      window.removeEventListener('popstate', restoreSavedPosition);
+    };
+  }, [archiveEvents.length]);
+
+  function rememberListPosition(link: HTMLAnchorElement) {
+    const listTop = link.getBoundingClientRect().top + window.scrollY - 120;
+    const returnPosition = window.scrollY > 0 ? window.scrollY : Math.max(listTop, 0);
+    const returnUrl = new URL(window.location.href);
+    returnUrl.searchParams.set('archiveY', String(returnPosition));
+    window.history.replaceState({
+      ...window.history.state,
+      archiveScrollY: returnPosition,
+    }, '', `${returnUrl.pathname}${returnUrl.search}${returnUrl.hash}`);
+  }
 
   return (
     <section className="poster-archive" data-empty-results={orderedVisibleEvents.length === 0 ? 'true' : undefined} id="archive">
@@ -555,6 +599,7 @@ function PosterArchive({
                 event={event}
                 isBookmarked={bookmarkedIds.includes(event.id)}
                 key={event.id}
+                onRememberPosition={rememberListPosition}
                 onToggleBookmark={toggleBookmark}
               />
             ))}

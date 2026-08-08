@@ -470,5 +470,37 @@
       "mediaAssetId": "met-473633-st-luke",
       "description": "필사 도구와 책을 곁에 둔 성 루가의 장면을 회원 장부와 보관자 작업의 상징으로 쓰는 도판."
     }
+  ],
+  "collections": [
+    {
+      "id": "living-programmes",
+      "title": "Living Programmes",
+      "description": "현재 참여와 다음 회차로 이어지는 공개 프로그램",
+      "eventIds": [
+        "scintilla-animae"
+      ],
+      "themeIds": [
+        "grail",
+        "forest"
+      ],
+      "visibility": "public"
+    },
+    {
+      "id": "threshold-archive",
+      "title": "Threshold Archive",
+      "description": "지난 프로그램의 낭독, 서신, 전시 기록",
+      "eventIds": [
+        "reading-edge-room",
+        "letters-unmade-places",
+        "museum-after-hours"
+      ],
+      "themeIds": [
+        "voice",
+        "letter",
+        "museum",
+        "image"
+      ],
+      "visibility": "public"
+    }
   ]
 }

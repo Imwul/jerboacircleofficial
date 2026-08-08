@@ -18,6 +18,9 @@ export interface ArchiveAuditEntry {
   targetId?: string;
   title: string;
   detail?: string;
+  actor?: string;
+  previousRevision?: string | null;
+  newRevision?: string | null;
   createdAt: string;
 }
 

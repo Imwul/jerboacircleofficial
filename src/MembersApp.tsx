@@ -116,6 +116,15 @@ const STORAGE_KEYS = {
 };
 
 type SyncTone = 'idle' | 'pending' | 'sealed' | 'local' | 'warning';
+type MemberRoom = 'calendar' | 'cabinet' | 'profile' | 'admin';
+
+function memberRoomFromLocation(isAdmin = false): MemberRoom {
+  const room = new URLSearchParams(window.location.search).get('room');
+  if (room === 'cabinet' || room === 'marginalia') return 'cabinet';
+  if (room === 'folio') return 'profile';
+  if (room === 'keeper' && isAdmin) return 'admin';
+  return 'calendar';
+}
 
 function syncToneFor(status: string): SyncTone {
   if (/실패|미연결|닫힘|닫혔|읽을 수|올바르지|잘못|가득|먼저|충돌|보류/.test(status)) return 'warning';
@@ -197,7 +206,7 @@ function App() {
   });
 
   const [currentUser, setCurrentUser] = useState<User | 'admin' | null>(null);
-  const [activeTab, setActiveTab] = useState<'calendar' | 'cabinet' | 'profile' | 'admin'>('calendar');
+  const [activeTab, setActiveTab] = useState<MemberRoom>('calendar');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [serverSyncStatus, setServerSyncStatus] = useState('공동 장부 연결을 기다리는 중');
@@ -521,7 +530,7 @@ function App() {
     setUsers(prev => prev.map(u => u.id === activeUser.id ? activeUser : u));
     setCurrentUser(activeUser);
     const requestedRoom = new URLSearchParams(window.location.search).get('room');
-    const requestedTab = requestedRoom === 'cabinet' || requestedRoom === 'marginalia' ? 'cabinet' : 'calendar';
+    const requestedTab = memberRoomFromLocation(false);
     setActiveTab(requestedTab);
     if (requestedRoom === 'marginalia') {
       const url = new URL(window.location.href);
@@ -532,7 +541,7 @@ function App() {
 
   const handleAdminLogin = () => {
     setCurrentUser('admin');
-    setActiveTab('calendar');
+    setActiveTab(memberRoomFromLocation(true));
   };
 
   const handleLogout = () => {
@@ -544,16 +553,32 @@ function App() {
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
-  const chooseTab = (tab: typeof activeTab) => {
+  const chooseTab = (tab: MemberRoom, navigation: 'push' | 'replace' = 'push') => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
     if (tab === 'cabinet') url.searchParams.set('room', 'cabinet');
-    else {
-      url.searchParams.delete('room');
-      url.searchParams.delete('curiosity');
-    }
-    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    else if (tab === 'profile') url.searchParams.set('room', 'folio');
+    else if (tab === 'admin') url.searchParams.set('room', 'keeper');
+    else url.searchParams.delete('room');
+    if (tab !== 'cabinet') url.searchParams.delete('curiosity');
+    window.history[navigation === 'push' ? 'pushState' : 'replaceState'](
+      { ...window.history.state, memberRoom: tab },
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    );
   };
+
+  useEffect(() => {
+    const restoreRoom = () => {
+      if (!currentUser) return;
+      const next = memberRoomFromLocation(currentUser === 'admin');
+      if (currentUser !== 'admin' && next === 'admin') setActiveTab('calendar');
+      else if (currentUser === 'admin' && (next === 'cabinet' || next === 'profile')) setActiveTab('calendar');
+      else setActiveTab(next);
+    };
+    window.addEventListener('popstate', restoreRoom);
+    return () => window.removeEventListener('popstate', restoreRoom);
+  }, [currentUser]);
 
   // 현재 로그인한 유저의 최신 데이터를 가져오는 헬퍼
   const activeUserData = currentUser && currentUser !== 'admin' 
