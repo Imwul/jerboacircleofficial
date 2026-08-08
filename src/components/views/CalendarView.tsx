@@ -125,6 +125,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       if (aFuture !== bFuture) return aFuture ? -1 : 1;
       return a.getTime() - b.getTime();
     })[0];
+  const nextProgramme = [...events]
+    .filter((event) => {
+      const date = parseEventDate(event.date);
+      return date && (isSameDay(date, startOfDay(new Date())) || isAfter(date, startOfDay(new Date())));
+    })
+    .sort((left, right) => left.date.localeCompare(right.date))[0];
 
   useEffect(() => {
     if (hasAlignedInitialDate.current || events.length === 0) return;
@@ -142,6 +148,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className="archive-calendar-view flex flex-col h-full bg-stone-50">
+      <header className="itinerary-opening">
+        <p><span lang="en">Season itinerary</span><small lang="ko">이번 시즌의 여정</small></p>
+        <h2 lang="ko">날짜보다 먼저, 다음에 건널 장면을 봅니다.</h2>
+        <div>
+          <span lang="ko">열린 장 {events.length}개</span>
+          <strong lang={nextProgramme && /[가-힣]/.test(nextProgramme.title) ? 'ko' : 'en'}>
+            {nextProgramme ? `다음 판본 · ${nextProgramme.title}` : '다음 판본을 기다리는 중'}
+          </strong>
+        </div>
+      </header>
       <div className="archive-calendar-toolbar p-4 bg-white border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
         <div className="archive-calendar-period flex items-center gap-2">
           <button aria-label="이전 달" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="archive-calendar-nav p-1 hover:bg-stone-50 rounded-full text-stone-400">

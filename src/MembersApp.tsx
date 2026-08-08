@@ -743,13 +743,15 @@ function App() {
     ? 'Antecamera'
     : currentUser === 'admin'
       ? activeTab === 'admin' ? 'Keeper Desk' : 'Itinerary'
-      : activeTab === 'cabinet' ? 'Cabinet' : activeTab === 'profile' ? 'Folio' : 'Itinerary';
+      : activeTab === 'cabinet' ? 'Cabinet' : activeTab === 'profile' ? 'Reader' : 'Itinerary';
   const archiveSectionNote = !currentUser
     ? '이름을 선택하면 참여자 장부와 프로그램 기록으로 들어갑니다.'
     : currentUser === 'admin'
       ? '프로그램 일정, 회원 기록, 공동 장부, 백업 파일을 정돈하는 보관자 책상입니다.'
       : activeTab === 'cabinet'
         ? '출처와 만남의 순간을 함께 보존하는 개인 경이 장부입니다.'
+        : activeTab === 'profile'
+          ? '지금 읽고 있는 판본과 개인 기록이 한 사람의 독서 이력으로 이어지는 자리입니다.'
         : '참여할 장을 확인하고, 오늘의 주석과 개인 기록을 잇는 참여자 장부입니다.';
 
   usePageMetadata({
@@ -761,17 +763,17 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="members-archive min-h-screen text-stone-900 font-sans">
+      <div className="members-archive members-editorial-v3 min-h-screen text-stone-900 font-sans">
         <aside className="archive-sidebar" aria-label="Private archive navigation">
           <a className="archive-sigil" href="/">
             <img src={jerboaSeal} alt="저보아 서클" />
           </a>
-          <a className="archive-public-return" href="/">
+          <a className="archive-public-return reader-public-return" href="/">
             <span lang="en">Public archive</span>
             <small lang="ko">공개 기록벽으로</small>
           </a>
           {currentUser ? (
-            <nav className="archive-cabinet" aria-label="Private room sequence">
+            <nav className="archive-cabinet reader-room-navigation" aria-label="Private room sequence">
               <button aria-pressed={activeTab === 'calendar'} className={activeTab === 'calendar' ? 'is-active' : ''} onClick={() => chooseTab('calendar')}>
                 <span lang="en">Itinerary</span>
                 <small lang="ko">열린 장 {events.length}개</small>
@@ -784,8 +786,8 @@ function App() {
               )}
               {currentUser !== 'admin' && (
                 <button aria-pressed={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => chooseTab('profile')}>
-                  <span lang="en">Folio</span>
-                  <small lang="ko">개인 장부</small>
+                  <span lang="en">Reader</span>
+                  <small lang="ko">현재 읽기와 개인 장부</small>
                 </button>
               )}
               {currentUser === 'admin' && (
@@ -796,10 +798,12 @@ function App() {
               )}
             </nav>
           ) : null}
-          <a className="archive-godmode-link" href="/godmode/">
-            <span lang="en">Keeper Desk</span>
-            <small lang="ko">보관자 책상</small>
-          </a>
+          {currentUser === 'admin' && (
+            <a className="archive-godmode-link" href="/godmode/">
+              <span lang="en">Keeper Desk</span>
+              <small lang="ko">보관자 책상</small>
+            </a>
+          )}
           <figure className="archive-source-plate">
             <img src={memberScribePlate.src} alt={memberScribePlate.altText} loading="lazy" decoding="async" />
             <figcaption>
@@ -992,7 +996,7 @@ function App() {
               </button>
               <button aria-current={activeTab === 'profile' ? 'page' : undefined} onClick={() => chooseTab('profile')} className={activeTab === 'profile' ? 'is-active' : ''}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                <span lang="ko">개인 장부</span>
+                <span lang="en">Reader</span>
               </button>
             </nav>
           )}

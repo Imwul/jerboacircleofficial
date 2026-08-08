@@ -15,6 +15,7 @@ import {
 import { usePageMetadata } from '../utils/pageMetadata';
 import { loadServerSync } from '../utils/serverSync';
 import { getArchiveMediaAsset } from '../data/mediaAssets';
+import EditorialHeader from '../components/editorial/EditorialHeader';
 import './HomePage.css';
 import './EditorialStability.css';
 import '../JerboaCondoRefine.css';
@@ -65,18 +66,7 @@ function copyWithSelection(text: string) {
 }
 
 function CatalogueHeader() {
-  return (
-    <header className="archive-header" aria-label="Jerboa Circle catalogue navigation">
-      <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
-        <span>Jerboa</span><span>Circle</span><small lang="la">Ad quaerendum.</small>
-      </a>
-      <nav className="archive-nav" aria-label="Catalogue navigation">
-        <a className="archive-nav-memory" href="/#archive"><span className="nav-en">Memory</span><small lang="ko">프로그램 기록벽</small></a>
-        <a className="archive-nav-fragments" href="/catalogue/" aria-current="page"><span className="nav-en">Catalogue</span><small lang="ko">자료의 계보</small></a>
-        <a className="archive-private-door" href="/members/"><span className="nav-en">Scriptorium</span><small lang="ko">참여자 장부</small></a>
-      </nav>
-    </header>
-  );
+  return <EditorialHeader active="catalogue" note="A catalogue of sources and affinities." />;
 }
 
 export default function CataloguePage({ id }: { id?: string }) {
@@ -168,7 +158,7 @@ export default function CataloguePage({ id }: { id?: string }) {
 
   if (id && !selected) {
     return (
-      <div className="public-home detail-home catalogue-home">
+      <div className="public-home detail-home catalogue-home editorial-v3">
         <CatalogueHeader />
         <main className="missing-record">
           <p className="section-kicker">Uncatalogued fragment / 미필사 자료</p>
@@ -180,16 +170,18 @@ export default function CataloguePage({ id }: { id?: string }) {
   }
 
   return (
-    <div className="public-home detail-home catalogue-home">
+    <div className="public-home detail-home catalogue-home editorial-v3">
       <CatalogueHeader />
       <main className="catalogue-room">
         {selected ? (
           <article className="catalogue-detail">
-            <p className="section-kicker"><span lang="en">{selected.kind}</span> / <span lang="ko">{archiveReferenceKindLabel(selected.kind)}</span></p>
-            <h1 className={selected.title.length > 64 ? 'is-long-title' : undefined} lang={textLanguage(selected.title)}>{selected.title}</h1>
-            {selected.attribution && (!selectedMedia || !selected.attribution.includes(selectedMedia.repositoryObjectId)) && (
-              <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>
-            )}
+            <header className="catalogue-detail-heading">
+              <p className="catalogue-accession"><span lang="en">{selected.kind}</span><small lang="ko">{archiveReferenceKindLabel(selected.kind)}</small></p>
+              <h1 className={selected.title.length > 64 ? 'is-long-title' : undefined} lang={textLanguage(selected.title)}>{selected.title}</h1>
+              {selected.attribution && (!selectedMedia || !selected.attribution.includes(selectedMedia.repositoryObjectId)) && (
+                <p className={`event-subtitle${textLanguage(selected.attribution) === 'en' ? ' archive-body-en' : ''}`} lang={textLanguage(selected.attribution)}>{selected.attribution}</p>
+              )}
+            </header>
             {selectedImage && (
               <figure className="catalogue-media-asset">
                 <img src={selectedImage.src} alt={selectedImage.alt} decoding="async" />
@@ -201,7 +193,6 @@ export default function CataloguePage({ id }: { id?: string }) {
                 )}
               </figure>
             )}
-            <p className="detail-long" lang="ko">{selected.description}</p>
 
             {(metadata.length > 0 || selected.citationNote || selected.sourceUrl) && (
               <section className="catalogue-provenance" aria-labelledby="catalogue-provenance-title">
@@ -227,6 +218,11 @@ export default function CataloguePage({ id }: { id?: string }) {
               {copyStatus && <span role="status" lang="ko">{copyStatus}</span>}
             </div>
 
+            <section className="catalogue-commentary" aria-labelledby="catalogue-commentary-title">
+              <p className="detail-section-label" id="catalogue-commentary-title"><span lang="en">Catalogue note</span><small lang="ko">도록 해설</small></p>
+              <p className="detail-long" lang="ko">{selected.description}</p>
+            </section>
+
             {(parent || children.length > 0) && (
               <section className="catalogue-relations" aria-labelledby="catalogue-family-title">
                 <h2 id="catalogue-family-title"><BilingualLabel en="Lineage" ko="계보" /></h2>
@@ -243,14 +239,17 @@ export default function CataloguePage({ id }: { id?: string }) {
                 </a>
               )) : <p lang="ko">아직 공개 프로그램에 연결되지 않은 자료입니다.</p>}
             </section>
-            <a className="archive-cta" href="/catalogue/"><span className="archive-cta-label">전체 자료 장부</span></a>
+            <nav className="catalogue-closing" aria-label="도록 이어 읽기">
+              <a className="archive-cta" href="/catalogue/"><span className="archive-cta-label" lang="ko">전체 자료 장부</span></a>
+              <a href="/#archive"><span lang="ko">프로그램 연대기에서 이어 읽기</span></a>
+            </nav>
           </article>
         ) : (
           <>
             <header className="catalogue-intro">
-              <p className="section-kicker"><span lang="en">Reference catalogue</span> / <span lang="ko">자료의 계보</span></p>
-              <h1>Books, images, quotations,<br />places and recurring signs.</h1>
-              <p lang="ko">각 판본을 만든 책과 작품, 인용과 도판, 장소와 주제를 한 장부에서 서로 잇습니다.</p>
+              <p className="catalogue-accession"><span lang="en">Reference catalogue</span><small lang="ko">자료의 계보</small></p>
+              <h1>Books, images,<br />quotations and signs.</h1>
+              <p lang="ko">각 판본을 만든 책과 작품, 인용과 도판, 장소와 주제를 한 권의 도록처럼 이어 읽습니다.</p>
             </header>
             <div className="catalogue-tools" aria-label="자료 장부 검색과 종류 필터">
               <label><span>Find</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목, 저자, 설명 검색" /></label>

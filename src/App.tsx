@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import HomePage from './pages/HomePage';
 import ArchiveDetailPage from './pages/ArchiveDetailPage';
 import { usePageMetadata } from './utils/pageMetadata';
+import EditorialHeader from './components/editorial/EditorialHeader';
 import './JerboaCondoRefine.css';
 
 const MembersApp = lazy(() => import('./MembersApp'));
@@ -24,24 +25,8 @@ function NotFoundPage() {
   });
 
   return (
-    <div className="public-home detail-home">
-      <header className="archive-header" aria-label="Jerboa Circle navigation">
-        <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
-          <span>Jerboa</span>
-          <span>Circle</span>
-          <small lang="la">Ad quaerendum.</small>
-        </a>
-        <nav className="archive-nav" aria-label="Not found navigation">
-          <a className="archive-nav-memory" href="/#archive">
-            <span className="nav-en" lang="en">Memory</span>
-            <small lang="ko">공개 기록벽</small>
-          </a>
-          <a className="archive-private-door" href="/members/">
-            <span className="nav-en" lang="en">Scriptorium</span>
-            <small lang="ko">참여자 장부</small>
-          </a>
-        </nav>
-      </header>
+    <div className="public-home detail-home editorial-v3">
+      <EditorialHeader note="A folio not yet found." />
       <main className="detail-record missing-record" aria-labelledby="not-found-title">
         <section className="detail-copy">
           <p className="section-kicker">

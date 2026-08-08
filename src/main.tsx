@@ -11,6 +11,7 @@ if (container) {
   const root = createRoot(container);
   void import('./WorkroomLayout.css')
     .then(() => import('./InterfaceAlignment.css'))
+    .then(() => import('./EditorialRemaster.css'))
     .then(() => {
       root.render(
         <React.StrictMode>
