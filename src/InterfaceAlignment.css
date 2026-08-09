@@ -198,7 +198,7 @@ html body #root div.public-home .archive-tools .archive-discovery :is(
   .archive-select select
 ) {
   min-height: var(--jerboa-control-height) !important;
-  height: auto !important;
+  height: var(--jerboa-control-height) !important;
 }
 
 html body #root .public-home .archive-discovery {
