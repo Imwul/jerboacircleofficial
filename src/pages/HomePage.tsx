@@ -20,8 +20,6 @@ import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import { readArchiveBookmarks, writeArchiveBookmarks } from '../utils/readingMarks';
 import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
-import qabalisticSymbolism480 from '../assets/occult/qabalistic-symbolism-red-480.webp';
-import qabalisticSymbolism800 from '../assets/occult/qabalistic-symbolism-red-800.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
@@ -136,8 +134,8 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
       <div className="masthead-mark">
         <figure className="masthead-cabala" aria-hidden="true">
           <img
-            src={qabalisticSymbolism800}
-            srcSet={`${qabalisticSymbolism480} 480w, ${qabalisticSymbolism800} 800w`}
+            src="/media/qabalistic-symbolism-red-800.webp"
+            srcSet="/media/qabalistic-symbolism-red-480.webp 480w, /media/qabalistic-symbolism-red-800.webp 800w"
             sizes="(max-width: 640px) 100vw, 24vw"
             alt=""
             decoding="async"

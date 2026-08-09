@@ -3,6 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      if (location.pathname === '/' || location.pathname.replace(/\/+$/, '') === '/archive') {
+        const mastheadPreload = document.createElement('link');
+        mastheadPreload.rel = 'preload';
+        mastheadPreload.as = 'image';
+        mastheadPreload.href = '/media/qabalistic-symbolism-red-800.webp';
+        mastheadPreload.setAttribute('imagesrcset', '/media/qabalistic-symbolism-red-480.webp 480w, /media/qabalistic-symbolism-red-800.webp 800w');
+        mastheadPreload.setAttribute('imagesizes', '(max-width: 640px) 100vw, 24vw');
+        mastheadPreload.fetchPriority = 'high';
+        document.head.appendChild(mastheadPreload);
+      }
+    </script>
     <meta
       name="description"
       content="Jerboa Circle Official Archive: a poster wall of literary, artistic, and private cultural programs."
