@@ -49,7 +49,6 @@ import { authenticateRole, roleSessionToken } from '../utils/roleAuth';
 import { trackProductEvent } from '../utils/productAnalytics';
 import RelationshipPicker from '../components/archive/RelationshipPicker';
 import ProgrammeJourney from '../components/archive/ProgrammeJourney';
-import EditorialHeader from '../components/editorial/EditorialHeader';
 import ConnectivityNotice from '../components/ui/ConnectivityNotice';
 import ResilientImage from '../components/ui/ResilientImage';
 import {
@@ -493,16 +492,22 @@ function EventDetail({
   ));
   const references: ArchiveReference[] = getArchiveReferencesForEvent(event, referenceRecords);
   const connections: ArchiveProgrammeConnection[] = getArchiveConnections(event, relationRecords, referenceRecords);
-  const eventIndex = relationRecords.findIndex((record) => record.id === event.id);
-  const nextEvent = relationRecords.length > 1
-    ? relationRecords[(eventIndex + 1 + relationRecords.length) % relationRecords.length]
-    : undefined;
   const primaryThemeSet = new Set(event.primaryThemes.map((theme) => theme.toLocaleLowerCase('en-US')));
   const secondaryThemes = event.themes.filter((theme) => !primaryThemeSet.has(theme.toLocaleLowerCase('en-US')));
 
   return (
-    <div className="public-home detail-home editorial-v3">
-      <EditorialHeader active="archive" note="One programme, read as a folio." />
+    <div className="public-home detail-home">
+      <header className="archive-header">
+        <a className="archive-wordmark" href={detailRootHref()}>
+          <span>Jerboa</span>
+          <span>Circle</span>
+          <small lang="la">{siteText.wordmarkSmall}</small>
+        </a>
+        <nav className="archive-nav" aria-label="Archive record navigation">
+          <a className="archive-nav-memory" href={detailRootHref()}><span className="nav-en" lang="en">{siteText.detailNavArchiveEn}</span><small lang="ko">{siteText.detailNavArchiveKo}</small></a>
+          <a className="archive-private-door" href={`${detailRootHref()}members/`}><span className="nav-en" lang="en">{siteText.detailNavMembersEn}</span><small lang="ko">{siteText.detailNavMembersKo}</small></a>
+        </nav>
+      </header>
       {roleSessionToken('archive-editor') && <ConnectivityNotice context="기록 편집기" />}
       {isPreview && (
         <p className="detail-preview-notice" role="status" lang="ko">
@@ -510,49 +515,37 @@ function EventDetail({
         </p>
       )}
       <main className="detail-record section-reveal">
+        <aside className="detail-poster">
+          <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
+        </aside>
         <article className="detail-copy">
-          <header className="detail-opening">
-            <div className="detail-opening-copy">
-              <p className="detail-edition" lang="en">{event.edition}</p>
-              <div className="programme-theme-taxonomy" aria-label="프로그램 주제">
-                <ul className="programme-primary-themes" aria-label="메인 주제">
-                  {event.primaryThemes.map((theme) => <li data-theme={theme.toLocaleLowerCase('en-US')} key={theme}>{theme}</li>)}
-                </ul>
-                {secondaryThemes.length > 0 && (
-                  <ul className="programme-secondary-themes" aria-label="부가 주제">
-                    {secondaryThemes.map((theme) => <li key={theme}>{theme}</li>)}
-                  </ul>
-                )}
-              </div>
-              <h1 className={event.title.length > 18 ? 'is-long-title' : undefined}>{event.title}</h1>
-              <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
-              <p className="detail-lede" lang="ko">{event.shortDescription}</p>
-            </div>
-            <figure className="detail-poster">
-              <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
-            </figure>
-          </header>
-
-          <section className="detail-reading-opening" aria-label="판본 서문">
-            <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
-            <blockquote className="marginal-note" lang="ko">{event.marginalia}</blockquote>
-          </section>
-
+          <p className="section-kicker">
+            <span className="kicker-en" lang="en">{event.edition}</span>
+          </p>
+          <div className="programme-theme-taxonomy" aria-label="프로그램 주제">
+            <ul className="programme-primary-themes" aria-label="메인 주제">
+              {event.primaryThemes.map((theme) => <li data-theme={theme.toLocaleLowerCase('en-US')} key={theme}>{theme}</li>)}
+            </ul>
+            {secondaryThemes.length > 0 && (
+              <ul className="programme-secondary-themes" aria-label="부가 주제">
+                {secondaryThemes.map((theme) => <li key={theme}>{theme}</li>)}
+              </ul>
+            )}
+          </div>
+          <h1 className={event.title.length > 18 ? 'is-long-title' : undefined}>{event.title}</h1>
+          <p className="event-subtitle" lang={/[가-힣]/.test(event.subtitle) ? 'ko' : 'en'}>{event.subtitle}</p>
+          <p className="latin-line" lang={/[가-힣]/.test(event.latinQuote) ? 'ko' : 'en'}>{event.latinQuote}</p>
+          <p className="marginal-note" lang="ko">{event.marginalia}</p>
           <figure className="detail-manuscript-plate">
             <ResilientImage
               src={event.detailImage || editorialPlates.detail.src}
-              alt={event.detailImageAlt || editorialPlates.detail.altText}
+              alt={event.detailImageAlt || ''}
+              aria-hidden={event.detailImageAlt ? undefined : true}
               loading="lazy"
               decoding="async"
             />
-            <figcaption lang="ko">이 판본의 질문을 여는 도판</figcaption>
           </figure>
-
-          <section className="detail-essay" aria-labelledby="detail-essay-title">
-            <p className="detail-section-label" id="detail-essay-title"><span lang="en">Reading note</span><small lang="ko">판본 해설</small></p>
-            <p className="detail-long" lang="ko">{event.longDescription}</p>
-          </section>
-
+          <p className="detail-long" lang="ko">{event.longDescription}</p>
           <ProgrammeJourney
             className="detail-journey-sequence"
             passage={event.passage}
@@ -588,27 +581,27 @@ function EventDetail({
               </div>
             </section>
           )}
-          <footer className="detail-colophon">
-            <p className="detail-section-label"><span lang="en">Colophon</span><small lang="ko">판본 정보</small></p>
-            <dl className="event-meta detail-meta">
-              <div><dt lang={detailTextLang(siteText.metaDate)}>{siteText.metaDate}</dt><dd lang={detailTextLang(event.date)}>{event.date}</dd></div>
-              <div><dt lang={detailTextLang(siteText.metaFormat)}>{siteText.metaFormat}</dt><dd lang={detailTextLang(event.location)}>{event.location}</dd></div>
-              <div><dt lang="ko">시즌</dt><dd>{season ? `${season.label} / ${season.title}` : event.seasonId}</dd></div>
-              <div><dt lang="ko">컬렉션</dt><dd>{collections.map((collection) => collection.title).join(' / ') || event.collectionIds.join(' / ')}</dd></div>
-            </dl>
-            <div className="detail-closing-links">
-              <a className="archive-cta" href={detailRootHref()}>
-                <span className="archive-cta-label" lang={detailTextLang(siteText.detailBackLabel)}>{siteText.detailBackLabel}</span>
-              </a>
-              {nextEvent && (
-                <a className="detail-next-record" href={`${detailRootHref()}archive/${nextEvent.id}/`}>
-                  <small lang="ko">다음으로 읽을 판본</small>
-                  <strong lang={detailTextLang(nextEvent.title)}>{nextEvent.title}</strong>
-                  <span aria-hidden="true">→</span>
-                </a>
-              )}
+          <dl className="event-meta detail-meta">
+            <div>
+              <dt lang={detailTextLang(siteText.metaDate)}>{siteText.metaDate}</dt>
+              <dd lang={detailTextLang(event.date)}>{event.date}</dd>
             </div>
-          </footer>
+            <div>
+              <dt lang={detailTextLang(siteText.metaFormat)}>{siteText.metaFormat}</dt>
+              <dd lang={detailTextLang(event.location)}>{event.location}</dd>
+            </div>
+            <div>
+              <dt lang="ko">시즌</dt>
+              <dd>{season ? `${season.label} / ${season.title}` : event.seasonId}</dd>
+            </div>
+            <div>
+              <dt lang="ko">컬렉션</dt>
+              <dd>{collections.map((collection) => collection.title).join(' / ') || event.collectionIds.join(' / ')}</dd>
+            </div>
+          </dl>
+          <a className="archive-cta" href={detailRootHref()}>
+            <span className="archive-cta-label" lang={detailTextLang(siteText.detailBackLabel)}>{siteText.detailBackLabel}</span>
+          </a>
         </article>
       </main>
       {roleSessionToken('archive-editor') && (

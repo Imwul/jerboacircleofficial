@@ -56,9 +56,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ users, onUserLogin, onAdmi
     <div className="member-login">
       <section className="member-login-hero" aria-labelledby="member-login-title">
         <div className="member-login-title">
-          <h2 id="member-login-title" lang="en">
-            Reading Room
-          </h2>
+          <h1 id="member-login-title" lang="en">
+            Reader folios
+          </h1>
         </div>
         <figure className="member-login-manuscript">
           <img

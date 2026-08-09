@@ -19,6 +19,8 @@ import {
 import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import { readArchiveBookmarks, writeArchiveBookmarks } from '../utils/readingMarks';
+import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
+import qabalisticSymbolism from '../assets/occult/qabalistic-symbolism-red.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
@@ -28,7 +30,6 @@ import {
 } from '../utils/archiveReferenceDrafts';
 import ArchiveConstellation from '../components/archive/ArchiveConstellation';
 import ProgrammeJourney from '../components/archive/ProgrammeJourney';
-import EditorialHeader from '../components/editorial/EditorialHeader';
 import ResilientImage from '../components/ui/ResilientImage';
 import './HomePage.css';
 import './EditorialStability.css';
@@ -100,8 +101,24 @@ function EditorialKicker({ en, ko }: { en: string; ko: string }) {
   );
 }
 
-function SiteHeader() {
-  return <EditorialHeader active="entrance" />;
+function SiteHeader({ siteText }: { siteText: SiteText }) {
+  return (
+    <header className="archive-header" aria-label="Jerboa Circle navigation">
+      <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
+        <span>Jerboa</span>
+        <span>Circle</span>
+        <small lang="la">{siteText.wordmarkSmall}</small>
+        <img className="archive-wordmark-seal" src={jerboaSeal} alt="" aria-hidden="true" decoding="async" width={591} height={591} />
+      </a>
+      <nav className="archive-nav" aria-label="Primary navigation">
+        <a className="archive-nav-threshold" href="#featured"><span className="nav-en" lang="en">{siteText.navFeaturedEn}</span><small lang="ko">{siteText.navFeaturedKo}</small></a>
+        <a className="archive-nav-memory" href="#archive"><span className="nav-en" lang="en">{siteText.navArchiveEn}</span><small lang="ko">{siteText.navArchiveKo}</small></a>
+        <a className="archive-nav-fragments" href="#manifesto"><span className="nav-en" lang="en">{siteText.navManifestoEn}</span><small lang="ko">{siteText.navManifestoKo}</small></a>
+        <a className="archive-nav-letter" href="#join"><span className="nav-en" lang="en">{siteText.navJoinEn}</span><small lang="ko">{siteText.navJoinKo}</small></a>
+        <a className="archive-private-door" href="/members/"><span className="nav-en" lang="en">{siteText.navMembersEn}</span><small lang="ko">{siteText.navMembersKo}</small></a>
+      </nav>
+    </header>
+  );
 }
 
 function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; siteText: SiteText }) {
@@ -114,30 +131,47 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
     : [siteText.mastheadIntroEn];
 
   return (
-    <section className="publication-masthead editorial-entrance" aria-label="Jerboa Circle exhibition entrance">
-      <figure className="masthead-exhibition-image">
-        <ResilientImage
-          src={editorialPlates.masthead.src}
-          alt={editorialPlates.masthead.altText}
-          decoding="async"
-          width={1200}
-          height={1600}
-        />
-      </figure>
+    <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
+      <div className="masthead-mark">
+        <figure className="masthead-cabala" aria-hidden="true">
+          <img src={qabalisticSymbolism} alt="" decoding="async" width={1014} height={1547} />
+        </figure>
+      </div>
       <div className="masthead-index">
-        <span className="masthead-eyebrow" lang="en">Independent circle · public archive · Seoul</span>
-        <h1 lang="en">Jerboa Circle</h1>
         <p className="masthead-declaration" lang="en">
           {declarationLines.map((line) => <span key={line}>{line}</span>)}
         </p>
-        <p className="masthead-introduction" lang="ko">{siteText.mastheadIntroKo}</p>
-        <a className="masthead-current" href="#featured">
-          <span lang="en">Now on view</span>
-          <strong lang={textLang(featuredEvent.title)}>{featuredEvent.title}</strong>
-          <small lang="ko">현재 판본으로 내려가기</small>
-        </a>
+        <p lang="ko">{siteText.mastheadIntroKo}</p>
+        <div className="orientation-ledger" aria-label="How to read this archive">
+          <p className="orientation-kicker">
+            <span lang="en">{siteText.orientationKickerEn}</span>
+            <span aria-hidden="true"> / </span>
+            <span lang="ko">{siteText.orientationKickerKo}</span>
+          </p>
+          <strong><span lang="ko">{siteText.orientationStatementKo}</span></strong>
+          <div className="orientation-routes">
+            <a href="#featured">
+              <span className="route-en" lang="en">{siteText.navFeaturedEn}</span>
+              <small lang="ko">{siteText.orientationCurrentKo}</small>
+            </a>
+            <a href="#archive">
+              <span className="route-en" lang="en">{siteText.navArchiveEn}</span>
+              <small lang="ko">{siteText.orientationArchiveKo}</small>
+            </a>
+            <a href="/members/">
+              <span className="route-en" lang="en">{siteText.navMembersEn}</span>
+              <small lang="ko">{siteText.orientationPrivateKo}</small>
+            </a>
+          </div>
+        </div>
+        <ol className="masthead-ritual">
+          <li>{siteText.ritualOne}</li>
+          <li>{siteText.ritualTwo}</li>
+          <li>{siteText.ritualThree}</li>
+          <li>{siteText.ritualFour}</li>
+        </ol>
       </div>
-      <p className="masthead-latin" lang={textLang(featuredEvent.latinQuote)}>{featuredEvent.latinQuote}</p>
+      <p className="masthead-latin">{featuredEvent.latinQuote}</p>
     </section>
   );
 }
@@ -176,10 +210,14 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
         <ProgrammeThemes primaryThemes={featuredEvent.primaryThemes} themes={featuredEvent.themes} />
-        <h2 lang={textLang(featuredEvent.title)}>{featuredEvent.title}</h2>
+        <h1 lang={textLang(featuredEvent.title)}>{featuredEvent.title}</h1>
         <p className="event-subtitle" lang={textLang(featuredEvent.subtitle)}>{featuredEvent.subtitle}</p>
         <p className="latin-line" lang={textLang(featuredEvent.latinQuote)}>{featuredEvent.latinQuote}</p>
         <p className="marginal-note" lang="ko">{featuredEvent.marginalia}</p>
+        <EditorialPlate
+          className="editorial-plate--featured"
+          asset={editorialPlates.featured}
+        />
         <p className="event-description" lang="ko">{featuredEvent.shortDescription}</p>
         <ProgrammeJourney
           className="featured-journey-sequence"
@@ -229,47 +267,44 @@ function matchesArchiveQuery(
 
 function PosterTile({
   event,
-  index,
   isBookmarked,
   onRememberPosition,
   onToggleBookmark,
 }: {
   event: ArchiveEvent;
-  index: number;
   isBookmarked: boolean;
   onRememberPosition: (link: HTMLAnchorElement) => void;
   onToggleBookmark: (id: string) => void;
 }) {
-  const year = event.publishedAt?.slice(0, 4) || event.updatedAt?.slice(0, 4) || '—';
-
   return (
     <article className="poster-tile section-reveal">
+      <div className="poster-visual">
+        <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
+          <div className="poster-frame">
+            <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
+          </div>
+        </a>
+        <button
+          type="button"
+          className="archive-bookmark"
+          aria-pressed={isBookmarked}
+          aria-label={`${event.title} ${isBookmarked ? '북마크 해제' : '북마크'}`}
+          title={isBookmarked ? '북마크 해제' : '북마크'}
+          onClick={() => onToggleBookmark(event.id)}
+        >
+          <span aria-hidden="true">{isBookmarked ? '✦' : '✧'}</span>
+        </button>
+      </div>
       <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
-        <div className="poster-chronology-mark" aria-hidden="true">
-          <span>{String(index + 1).padStart(2, '0')}</span>
-          <small>{year}</small>
-        </div>
         <div className="poster-caption">
-          <span className="poster-edition">{event.edition}</span>
-          <h3 lang={textLang(event.title)}>{event.title}</h3>
-          <p lang="ko">{event.shortDescription}</p>
           <ProgrammeThemes primaryThemes={event.primaryThemes} themes={event.themes} />
+          <span>{event.edition}</span>
+          <h2 lang={textLang(event.title)}>{event.title}</h2>
+          <small className="poster-subtitle" lang="ko">{event.shortDescription}</small>
+          <p lang="ko">{event.shortDescription}</p>
         </div>
-        <figure className="poster-frame">
-          <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
-        </figure>
-        <span className="poster-open-tab" lang="ko">기록 읽기</span>
+        <span className="poster-open-tab" aria-hidden="true">Open <i>🜍</i></span>
       </a>
-      <button
-        type="button"
-        className="archive-bookmark"
-        aria-pressed={isBookmarked}
-        aria-label={`${event.title} ${isBookmarked ? '북마크 해제' : '북마크'}`}
-        title={isBookmarked ? '북마크 해제' : '북마크'}
-        onClick={() => onToggleBookmark(event.id)}
-      >
-        <span aria-hidden="true">{isBookmarked ? '✦' : '✧'}</span>
-      </button>
     </article>
   );
 }
@@ -449,12 +484,7 @@ function PosterArchive({
             <span lang="en">Catalogue</span><small lang="ko">자료 장부</small>
           </a>
         </div>
-        <details className="archive-filter-drawer">
-          <summary>
-            <span lang="en">Find a record</span>
-            <small lang="ko">검색과 분류 열기</small>
-          </summary>
-          <div className="archive-discovery">
+        <div className="archive-discovery">
           <label className="archive-search">
             <span className="archive-search-control">
               <input
@@ -559,16 +589,14 @@ function PosterArchive({
               <span lang="ko">필터 지우기</span>
             </button>
           )}
-          </div>
-        </details>
+        </div>
       </div>
       {archiveView === 'chronology' ? (
         orderedVisibleEvents.length > 0 ? (
           <div className="poster-grid">
-            {orderedVisibleEvents.map((event, index) => (
+            {orderedVisibleEvents.map((event) => (
               <PosterTile
                 event={event}
-                index={index}
                 isBookmarked={bookmarkedIds.includes(event.id)}
                 key={event.id}
                 onRememberPosition={rememberListPosition}
@@ -590,15 +618,12 @@ function PosterArchive({
 function ManifestoBlock({ siteText }: { siteText: SiteText }) {
   return (
     <section className="manifesto-block section-reveal" id="manifesto">
+      <EditorialKicker en={siteText.manifestoKickerEn} ko={siteText.manifestoKickerKo} />
       <EditorialPlate
         className="editorial-plate--manifesto"
         asset={editorialPlates.manifesto}
       />
-      <div className="manifesto-copy">
-        <EditorialKicker en={siteText.manifestoKickerEn} ko={siteText.manifestoKickerKo} />
-        <blockquote className="ko-display"><p lang="ko">{siteText.manifestoBody}</p></blockquote>
-        <a href="/catalogue/" lang="ko">자료의 계보로 이어 읽기</a>
-      </div>
+      <p className="ko-display"><span lang="ko">{siteText.manifestoBody}</span></p>
     </section>
   );
 }
@@ -608,8 +633,11 @@ function JoinBlock({ siteText }: { siteText: SiteText }) {
     <section className="join-block section-reveal" id="join">
       <div>
         <EditorialKicker en={siteText.joinKickerEn} ko={siteText.joinKickerKo} />
+        <EditorialPlate
+          className="editorial-plate--join"
+          asset={editorialPlates.join}
+        />
         <h2 className="ko-display"><span lang="ko">{siteText.joinHeading}</span></h2>
-        <p lang="ko">프로그램 참여, 자료 열람, 함께 읽고 싶은 문장에 관해 적어주세요.</p>
       </div>
       <a className="archive-cta inverse" href={siteText.joinCtaHref}>
         <span className="archive-cta-label" lang={textLang(siteText.joinCtaLabel)}>{siteText.joinCtaLabel}</span>
@@ -677,9 +705,9 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="public-home archive-home editorial-v3">
+    <div className="public-home archive-home">
       <a className="skip-to-archive" href="#archive"><span lang="ko">기록 목록으로 바로가기</span></a>
-      <SiteHeader />
+      <SiteHeader siteText={siteText} />
       <main>
         <Masthead featuredEvent={currentEvent} siteText={siteText} />
         <FeaturedEvent featuredEvent={currentEvent} siteText={siteText} />
