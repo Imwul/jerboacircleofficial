@@ -20,7 +20,8 @@ import { usePageMetadata } from '../utils/pageMetadata';
 import { normalizeSearchTerm, trackProductEvent } from '../utils/productAnalytics';
 import { readArchiveBookmarks, writeArchiveBookmarks } from '../utils/readingMarks';
 import jerboaSeal from '../assets/identity/jerboa-seal-transparent.webp';
-import qabalisticSymbolism from '../assets/occult/qabalistic-symbolism-red.webp';
+import qabalisticSymbolism480 from '../assets/occult/qabalistic-symbolism-red-480.webp';
+import qabalisticSymbolism800 from '../assets/occult/qabalistic-symbolism-red-800.webp';
 import { editorialPlates } from '../data/manuscriptPlates';
 import type { ArchiveMediaAsset } from '../data/mediaAssets';
 import { archiveKnowledgeSearchText, archiveReferences, type ArchiveReference } from '../data/archiveKnowledge';
@@ -134,7 +135,16 @@ function Masthead({ featuredEvent, siteText }: { featuredEvent: ArchiveEvent; si
     <section className="publication-masthead" aria-label="Jerboa Circle publication identity">
       <div className="masthead-mark">
         <figure className="masthead-cabala" aria-hidden="true">
-          <img src={qabalisticSymbolism} alt="" decoding="async" width={1014} height={1547} />
+          <img
+            src={qabalisticSymbolism800}
+            srcSet={`${qabalisticSymbolism480} 480w, ${qabalisticSymbolism800} 800w`}
+            sizes="(max-width: 640px) 100vw, 24vw"
+            alt=""
+            decoding="async"
+            fetchPriority="high"
+            width={800}
+            height={1230}
+          />
         </figure>
       </div>
       <div className="masthead-index">
