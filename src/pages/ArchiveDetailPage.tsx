@@ -516,7 +516,15 @@ function EventDetail({
       )}
       <main className="detail-record section-reveal">
         <aside className="detail-poster">
-          <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} decoding="async" width={1200} height={1600} />
+          <ResilientImage
+            src={event.posterImage}
+            alt={event.posterAlt ?? `${event.title} poster`}
+            decoding="async"
+            fetchPriority="high"
+            sizes="(max-width: 1100px) 100vw, 50vw"
+            width={1200}
+            height={1600}
+          />
         </aside>
         <article className="detail-copy">
           <p className="section-kicker">

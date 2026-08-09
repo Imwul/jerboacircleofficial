@@ -33,6 +33,7 @@ export function renderPublicPageMetadata(html, {
   origin,
   canonicalPath,
   image = '/og.png',
+  imageAlt = title,
   type = 'website',
   indexable = true,
 }) {
@@ -59,11 +60,15 @@ export function renderPublicPageMetadata(html, {
   if (image) {
     const imageUrl = new URL(image, `${origin}/`).href;
     next = replaceMeta(next, 'property', 'og:image', imageUrl);
+    next = replaceMeta(next, 'property', 'og:image:alt', imageAlt);
     next = replaceMeta(next, 'name', 'twitter:image', imageUrl);
+    next = replaceMeta(next, 'name', 'twitter:image:alt', imageAlt);
     next = replaceMeta(next, 'name', 'twitter:card', 'summary_large_image');
   } else {
     next = removeMeta(next, 'property', 'og:image');
+    next = removeMeta(next, 'property', 'og:image:alt');
     next = removeMeta(next, 'name', 'twitter:image');
+    next = removeMeta(next, 'name', 'twitter:image:alt');
     next = replaceMeta(next, 'name', 'twitter:card', 'summary');
   }
   return next;

@@ -1,5 +1,6 @@
 import { del, get, put } from '@vercel/blob';
 import crypto from 'node:crypto';
+import sharp from 'sharp';
 import { verifyRoleSession } from '../server/authCore.js';
 import { validateImageBuffer } from '../shared/imageValidation.mjs';
 
@@ -9,6 +10,7 @@ const allowedTypes = new Map([
   ['image/png', 'png'],
   ['image/webp', 'webp'],
 ]);
+const responsiveMediaWidths = new Set([320, 480, 640, 800, 1080]);
 
 function sendJson(response: any, statusCode: number, body: unknown) {
   response.statusCode = statusCode;
@@ -70,11 +72,44 @@ async function deliverPrivateMedia(request: any, response: any) {
   const pathname = safeMediaPathname(requestUrl.searchParams.get('pathname'));
   if (!pathname) return sendJson(response, 400, { ok: false, error: 'invalid_media_path' });
 
+  const requestedWidth = Number(requestUrl.searchParams.get('width'));
+  const shouldTransform = requestUrl.searchParams.get('format') === 'webp'
+    && responsiveMediaWidths.has(requestedWidth);
+
   const result = await get(pathname, {
     access: 'private',
-    ifNoneMatch: typeof request.headers['if-none-match'] === 'string' ? request.headers['if-none-match'] : undefined,
+    ifNoneMatch: !shouldTransform && typeof request.headers['if-none-match'] === 'string'
+      ? request.headers['if-none-match']
+      : undefined,
   });
   if (!result) return sendJson(response, 404, { ok: false, error: 'media_not_found' });
+
+  if (shouldTransform && result.statusCode === 200 && result.stream) {
+    const variantEtag = `"${crypto.createHash('sha256')
+      .update(`${result.blob.etag}:${requestedWidth}:webp-v1`)
+      .digest('hex')}"`;
+    if (request.headers['if-none-match'] === variantEtag) {
+      response.statusCode = 304;
+      response.setHeader('cache-control', 'public, max-age=31536000, immutable');
+      response.setHeader('etag', variantEtag);
+      return response.end();
+    }
+
+    response.setHeader('cache-control', 'public, max-age=31536000, immutable');
+    response.setHeader('content-type', 'image/webp');
+    response.setHeader('etag', variantEtag);
+    response.setHeader('x-content-type-options', 'nosniff');
+    if (request.method === 'HEAD') return response.end();
+
+    const source = Buffer.from(await new Response(result.stream).arrayBuffer());
+    const image = await sharp(source, { limitInputPixels: 40_000_000 })
+      .rotate()
+      .resize({ width: requestedWidth })
+      .webp({ quality: 84, effort: 4 })
+      .toBuffer();
+    response.setHeader('content-length', String(image.byteLength));
+    return response.end(image);
+  }
 
   response.statusCode = result.statusCode;
   response.setHeader('cache-control', 'public, max-age=31536000, immutable');
@@ -84,6 +119,7 @@ async function deliverPrivateMedia(request: any, response: any) {
   response.setHeader('content-type', result.blob.contentType || 'application/octet-stream');
   response.setHeader('content-length', String(result.blob.size));
   response.setHeader('x-content-type-options', 'nosniff');
+  if (request.method === 'HEAD') return response.end();
   const reader = result.stream.getReader();
   while (true) {
     const { done, value } = await reader.read();
@@ -148,7 +184,7 @@ async function deleteAbandonedMedia(request: any, response: any) {
 }
 
 export default async function handler(request: any, response: any) {
-  if (request.method === 'GET') {
+  if (request.method === 'GET' || request.method === 'HEAD') {
     try {
       return await deliverPrivateMedia(request, response);
     } catch (error) {
@@ -165,7 +201,7 @@ export default async function handler(request: any, response: any) {
     }
   }
   if (request.method !== 'POST') {
-    response.setHeader('allow', 'GET, POST, DELETE');
+    response.setHeader('allow', 'GET, HEAD, POST, DELETE');
     return sendJson(response, 405, { ok: false, error: 'method_not_allowed' });
   }
 

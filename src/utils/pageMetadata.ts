@@ -5,6 +5,7 @@ interface PageMetadata {
   description: string;
   canonicalPath?: string;
   image?: string;
+  imageAlt?: string;
   noIndex?: boolean;
   type?: 'website' | 'article';
 }
@@ -41,6 +42,7 @@ export function usePageMetadata({
   description,
   canonicalPath,
   image = '/og.png',
+  imageAlt = title,
   noIndex = false,
   type = 'website',
 }: PageMetadata) {
@@ -117,10 +119,22 @@ export function usePageMetadata({
         meta.setAttribute('name', 'twitter:image');
         return meta;
       }, imageUrl);
+      upsertMeta('meta[property="og:image:alt"]', () => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('property', 'og:image:alt');
+        return meta;
+      }, imageAlt);
+      upsertMeta('meta[name="twitter:image:alt"]', () => {
+        const meta = document.createElement('meta');
+        meta.setAttribute('name', 'twitter:image:alt');
+        return meta;
+      }, imageAlt);
     } else {
       removeMeta('meta[property="og:image"]');
       removeMeta('meta[name="twitter:image"]');
+      removeMeta('meta[property="og:image:alt"]');
+      removeMeta('meta[name="twitter:image:alt"]');
     }
     upsertCanonical(canonicalPath);
-  }, [title, description, canonicalPath, image, noIndex, type]);
+  }, [title, description, canonicalPath, image, imageAlt, noIndex, type]);
 }

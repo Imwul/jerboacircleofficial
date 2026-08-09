@@ -38,6 +38,7 @@ import {
 import { loadServerSync, saveServerSync, ServerSyncError } from '../utils/serverSync';
 import {
   getSiteText,
+  isSafeSiteHref,
   mergeSiteText,
   writeSiteTextDraft,
 } from '../utils/siteTextDrafts';
@@ -407,7 +408,11 @@ function validateSiteTextForm(siteText: SiteText) {
   ];
 
   const emptyField = requiredKeys.find(([key]) => !siteText[key].trim());
-  return emptyField ? `${emptyField[1]}을 입력하세요` : '';
+  if (emptyField) return `${emptyField[1]}을 입력하세요`;
+  if (!isSafeSiteHref(siteText.joinCtaHref)) {
+    return '문의 버튼 링크는 https://, mailto:, tel:, / 또는 #으로 시작해야 합니다';
+  }
+  return '';
 }
 
 function posterUploadMessage(error: unknown) {

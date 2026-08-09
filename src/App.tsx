@@ -26,7 +26,7 @@ function NotFoundPage() {
   return (
     <div className="public-home detail-home">
       <header className="archive-header" aria-label="Jerboa Circle navigation">
-        <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
+        <a className="archive-wordmark" href="/">
           <span>Jerboa</span>
           <span>Circle</span>
           <small lang="la">Ad quaerendum.</small>

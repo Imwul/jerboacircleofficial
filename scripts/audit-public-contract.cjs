@@ -30,10 +30,12 @@ function assertMetadata(relativePath, canonicalPath, noIndex = false) {
     /<meta property="og:description" content="[^"]+" \/>/,
     /<meta property="og:type" content="[^"]+" \/>/,
     /<meta property="og:image" content="[^"]+" \/>/,
+    /<meta property="og:image:alt" content="[^"]+" \/>/,
     /<meta name="twitter:card" content="[^"]+" \/>/,
     /<meta name="twitter:title" content="[^"]+" \/>/,
     /<meta name="twitter:description" content="[^"]+" \/>/,
     /<meta name="twitter:image" content="[^"]+" \/>/,
+    /<meta name="twitter:image:alt" content="[^"]+" \/>/,
   ]) {
     if (!selector.test(html)) fail(`${label}: public metadata is incomplete (${selector})`);
   }

@@ -53,7 +53,9 @@ function withMetadata(html, {
   if (image) {
     const imageUrl = new URL(image, `${siteOrigin}/`).href;
     next = replaceMeta(next, 'property', 'og:image', imageUrl);
+    next = replaceMeta(next, 'property', 'og:image:alt', title);
     next = replaceMeta(next, 'name', 'twitter:image', imageUrl);
+    next = replaceMeta(next, 'name', 'twitter:image:alt', title);
   }
   return next;
 }

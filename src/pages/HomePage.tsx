@@ -104,7 +104,7 @@ function EditorialKicker({ en, ko }: { en: string; ko: string }) {
 function SiteHeader({ siteText }: { siteText: SiteText }) {
   return (
     <header className="archive-header" aria-label="Jerboa Circle navigation">
-      <a className="archive-wordmark" href="/" aria-label="Jerboa Circle archive home">
+      <a className="archive-wordmark" href="/">
         <span>Jerboa</span>
         <span>Circle</span>
         <small lang="la">{siteText.wordmarkSmall}</small>
@@ -205,7 +205,15 @@ function FeaturedEvent({ featuredEvent, siteText }: { featuredEvent: ArchiveEven
   return (
     <section className="featured-event section-reveal" id="featured">
       <div className="featured-poster-wrap">
-        <ResilientImage src={featuredEvent.posterImage} alt={featuredEvent.posterAlt ?? `${featuredEvent.title} poster`} decoding="async" width={1200} height={1600} />
+        <ResilientImage
+          src={featuredEvent.posterImage}
+          alt={featuredEvent.posterAlt ?? `${featuredEvent.title} poster`}
+          decoding="async"
+          fetchPriority="high"
+          sizes="(max-width: 1100px) 100vw, 50vw"
+          width={1200}
+          height={1600}
+        />
       </div>
       <div className="featured-copy">
         <EditorialKicker en={siteText.featuredKickerEn} ko={siteText.featuredKickerKo} />
@@ -281,7 +289,15 @@ function PosterTile({
       <div className="poster-visual">
         <a className="poster-image-link" href={event.ctaHref} aria-label={`${event.title} 포스터와 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
           <div className="poster-frame">
-            <ResilientImage src={event.posterImage} alt={event.posterAlt ?? `${event.title} poster`} loading="lazy" decoding="async" width={1200} height={1600} />
+            <ResilientImage
+              src={event.posterImage}
+              alt={event.posterAlt ?? `${event.title} poster`}
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 34vw"
+              width={1200}
+              height={1600}
+            />
           </div>
         </a>
         <button
@@ -295,7 +311,7 @@ function PosterTile({
           <span aria-hidden="true">{isBookmarked ? '✦' : '✧'}</span>
         </button>
       </div>
-      <a className="poster-record-link" href={event.ctaHref} aria-label={`${event.title} 기록 열기`} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
+      <a className="poster-record-link" href={event.ctaHref} onClick={(clickEvent) => onRememberPosition(clickEvent.currentTarget)}>
         <div className="poster-caption">
           <ProgrammeThemes primaryThemes={event.primaryThemes} themes={event.themes} />
           <span>{event.edition}</span>
@@ -670,12 +686,15 @@ export default function HomePage() {
   const collectionRecords = useMemo(() => applyArchiveCollectionDrafts(archiveCollections, publicCollections), [publicCollections]);
   const references = useMemo(() => applyArchiveReferenceDraftMap(archiveReferences, publicReferences), [publicReferences]);
   const currentEvent = archiveEvents.find((event) => event.status === 'current') ?? archiveEvents[0] ?? events[0];
+  const isArchiveIndex = window.location.pathname.replace(/\/+$/, '') === '/archive';
 
   usePageMetadata({
-    title: 'Jerboa Circle Official Archive',
-    description: `${currentEvent.title}: ${currentEvent.shortDescription}`,
-    canonicalPath: '/',
-    image: currentEvent.posterImage,
+    title: isArchiveIndex ? 'Archive | Jerboa Circle' : 'Jerboa Circle Official Archive',
+    description: isArchiveIndex
+      ? '저보아 서클의 현재 프로그램과 지난 기록을 검색하고 분류해 살펴봅니다.'
+      : '문헌, 이미지, 장소와 프로그램이 서로 이어지는 저보아 서클의 공식 아카이브.',
+    canonicalPath: isArchiveIndex ? '/archive/' : '/',
+    image: isArchiveIndex ? '/og.png' : currentEvent.posterImage,
   });
 
   useEffect(() => {

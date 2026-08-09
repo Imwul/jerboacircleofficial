@@ -41,6 +41,10 @@ function canUseStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage);
 }
 
+export function isSafeSiteHref(value: string) {
+  return /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i.test(value.trim());
+}
+
 export function mergeSiteText(draft?: Partial<SiteText> | null): SiteText {
   const migratedDraft = { ...(draft || {}) };
   (Object.keys(legacySiteText) as Array<keyof SiteText>).forEach((key) => {
@@ -48,6 +52,10 @@ export function mergeSiteText(draft?: Partial<SiteText> | null): SiteText {
       migratedDraft[key] = defaultSiteText[key];
     }
   });
+
+  if (typeof migratedDraft.joinCtaHref === 'string' && !isSafeSiteHref(migratedDraft.joinCtaHref)) {
+    migratedDraft.joinCtaHref = defaultSiteText.joinCtaHref;
+  }
 
   return {
     ...defaultSiteText,

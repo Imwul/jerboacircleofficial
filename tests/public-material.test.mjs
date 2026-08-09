@@ -77,5 +77,7 @@ test('published public pages receive canonical and complete social metadata', ()
   });
   assert.match(html, /rel="canonical" href="https:\/\/jerboacircleofficial\.vercel\.app\/archive\/record\/"/);
   assert.match(html, /property="og:type" content="article"/);
+  assert.match(html, /property="og:image:alt" content="Record \| Jerboa Circle"/);
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
+  assert.match(html, /name="twitter:image:alt" content="Record \| Jerboa Circle"/);
 });
