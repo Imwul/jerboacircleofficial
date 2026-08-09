@@ -1435,3 +1435,21 @@ html body #root :is(a, button, input, select, textarea, summary, [tabindex]):foc
   outline-offset: 3px !important;
   box-shadow: 0 0 0 2px var(--paper, #f4eddc) !important;
 }
+
+/* The lower illustrations may crop inside their frames, but never beyond the
+   closing rule into the archive footer. */
+html body #root .public-home.archive-home > main > :is(.manifesto-block, .join-block) {
+  overflow: hidden !important;
+}
+
+html body #root .public-home.archive-home :is(.manifesto-block, .join-block) :is(.editorial-plate--manifesto, .editorial-plate--join) {
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+html body #root .public-home.archive-home :is(.manifesto-block, .join-block) :is(.editorial-plate--manifesto, .editorial-plate--join) img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transform: none !important;
+}
